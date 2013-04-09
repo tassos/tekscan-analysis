@@ -22,9 +22,16 @@ clear all
 [fileName,pathName,filterIndex] = uigetfile('.asf','Select calibration measurement files','MultiSelect','on');
 fileName=char(fileName);
 
-%Defining number of rows and columns of the sensor
-nrows=46;
-ncols=32;
+for i=1:1
+    %Opening file
+    text = fileread([pathName fileName(i,:)]);
+    
+    %Reading out information about the sensor (number of columns, rows
+    %etc).
+    ncols=str2double(regexp(text,'(?<=COLS )\d*','match'));
+    nrows=str2double(regexp(text,'(?<=ROWS )\d*','match'));
+    senselArea = str2double(regexp(text,'(?<=SENSEL_AREA )\d*\.\d*','match'));
+end
 
 %Initialising arrays to gain speed
 calibration=zeros(size(fileName,1),nrows,ncols);
@@ -34,16 +41,11 @@ loads=zeros(size(fileName,1),1);
 %first dimension are the rows of the sensor, the second are the columns and
 %the third are for the different loading levels
 for i=1:size(fileName,1)
-    text = fileread([pathName fileName(i,:)]);
-    colsindex=regexp(text,'COLS');
-    rowsindex=regexp(text,'ROWS');
-    endframe=regexp(text,'END_FRAME');
-    senselarea=regexp(text,'SENSEL_AREA');
-%     fid = fopen([pathName fileName(i,:)]);
-%     inputArray=textscan(fid,'%d','Delimiter',',','HeaderLines',30);
-%     calibration(i,:,:)=reshape(inputArray{1},ncols,nrows)';
-%     fclose(fid);
-%     loads(i,1)=str2double(fileName(i,1:length(regexp(fileName(i,:),'\d'))));
+    fid = fopen([pathName fileName(i,:)]);
+    inputArray=textscan(fid,'%d','Delimiter',',','HeaderLines',30);
+    calibration(i,:,:)=reshape(inputArray{1},ncols,nrows)';
+    fclose(fid);
+     loads(i,1)=str2double(fileName(i,1:length(regexp(fileName(i,:),'\d'))));
 end
 
 %Define the quadratic equation that we'll use for fitting our data
