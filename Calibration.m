@@ -19,19 +19,16 @@ function Calibration
 clear all
 
 %Read file
-[fileName,pathName,filterIndex] = uigetfile('.asf','Select calibration measurement files','MultiSelect','on');
+[fileName,pathName] = uigetfile('.asf','Select calibration measurement files','MultiSelect','on');
 fileName=char(fileName);
 
-for i=1:1
-    %Opening file
-    text = fileread([pathName fileName(i,:)]);
-    
-    %Reading out information about the sensor (number of columns, rows
-    %etc).
-    ncols=str2double(regexp(text,'(?<=COLS )\d*','match'));
-    nrows=str2double(regexp(text,'(?<=ROWS )\d*','match'));
-    senselArea = str2double(regexp(text,'(?<=SENSEL_AREA )\d*\.\d*','match'));
-end
+%Opening file
+text = fileread([pathName fileName(1,:)]);
+
+%Reading out information about the sensor (number of columns, rows etc).
+ncols=str2double(regexp(text,'(?<=COLS )\d*','match'));
+nrows=str2double(regexp(text,'(?<=ROWS )\d*','match'));
+senselArea = str2double(regexp(text,'(?<=SENSEL_AREA )\d*\.\d*','match'));
 
 %Initialising arrays to gain speed
 calibration=zeros(size(fileName,1),nrows,ncols);
@@ -41,10 +38,13 @@ loads=zeros(size(fileName,1),1);
 %first dimension are the rows of the sensor, the second are the columns and
 %the third are for the different loading levels
 for i=1:size(fileName,1)
-    fid = fopen([pathName fileName(i,:)]);
-    inputArray=textscan(fid,'%d','Delimiter',',','HeaderLines',30);
-    calibration(i,:,:)=reshape(inputArray{1},ncols,nrows)';
-    fclose(fid);
+    text = fileread([pathName fileName(i,:)]);
+    data=regexp(text,'(?>=Frame 1\n)\d*','match');
+    
+%     fid = fopen([pathName fileName(i,:)]);
+%     inputArray=textscan(fid,'%d','Delimiter',',','HeaderLines',30);
+%     calibration(i,:,:)=reshape(inputArray{1},ncols,nrows)';
+%     fclose(fid);
      loads(i,1)=str2double(fileName(i,1:length(regexp(fileName(i,:),'\d'))));
 end
 
