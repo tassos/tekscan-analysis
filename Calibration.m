@@ -44,10 +44,10 @@ for i=1:size(fileName,1)
     text = fileread(strtrim([pathName fileName(i,:)]));
     data=regexp(text,'(?>=Frame 1\n)\d*','match');
     
-%     fid = fopen([pathName fileName(i,:)]);
-%     inputArray=textscan(fid,'%d','Delimiter',',','HeaderLines',30);
-%     calibration(i,:,:)=reshape(inputArray{1},ncols,nrows)';
-%     fclose(fid);
+    fid = fopen(strtrim([pathName fileName(i,:)]));
+    inputArray=textscan(fid,'%d','Delimiter',',','HeaderLines',30);
+    calibration(i,:,:)=reshape(inputArray{1},ncols,nrows)';
+    fclose(fid);
      loads(i,1)=str2double(fileName(i,1:length(regexp(fileName(i,:),'\d'))))*senselArea/loadArea;
 end
 
