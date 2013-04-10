@@ -25,6 +25,9 @@ fileName=char(fileName);
 %Opening file
 text = fileread([pathName fileName(1,:)]);
 
+%Defining constants
+loadArea=4e-3^2; %40mmx40mm
+
 %Reading out information about the sensor (number of columns, rows etc).
 ncols=str2double(regexp(text,'(?<=COLS )\d*','match'));
 nrows=str2double(regexp(text,'(?<=ROWS )\d*','match'));
@@ -45,7 +48,7 @@ for i=1:size(fileName,1)
 %     inputArray=textscan(fid,'%d','Delimiter',',','HeaderLines',30);
 %     calibration(i,:,:)=reshape(inputArray{1},ncols,nrows)';
 %     fclose(fid);
-     loads(i,1)=str2double(fileName(i,1:length(regexp(fileName(i,:),'\d'))));
+     loads(i,1)=str2double(fileName(i,1:length(regexp(fileName(i,:),'\d'))))*senselArea/loadArea;
 end
 
 %Define the quadratic equation that we'll use for fitting our data
