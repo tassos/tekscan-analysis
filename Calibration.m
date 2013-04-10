@@ -23,7 +23,7 @@ clear all
 fileName=char(fileName);
 
 %Opening file
-text = fileread([pathName fileName(1,:)]);
+text = fileread(strtrim([pathName fileName(1,:)]));
 
 %Defining constants
 loadArea=4e-3^2; %40mmx40mm
@@ -41,7 +41,7 @@ loads=zeros(size(fileName,1),1);
 %first dimension are the rows of the sensor, the second are the columns and
 %the third are for the different loading levels
 for i=1:size(fileName,1)
-    text = fileread([pathName fileName(i,:)]);
+    text = fileread(strtrim([pathName fileName(i,:)]));
     data=regexp(text,'(?>=Frame 1\n)\d*','match');
     
 %     fid = fopen([pathName fileName(i,:)]);
@@ -62,22 +62,28 @@ end
 if (exist([pathName 'calibration.mat'],'file')==2);
     load([pathName 'calibration.mat'],'x');
 else
+    lsqopts = optimset('Display','off');
     %Initialising arrays to gain speed
     x.a=zeros(nrows,ncols);
     x.b=zeros(nrows,ncols);
     x.c=zeros(nrows,ncols);
     x.d=zeros(nrows,ncols);
     
+    %Initialise progress bar for fitting the data
+    h=waitbar(0,'Initialising waitbar...');
+    
     %Fitting our data and storing them in the X array.
     for i=1:nrows
         for j=1:ncols
-            temp = lsqcurvefit(@myfun,[0;0.00015;0.64;-3.3e2],loads,calibration(:,i,j))';
+            waitbar(((i-1)*ncols+j)/(nrows*ncols),h,'Calculating calibration matrix');
+            temp = lsqcurvefit(@myfun,[0;0.00015;0.64;-3.3e2],loads,calibration(:,i,j),[],[],lsqopts)';
             x.a(i,j)=temp(1);
             x.b(i,j)=temp(2);
             x.c(i,j)=temp(3);
             x.d(i,j)=temp(4);
         end
     end
+    close(h);
     save([pathName 'calibration.mat'], 'x');
 end
 
