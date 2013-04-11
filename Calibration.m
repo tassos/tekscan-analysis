@@ -18,12 +18,16 @@ function Calibration
 
 clear all
 
-%Read file
-[fileName,pathName] = uigetfile('.asf','Select calibration measurement files','MultiSelect','on');
-fileName=char(fileName);
+%Read calibration files
+[calibFileName,calibPathName] = uigetfile('.asf','Select calibration measurement files','MultiSelect','on');
+calibFileName=char(calibFileName);
+
+%Read measurements files
+[measFileName,measPathName] = uigetfile('.asf','Select measurement files','MultiSelect','on');
+measFileName=char(measFileName);
 
 %Opening file
-text = fileread(strtrim([pathName fileName(1,:)]));
+text = fileread(strtrim([calibPathName calibFileName(1,:)]));
 
 %Defining constants
 loadArea=4e-3^2; %40mmx40mm
@@ -31,24 +35,37 @@ loadArea=4e-3^2; %40mmx40mm
 %Reading out information about the sensor (number of columns, rows etc).
 ncols=str2double(regexp(text,'(?<=COLS )\d*','match'));
 nrows=str2double(regexp(text,'(?<=ROWS )\d*','match'));
-senselArea = str2double(regexp(text,'(?<=SENSEL_AREA )\d*\.\d*','match'));
+senselArea = str2double(regexp(text,'(?<=SENSEL_AREA )\d*\.\d*e-\d*','match'));
 
 %Initialising arrays to gain speed
-calibration=zeros(size(fileName,1),nrows,ncols);
-loads=zeros(size(fileName,1),1);
+calibration=zeros(size(calibFileName,1),nrows,ncols);
+loads=zeros(size(calibFileName,1),1);
+
+%Initialising a waitbar that shows the progress to the user
+h=waitbar(0,'Initialising waitbar...');
 
 %Importing calibration data and inserting in a 3dimensional array. The
 %first dimension are the rows of the sensor, the second are the columns and
 %the third are for the different loading levels
-for i=1:size(fileName,1)
-    text = fileread(strtrim([pathName fileName(i,:)]));
-    data=regexp(text,'(?>=Frame 1\n)\d*','match');
+for i=1:size(calibFileName,1)
+    text = fileread(strtrim([calibPathName calibFileName(i,:)]));
+    endFrame=str2double(regexp(text,'(?<=END_FRAME )\d*','match'));
+    data=zeros(nrows*ncols,endFrame);
     
-    fid = fopen(strtrim([pathName fileName(i,:)]));
-    inputArray=textscan(fid,'%d','Delimiter',',','HeaderLines',30);
-    calibration(i,:,:)=reshape(inputArray{1},ncols,nrows)';
-    fclose(fid);
-     loads(i,1)=str2double(fileName(i,1:length(regexp(fileName(i,:),'\d'))))*senselArea/loadArea;
+    for j=1:endFrame
+        waitbar(((i-1)*endFrame+j)/(endFrame*size(calibFileName,1)),h,'Reading calibration files');
+        
+        %Reading the data from the correct frame
+        rawData=regexp(text,['(?<=Frame ' num2str(j) '\r\n)((\d*,\d*)*\r\n)*'],'match');
+        cellData=textscan(rawData{1},'%f','Delimiter',',');
+        data(:,j)=cellData{1};
+        
+        %Averaging the data for the whole measurement duration 
+        meanData=mean(data,2);
+    end
+    
+    calibration(i,:,:)=reshape(meanData,ncols,nrows)';
+	loads(i,1)=str2double(calibFileName(i,1:length(regexp(calibFileName(i,:),'\d'))))*senselArea/loadArea;
 end
 
 %Define the quadratic equation that we'll use for fitting our data
@@ -59,32 +76,54 @@ end
 %Check to see if calibration with this sensor is already made. If
 %calibration file doesn't exists, go on with calculating the fitting
 %coefficients.
-if (exist([pathName 'calibration.mat'],'file')==2);
-    load([pathName 'calibration.mat'],'x');
+if (exist([calibPathName 'calibration.mat'],'file')==2);
+    load([calibPathName 'calibration.mat'],'x');
 else
     lsqopts = optimset('Display','off');
+    
     %Initialising arrays to gain speed
     x.a=zeros(nrows,ncols);
     x.b=zeros(nrows,ncols);
     x.c=zeros(nrows,ncols);
     x.d=zeros(nrows,ncols);
-    
-    %Initialise progress bar for fitting the data
-    h=waitbar(0,'Initialising waitbar...');
-    
+      
     %Fitting our data and storing them in the X array.
     for i=1:nrows
         for j=1:ncols
             waitbar(((i-1)*ncols+j)/(nrows*ncols),h,'Calculating calibration matrix');
-            temp = lsqcurvefit(@myfun,[0;0.00015;0.64;-3.3e2],loads,calibration(:,i,j),[],[],lsqopts)';
-            x.a(i,j)=temp(1);
-            x.b(i,j)=temp(2);
-            x.c(i,j)=temp(3);
-            x.d(i,j)=temp(4);
+            
+            %Speeding up calculations by using the values of the first
+            %solution as the initial values.
+            coeffs = lsqcurvefit(@myfun,[x.a(1,1),x.b(1,1),x.c(1,1),x.d(1,1)],loads,calibration(:,i,j),[],[],lsqopts)';
+            
+            %Storing in a structured way
+            x.a(i,j)=coeffs(1);
+            x.b(i,j)=coeffs(2);
+            x.c(i,j)=coeffs(3);
+            x.d(i,j)=coeffs(4);
         end
     end
-    close(h);
-    save([pathName 'calibration.mat'], 'x');
+    save([calibPathName 'calibration.mat'], 'x');
 end
 
+for i=1:size(measFileName,1)
+    text = fileread(strtrim([measPathName measFileName(i,:)]));
+    endFrame=str2double(regexp(text,'(?<=END_FRAME )\d*','match'));
+    calibratedData=zeros(endFrame,nrows,ncols);
+    
+    for j=1:endFrame
+        waitbar(((i-1)*endFrame+j)/(endFrame*size(measFileName,1)),h,'Generating calibrated measurements');
+        
+        %Reading the data from the correct frame
+        rawData=regexp(text,['(?<=Frame ' num2str(j) '\r\n)((\d*,\d*)*\r\n)*'],'match');
+        cellData=textscan(rawData{1},'%f','Delimiter',',');
+        data=reshape(cellData{1},ncols,nrows)';
+        calibratedData(j,:,:)=x.a(:,:).*data(:,:).^3+x.b(:,:).*data(:,:).^2+x.c(:,:).*data(:,:)+x.d(:,:);
+    end
+    calibratedData(calibratedData<0)=0;
+    fileName=strtrim(measFileName(i,:));
+    save([measPathName 'Calibrated_' fileName(1:end-4) '.mat'],'calibratedData');
+end
+
+close(h);
 end
