@@ -38,8 +38,8 @@ nrows=str2double(regexp(text,'(?<=ROWS )\d*','match'));
 senselArea = str2double(regexp(text,'(?<=SENSEL_AREA )\d*\.\d*e-\d*','match'));
 
 %Initialising arrays to gain speed
-calibration=zeros(size(calibFileName,1),nrows,ncols);
 loads=zeros(size(calibFileName,1),1);
+meanData=zeros(size(calibFileName,1),1);
 
 %Initialising a waitbar that shows the progress to the user
 h=waitbar(0,'Initialising waitbar...');
@@ -61,10 +61,10 @@ for i=1:size(calibFileName,1)
         data(:,j)=cellData{1};
         
         %Averaging the data for the whole measurement duration 
-        meanData=mean(data,2);
     end
-    
-    calibration(i,:,:)=reshape(meanData,ncols,nrows)';
+    meanData(i,1)=mean(mean(data,2));
+
+    %calibration(i,:,:)=reshape(meanData,ncols,nrows)';
 	loads(i,1)=str2double(calibFileName(i,1:length(regexp(calibFileName(i,:),'\d'))))*senselArea/loadArea;
 end
 
@@ -80,29 +80,11 @@ if (exist([calibPathName 'calibration.mat'],'file')==2);
     load([calibPathName 'calibration.mat'],'x');
 else
     lsqopts = optimset('Display','off');
-    
-    %Initialising arrays to gain speed
-    x.a=zeros(nrows,ncols);
-    x.b=zeros(nrows,ncols);
-    x.c=zeros(nrows,ncols);
-    x.d=zeros(nrows,ncols);
-      
-    %Fitting our data and storing them in the X array.
-    for i=1:nrows
-        for j=1:ncols
-            waitbar(((i-1)*ncols+j)/(nrows*ncols),h,'Calculating calibration matrix');
-            
-            %Speeding up calculations by using the values of the first
-            %solution as the initial values.
-            coeffs = lsqcurvefit(@myfun,[x.a(1,1),x.b(1,1),x.c(1,1),x.d(1,1)],loads,calibration(:,i,j),[],[],lsqopts)';
-            
-            %Storing in a structured way
-            x.a(i,j)=coeffs(1);
-            x.b(i,j)=coeffs(2);
-            x.c(i,j)=coeffs(3);
-            x.d(i,j)=coeffs(4);
-        end
-    end
+    coeffs = lsqcurvefit(@myfun,[0,0,0,0],loads,meanData,[],[],lsqopts)';
+
+    %Storing in a structured way
+    x.a=coeffs(1);    x.b=coeffs(2);    x.c=coeffs(3);    x.d=coeffs(4);
+
     save([calibPathName 'calibration.mat'], 'x');
 end
 
@@ -118,9 +100,8 @@ for i=1:size(measFileName,1)
         rawData=regexp(text,['(?<=Frame ' num2str(j) '\r\n)((\d*,\d*)*\r\n)*'],'match');
         cellData=textscan(rawData{1},'%f','Delimiter',',');
         data=reshape(cellData{1},ncols,nrows)';
-        calibratedData(j,:,:)=x.a(:,:).*data(:,:).^3+x.b(:,:).*data(:,:).^2+x.c(:,:).*data(:,:)+x.d(:,:);
+        calibratedData(j,:,:)=x.a.*data(:,:).^3+x.b.*data(:,:).^2+x.c.*data(:,:)+x.d;
     end
-    calibratedData(calibratedData<0)=0;
     fileName=strtrim(measFileName(i,:));
     save([measPathName 'Calibrated_' fileName(1:end-4) '.mat'],'calibratedData');
 end
