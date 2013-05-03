@@ -19,10 +19,6 @@ function Calibration
 clear all
 close all
 
-%Read calibration files
-[calibFileName,calibPathName] = uigetfile('.asf','Select folder containing calibration measurement files','MultiSelect','on');
-calibFileName=char(calibFileName);
-
 %Read measurements files
 [measFileName,measPathName] = uigetfile('.asf','Select measurement files','MultiSelect','on');
 measFileName=char(measFileName);
@@ -33,12 +29,7 @@ function F = myfun(x,xdata)
 end
 
 %Opening file
-text = fileread(strtrim([calibPathName calibFileName(1,:)]));
-
-%Defining loading area
-prompt = {'Enter loading area width (mm):','Enter loading area length (mm):'};
-dimensions = str2double(inputdlg(prompt,'Input',1,{'40','40'}));
-loadArea = dimensions(1)*dimensions(2)*1e-6;
+text = fileread(strtrim([measPathName measFileName(1,:)]));
 
 %Reading out information about the sensor (number of columns, rows etc).
 ncols=str2double(regexp(text,'(?<=COLS )\d*','match'));
@@ -54,10 +45,19 @@ h=waitbar(0,'Initialising waitbar...');
 %Check to see if calibration with this sensor is already made. If
 %calibration file doesn't exists, go on with calculating the fitting
 %coefficients.
-if (exist([calibPathName 'calibration2.mat'],'file')==2);
-    load([calibPathName 'calibration.mat'],'x');
+if (exist([measPathName 'calibration2.mat'],'file')==2);
+    load([measPathName 'calibration.mat'],'x');
 else
 
+    %Read calibration files
+    [calibFileName,calibPathName] = uigetfile('.asf','Select folder containing calibration measurement files','MultiSelect','on');
+    calibFileName=char(calibFileName);
+    
+    %Defining loading area
+    prompt = {'Enter loading area width (mm):','Enter loading area length (mm):'};
+    dimensions = str2double(inputdlg(prompt,'Input',1,{'40','40'}));
+    loadArea = dimensions(1)*dimensions(2)*1e-6;
+    
     %Importing calibration data and inserting in a 3dimensional array. The
     %first dimension are the rows of the sensor, the second are the columns and
     %the third are for the different loading levels
@@ -88,24 +88,31 @@ else
 
     waitbar(0,h,'Calculating calibration coefficients');
 
-    lsqopts = optimset('Display','on','MaxFunEvals',100000,'MaxIter',100000);
+    lsqopts = optimset('Display','off','MaxFunEvals',100000,'MaxIter',100000);
     prog=0;
-    t=0:0.1:4;
+    t=0:0.1:3;
     figure(1)
     hold on
     
-    for sens = {'Low3' 'Default' 'Mid1' 'Mid2' 'High1' 'High2'}
+    for sens = fieldnames(index)'
         sensit=sens{1};
-        coeffs = lsqcurvefit(@myfun,[0,0,0,0],loads.(sensit),meanData.(sensit),[],[],lsqopts)';
+        
+        % Sorting the two arrays for Linux mode compatability.
+        loads.(sensit)=sort(loads.(sensit));
+        meanData.(sensit)=sort(meanData.(sensit));
+        
+        coeffs = lsqcurvefit(@myfun,[0,0,0,0],[0;loads.(sensit)],[0;meanData.(sensit)],[],[],lsqopts)';
         x.(sensit).a=coeffs(1); x.(sensit).b=coeffs(2); x.(sensit).c=coeffs(3);	x.(sensit).d=coeffs(4);
-        plot(loads.(sensit),meanData.(sensit),'b');
+        
+        % Plotting for confirming least squares convergence
+        plot([0;loads.(sensit)],[0;meanData.(sensit)],'b');
         y=coeffs(1)*t.^3+coeffs(2)*t.^2+coeffs(3)*t+coeffs(4);
         plot(t,y,'r','LineWidth',2);
         prog=prog+1;
         waitbar(prog/6,h,'Calculating calibration coefficients');
     end
     
-    save([calibPathName 'calibration.mat'], 'x');
+    save([measPathName 'calibration.mat'], 'x');
 end
 
 for i=1:size(measFileName,1)
