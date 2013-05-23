@@ -64,11 +64,12 @@ else
     for i=1:size(calibFileName,1)
         text = fileread(strtrim([calibPathName calibFileName(i,:)]));
         endFrame=str2double(regexp(text,'(?<=END_FRAME )\d*','match'));
+        startFrame=str2double(regexp(text,'(?<=START_FRAME )\d*','match'));
         sensitivity = regexp(text,'(?<=SENSITIVITY )\S*','match');
         sensitivity = strrep(sensitivity{1},'-','');
         data=zeros(nrows*ncols,endFrame);
 
-        for j=1:endFrame
+        for j=startFrame:endFrame
             waitbar(((i-1)*endFrame+j)/(endFrame*size(calibFileName,1)),h,'Reading calibration files');
 
             %Reading the data from the correct frame
@@ -118,13 +119,14 @@ end
 for i=1:size(measFileName,1)
     text = fileread(strtrim([measPathName measFileName(i,:)]));
     endFrame=str2double(regexp(text,'(?<=END_FRAME )\d*','match'));
-    
+    startFrame=str2double(regexp(text,'(?<=START_FRAME )\d*','match'));
+
     % Read sensitivity in order to use the proper calibration sheet
     sensitivity = regexp(text,'(?<=SENSITIVITY )\S*','match');
     sensitivity = strrep(sensitivity{1},'-','');
     calibratedData=zeros(endFrame,nrows,ncols);
        
-    for j=1:endFrame
+    for j=startFrame:endFrame
         waitbar(((i-1)*endFrame+j)/(endFrame*size(measFileName,1)),h,'Generating calibrated measurements');
         
         %Reading the data from the correct frame
