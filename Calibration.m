@@ -24,8 +24,8 @@ close all
 measFileName=char(measFileName);
 
 %Define the cubic equation that we'll use for fitting our data
-function F = myfun(x,xdata)
-    F = x(1)*xdata.^3+x(2)*xdata.^2+x(3)*xdata+x(4);
+function F = cubFitFun(x,xdata)
+    F =x(1)*xdata.^5+x(2)*xdata.^4+x(3)*xdata.^3+x(4)*xdata.^2+x(5)*xdata+x(6);
 end
 
 %Opening file
@@ -34,10 +34,6 @@ text = fileread(strtrim([measPathName measFileName(1,:)]));
 %Reading out information about the sensor (number of columns, rows etc).
 ncols=str2double(regexp(text,'(?<=COLS )\d*','match'));
 nrows=str2double(regexp(text,'(?<=ROWS )\d*','match'));
-senselArea = str2double(regexp(text,'(?<=SENSEL_AREA )\d*\.\d*e-\d*','match'));
-if isempty(senselArea) == 1;
-    senselArea = str2double(regexp(text,'(?<=SENSEL_AREA )\d*\.\d*','match'))*1e-6;
-end
 
 %Initialising a waitbar that shows the progress to the user
 h=waitbar(0,'Initialising waitbar...');
@@ -84,14 +80,14 @@ else
 
             %Averaging the data for the whole measurement duration 
             meanData.(sensitivity)(index.(sensitivity),1)=mean(mean(data,2));
-            loads.(sensitivity)(index.(sensitivity),1)=str2double(calibFileName(i,1:length(regexp(calibFileName(i,:),'\d'))))*senselArea/loadArea;
+            loads.(sensitivity)(index.(sensitivity),1)=str2double(calibFileName(i,1:length(regexp(calibFileName(i,:),'\d'))))/loadArea;
     end
 
     waitbar(0,h,'Calculating calibration coefficients');
 
     lsqopts = optimset('Display','off','MaxFunEvals',100000,'MaxIter',100000);
     prog=0;
-    t=0:0.1:3;
+    t=0:1:255;
     figure(1)
     hold on
     
@@ -102,13 +98,20 @@ else
         loads.(sensit)=sort(loads.(sensit));
         meanData.(sensit)=sort(meanData.(sensit));
         
-        coeffs = lsqcurvefit(@myfun,[0,0,0,0],[0;loads.(sensit)],[0;meanData.(sensit)],[],[],lsqopts)';
-        x.(sensit).a=coeffs(1); x.(sensit).b=coeffs(2); x.(sensit).c=coeffs(3);	x.(sensit).d=coeffs(4);
+        lb=[-Inf,-Inf,-Inf,-Inf,-100];
+        ub=[Inf,Inf,Inf,Inf,100];
+        xo=[5,5,5,5,5,0];
+        coeffs = lsqcurvefit(@cubFitFun,xo,[0;meanData.(sensit)],[0;loads.(sensit)],lb,ub,lsqopts)';
+        x.(sensit).a=coeffs(1);	x.(sensit).b=coeffs(2);	x.(sensit).c=coeffs(3);	x.(sensit).d=coeffs(4); x.(sensit).e=coeffs(5);	x.(sensit).f=coeffs(6);
+        
+        problem = createOptimProblem('lsqcurvefit','x0',xo,'objective',cubFitFun,'lb',lb,'ul',ul,'xdata',[0;meanData.(sensit)],'ydata',[0;loads.(sensit)]);
+        ms = MultiStart('PlotFcns',@gsplotbestf);
+        [xmulti,errormulti] = run(ms,problem,50);
         
         % Plotting for confirming least squares convergence
-        plot([0;loads.(sensit)],[0;meanData.(sensit)],'b');
-        y=coeffs(1)*t.^3+coeffs(2)*t.^2+coeffs(3)*t+coeffs(4);
-        plot(t,y,'r','LineWidth',2);
+        plot([meanData.(sensit)],[loads.(sensit)],'b');
+        ycub=x.(sensit).a*t.^5+x.(sensit).b*t.^4+x.(sensit).c*t.^3+x.(sensit).d*t.^2+x.(sensit).e*t+x.(sensit).f;
+        plot(t,ycub,'r','LineWidth',2);
         prog=prog+1;
         waitbar(prog/6,h,'Calculating calibration coefficients');
     end
@@ -133,7 +136,7 @@ for i=1:size(measFileName,1)
         rawData=regexp(text,['(?<=Frame ' num2str(j) '\r\n)((\d*,\d*)*\r\n)*'],'match');
         cellData=textscan(rawData{1},'%f','Delimiter',',');
         data=reshape(cellData{1},ncols,nrows)';
-        calibratedData(j,:,:)=x.(sensitivity).a*data(:,:).^3+x.(sensitivity).b*data(:,:).^2+x.(sensitivity).c*data(:,:)+x.(sensitivity).d;
+        calibratedData(j,:,:)=x.(sensitivity).a*data(:,:).^5+x.(sensitivity).b*data(:,:).^4+x.(sensitivity).c*data(:,:).^3+x.(sensitivity).d*data(:,:).^2+x.(sensitivity).e*data(:,:)+x.(sensitivity).f;
     end
     fileName=strtrim(measFileName(i,:));
     save([measPathName 'Calibrated_' fileName(1:end-4) '.mat'],'calibratedData');
