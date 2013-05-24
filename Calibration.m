@@ -19,14 +19,21 @@ function Calibration
 clear all
 close all
 
+%Getting screen size for calculating the proper position of the figures
+set(0,'Units','pixels') 
+scnsize = get(0,'ScreenSize');
+
 %Read measurements files
 [measFileName,measPathName] = uigetfile('.asf','Select measurement files','MultiSelect','on');
 measFileName=char(measFileName);
-
+    
 %Define the cubic equation that we'll use for fitting our data
-function F = cubFitFun(x,xdata)
-    F =x(1)*xdata.^5+x(2)*xdata.^4+x(3)*xdata.^3+x(4)*xdata.^2+x(5)*xdata+x(6);
-end
+FitFun= @(x,xdata) (x(1)*xdata.^5+x(2)*xdata.^4+x(3)*xdata.^3+x(4)*xdata.^2+x(5)*xdata+x(6));
+
+%In Auto-mode, the polynomial for the curve fitting, can be reconstructed
+%by itself from the following function. However, it is horribly much slower
+%to evaluate itself
+%FitFun= @(x,xdata) (subs(poly2sym(x,'y'),xdata));
 
 %Opening file
 text = fileread(strtrim([measPathName measFileName(1,:)]));
@@ -54,6 +61,10 @@ else
     dimensions = str2double(inputdlg(prompt,'Input',1,{'40','40'}));
     loadArea = dimensions(1)*dimensions(2)*1e-6;
     
+    %Choose order of polynomial to be used for the fitting curve
+    prompt = {'Choose order for the fitted polynomial'};
+    order = str2double(inputdlg(prompt,'Input',1,{'5'}));
+    
     %Importing calibration data and inserting in a 3dimensional array. The
     %first dimension are the rows of the sensor, the second are the columns and
     %the third are for the different loading levels
@@ -74,6 +85,8 @@ else
             data(:,j)=cellData{1};
 
         end
+        %Checking if the index for the sensitivity that is calculated has
+        %been created. If not, then it is created.
         if exist('index','var')==0; index.(sensitivity)=0; end
         if isfield(index,sensitivity)==0; index.(sensitivity)=0; end
             index.(sensitivity)=index.(sensitivity)+1;
@@ -85,12 +98,17 @@ else
 
     waitbar(0,h,'Calculating calibration coefficients');
 
-    lsqopts = optimset('Display','off','MaxFunEvals',100000,'MaxIter',100000);
+    %Defining a counter for the progress bar
     prog=0;
-    t=0:1:255;
-    figure(1)
-    hold on
     
+    %Positioning the figures in a nice array
+    pos1 = [0, scnsize(4) * (1/3), scnsize(3)/2, 2*scnsize(4)/3];
+    pos2 = [scnsize(3)/2, pos1(2), pos1(3), pos1(4)];
+    fig1 =figure(1);
+    set(fig1,'OuterPosition',pos1);
+    waitBarPos=get(h,'OuterPosition');
+    set(h,'OuterPosition',[(scnsize(3)-waitBarPos(3))/2,(scnsize(4)/3-waitBarPos(4)/2) ,waitBarPos(3), waitBarPos(4)]);
+        
     for sens = fieldnames(index)'
         sensit=sens{1};
         
@@ -98,25 +116,34 @@ else
         loads.(sensit)=sort(loads.(sensit));
         meanData.(sensit)=sort(meanData.(sensit));
         
-        lb=[-Inf,-Inf,-Inf,-Inf,-100];
-        ub=[Inf,Inf,Inf,Inf,100];
-        xo=[5,5,5,5,5,0];
-        coeffs = lsqcurvefit(@cubFitFun,xo,[0;meanData.(sensit)],[0;loads.(sensit)],lb,ub,lsqopts)';
-        x.(sensit).a=coeffs(1);	x.(sensit).b=coeffs(2);	x.(sensit).c=coeffs(3);	x.(sensit).d=coeffs(4); x.(sensit).e=coeffs(5);	x.(sensit).f=coeffs(6);
+        %Defining the range of the the fiting curve
+        t0=0:1:max(meanData.(sensit)(:));
         
-        problem = createOptimProblem('lsqcurvefit','x0',xo,'objective',cubFitFun,'lb',lb,'ul',ul,'xdata',[0;meanData.(sensit)],'ydata',[0;loads.(sensit)]);
-        ms = MultiStart('PlotFcns',@gsplotbestf);
-        [xmulti,errormulti] = run(ms,problem,50);
+        %Defining upper and lower boundary limits, and also the initial
+        %values for the Least-Square fitting
+        lb=[-Inf(1,order),-4000];
+        ub=[Inf(1,order),4000];
+        xo=[5*ones(1,order),0];
         
+        problem = createOptimProblem('lsqcurvefit','x0',xo,'objective',FitFun,'lb',lb,'ub',ub,'xdata',[meanData.(sensit)],'ydata',[loads.(sensit)]);
+        ms = MultiStart('PlotFcns',{@gsplotfunccount,@gsplotbestf},'UseParallel','always');
+        [x.(sensit),error.(sensit)]=run(ms,problem,50);
+        gEval = gcf;
+        set(gEval,'OuterPosition',pos2);
+       
+        figure(1)
+        hold on
         % Plotting for confirming least squares convergence
         plot([meanData.(sensit)],[loads.(sensit)],'b');
-        ycub=x.(sensit).a*t.^5+x.(sensit).b*t.^4+x.(sensit).c*t.^3+x.(sensit).d*t.^2+x.(sensit).e*t+x.(sensit).f;
-        plot(t,ycub,'r','LineWidth',2);
+        ycub=double(subs(poly2sym(x.(sensit),'t'),t0));
+        plot(t0,ycub,'r','LineWidth',2);
+        
+        %Updating progress bar
         prog=prog+1;
         waitbar(prog/6,h,'Calculating calibration coefficients');
-    end
-    
-    save([measPathName 'calibration.mat'], 'x');
+        figure(gEval)
+    end    
+    save([measPathName 'calibration.mat'], 'x','error');
 end
 
 for i=1:size(measFileName,1)
@@ -125,8 +152,8 @@ for i=1:size(measFileName,1)
     startFrame=str2double(regexp(text,'(?<=START_FRAME )\d*','match'));
 
     % Read sensitivity in order to use the proper calibration sheet
-    sensitivity = regexp(text,'(?<=SENSITIVITY )\S*','match');
-    sensitivity = strrep(sensitivity{1},'-','');
+    sensit = regexp(text,'(?<=SENSITIVITY )\S*','match');
+    sensit = strrep(sensit{1},'-','');
     calibratedData=zeros(endFrame,nrows,ncols);
        
     for j=startFrame:endFrame
@@ -136,7 +163,8 @@ for i=1:size(measFileName,1)
         rawData=regexp(text,['(?<=Frame ' num2str(j) '\r\n)((\d*,\d*)*\r\n)*'],'match');
         cellData=textscan(rawData{1},'%f','Delimiter',',');
         data=reshape(cellData{1},ncols,nrows)';
-        calibratedData(j,:,:)=x.(sensitivity).a*data(:,:).^5+x.(sensitivity).b*data(:,:).^4+x.(sensitivity).c*data(:,:).^3+x.(sensitivity).d*data(:,:).^2+x.(sensitivity).e*data(:,:)+x.(sensitivity).f;
+        %calibratedData(j,:,:)=x.(sensitivity).a*data(:,:).^5+x.(sensitivity).b*data(:,:).^4+x.(sensitivity).c*data(:,:).^3+x.(sensitivity).d*data(:,:).^2+x.(sensitivity).e*data(:,:)+x.(sensitivity).f;
+        calibratedData(j,:,:)=double(subs(poly2sym(x.(sensit),'t'),data));
     end
     fileName=strtrim(measFileName(i,:));
     save([measPathName 'Calibrated_' fileName(1:end-4) '.mat'],'calibratedData');
