@@ -19,6 +19,8 @@ function Calibration
 clear all
 close all
 
+global xdata ydata
+
 %Getting screen size for calculating the proper position of the figures
 set(0,'Units','pixels') 
 scnsize = get(0,'ScreenSize');
@@ -26,9 +28,12 @@ scnsize = get(0,'ScreenSize');
 %Read measurements files
 [measFileName,measPathName] = uigetfile('.asf','Select measurement files','MultiSelect','on');
 measFileName=char(measFileName);
-    
+
 %Define the cubic equation that we'll use for fitting our data
-FitFun= @(x,xdata) (x(1)*xdata.^5+x(2)*xdata.^4+x(3)*xdata.^3+x(4)*xdata.^2+x(5)*xdata+x(6));
+function F = FitFun(x)
+    resid = x(1)*(xdata).^3+x(2)*(xdata).^2+x(3)*(xdata)+x(4)-ydata;
+    F = resid.*[3;ones(size(resid,1)-1,1)];
+end
 
 %In Auto-mode, the polynomial for the curve fitting, can be reconstructed
 %by itself from the following function. However, it is horribly much slower
@@ -63,7 +68,7 @@ else
     
     %Choose order of polynomial to be used for the fitting curve
     prompt = {'Choose order for the fitted polynomial'};
-    order = str2double(inputdlg(prompt,'Input',1,{'5'}));
+    order = str2double(inputdlg(prompt,'Input',1,{'3'}));
     
     %Importing calibration data and inserting in a 3dimensional array. The
     %first dimension are the rows of the sensor, the second are the columns and
@@ -108,7 +113,7 @@ else
     set(fig1,'OuterPosition',pos1);
     waitBarPos=get(h,'OuterPosition');
     set(h,'OuterPosition',[(scnsize(3)-waitBarPos(3))/2,(scnsize(4)/3-waitBarPos(4)/2) ,waitBarPos(3), waitBarPos(4)]);
-        
+    
     for sens = fieldnames(index)'
         sensit=sens{1};
         
@@ -121,20 +126,23 @@ else
         
         %Defining upper and lower boundary limits, and also the initial
         %values for the Least-Square fitting
-        lb=[-Inf(1,order),-4000];
-        ub=[Inf(1,order),4000];
-        xo=[5*ones(1,order),0];
+        lb=[-Inf(1,order),-1e3];
+        ub=[Inf(1,order),1e3];
+        xo=zeros(1,order+1);
         
-        problem = createOptimProblem('lsqcurvefit','x0',xo,'objective',FitFun,'lb',lb,'ub',ub,'xdata',[meanData.(sensit)],'ydata',[loads.(sensit)]);
+        xdata=meanData.(sensit);
+        ydata=loads.(sensit);
+        
+        problem = createOptimProblem('lsqnonlin','x0',xo,'objective',@FitFun,'lb',lb,'ub',ub);%,'xdata',[meanData.(sensit)],'ydata',[loads.(sensit)]);
         ms = MultiStart('PlotFcns',{@gsplotfunccount,@gsplotbestf},'UseParallel','always');
         [x.(sensit),error.(sensit)]=run(ms,problem,50);
         gEval = gcf;
         set(gEval,'OuterPosition',pos2);
-       
+        
         figure(1)
         hold on
         % Plotting for confirming least squares convergence
-        plot([meanData.(sensit)],[loads.(sensit)],'b');
+        scatter([meanData.(sensit)],[loads.(sensit)],'b');
         ycub=double(subs(poly2sym(x.(sensit),'t'),t0));
         plot(t0,ycub,'r','LineWidth',2);
         
@@ -142,7 +150,7 @@ else
         prog=prog+1;
         waitbar(prog/6,h,'Calculating calibration coefficients');
         figure(gEval)
-    end    
+    end
     save([measPathName 'calibration.mat'], 'x','error');
 end
 
@@ -163,7 +171,6 @@ for i=1:size(measFileName,1)
         rawData=regexp(text,['(?<=Frame ' num2str(j) '\r\n)((\d*,\d*)*\r\n)*'],'match');
         cellData=textscan(rawData{1},'%f','Delimiter',',');
         data=reshape(cellData{1},ncols,nrows)';
-        %calibratedData(j,:,:)=x.(sensitivity).a*data(:,:).^5+x.(sensitivity).b*data(:,:).^4+x.(sensitivity).c*data(:,:).^3+x.(sensitivity).d*data(:,:).^2+x.(sensitivity).e*data(:,:)+x.(sensitivity).f;
         calibratedData(j,:,:)=double(subs(poly2sym(x.(sensit),'t'),data));
     end
     fileName=strtrim(measFileName(i,:));
