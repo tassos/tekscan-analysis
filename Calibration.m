@@ -32,7 +32,7 @@ measFileName=char(measFileName);
 %Define the cubic equation that we'll use for fitting our data
 function F = FitFun(x)
     resid = x(1)*(xdata).^3+x(2)*(xdata).^2+x(3)*(xdata)+x(4)-ydata;
-    F = resid.*[3;ones(size(resid,1)-1,1)];
+    F = resid.*[0.5;2;ones(size(resid,1)-2,1)];
 end
 
 %In Auto-mode, the polynomial for the curve fitting, can be reconstructed
@@ -53,7 +53,7 @@ h=waitbar(0,'Initialising waitbar...');
 %Check to see if calibration with this sensor is already made. If
 %calibration file doesn't exists, go on with calculating the fitting
 %coefficients.
-if (exist([measPathName 'calibration2.mat'],'file')==2);
+if (exist([measPathName 'calibration.mat'],'file')==2);
     load([measPathName 'calibration.mat'],'x');
 else
 
@@ -112,7 +112,7 @@ else
     fig1 =figure(1);
     set(fig1,'OuterPosition',pos1);
     waitBarPos=get(h,'OuterPosition');
-    set(h,'OuterPosition',[(scnsize(3)-waitBarPos(3))/2,(scnsize(4)/3-waitBarPos(4)/2) ,waitBarPos(3), waitBarPos(4)]);
+    set(h,'OuterPosition',[(scnsize(3)+waitBarPos(3))/2,(scnsize(4)/3+waitBarPos(4)/2) ,waitBarPos(3), waitBarPos(4)]);
     
     for sens = fieldnames(index)'
         sensit=sens{1};
@@ -122,16 +122,16 @@ else
         meanData.(sensit)=sort(meanData.(sensit));
         
         %Defining the range of the the fiting curve
-        t0=0:1:max(meanData.(sensit)(:));
+        t0=min(meanData.(sensit)(:)):1:max(meanData.(sensit)(:));
         
         %Defining upper and lower boundary limits, and also the initial
         %values for the Least-Square fitting
-        lb=[-Inf(1,order),-1e3];
-        ub=[Inf(1,order),1e3];
+        lb=-Inf(1,order+1);
+        ub=Inf(1,order+1);
         xo=zeros(1,order+1);
         
-        xdata=meanData.(sensit);
-        ydata=loads.(sensit);
+        xdata=[0;meanData.(sensit)];
+        ydata=[0;loads.(sensit)];
         
         problem = createOptimProblem('lsqnonlin','x0',xo,'objective',@FitFun,'lb',lb,'ub',ub);%,'xdata',[meanData.(sensit)],'ydata',[loads.(sensit)]);
         ms = MultiStart('PlotFcns',{@gsplotfunccount,@gsplotbestf},'UseParallel','always');
