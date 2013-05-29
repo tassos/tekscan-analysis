@@ -140,7 +140,7 @@ function Calibration
             hold on
             % Plotting for confirming least squares convergence
             scatter([meanData.(sensit)],[loads.(sensit)],'b');
-            ycub=double(subs(poly2sym(x.(sensit),'t'),t0));
+            ycub=polyval(x.(sensit),t0);
             plot(t0,ycub,'r','LineWidth',2);
 
             %Updating progress bar
@@ -168,7 +168,8 @@ function Calibration
             rawData=regexp(text,['(?<=Frame ' num2str(j) '\r\n)((\d*,\d*)*\r\n)*'],'match');
             cellData=textscan(rawData{1},'%f','Delimiter',',');
             data=reshape(cellData{1},ncols,nrows)';
-            calibratedData(j,:,:)=double(subs(poly2sym(x.(sensit),'t'),data));
+            calibratedData(j,:,:)=polyval(x.(sensit),data);
+            calibratedData(calibratedData < 0) =0;
         end
         fileName=strtrim(measFileName(i,:));
         save([measPathName 'Calibrated_' fileName(1:end-4) '.mat'],'calibratedData');
