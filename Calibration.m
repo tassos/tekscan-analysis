@@ -26,7 +26,7 @@ function Calibration
     scnsize = get(0,'ScreenSize');
 
     %Read measurements files
-    [measFileName,measPathName] = uigetfile('.asf','Select measurement files','MultiSelect','on');
+    [measFileName,measPathName] = uigetfile('.asf','Select measurement files','MultiSelect','on','C:\users\u0074517\Documents\PhD\Foot-Ankle Project\Measurements');
     measFileName=char(measFileName);
 
     %Define the polynomial that we'll use for fitting our data. The order
@@ -55,7 +55,7 @@ function Calibration
     else
 
         %Read calibration files
-        [calibFileName,calibPathName] = uigetfile('.asf','Select folder containing calibration measurement files','MultiSelect','on');
+        [calibFileName,calibPathName] = uigetfile('.asf','Select folder containing calibration measurement files','MultiSelect','on',measPathName);
         calibFileName=char(calibFileName);
 
         %Defining loading area
@@ -67,9 +67,9 @@ function Calibration
         prompt = {'Choose order for the fitted polynomial'};
         order = str2double(inputdlg(prompt,'Input',1,{'3'}));
 
-        %Importing calibration data and inserting in a 3dimensional array. The
-        %first dimension are the rows of the sensor, the second are the columns and
-        %the third are for the different loading levels
+        %Importing calibration data and inserting in a 2 dimensional array. The
+        %first dimension is the rows times the columns of the sensor and the
+        %second is for the different loading levels
         for i=1:size(calibFileName,1)
             text = fileread(strtrim([calibPathName calibFileName(i,:)]));
             endFrame=str2double(regexp(text,'(?<=END_FRAME )\d*','match'));
@@ -108,11 +108,11 @@ function Calibration
         pos2 = [scnsize(3)/2, pos1(2), pos1(3), pos1(4)];
         fig1 =figure(1);
         set(fig1,'OuterPosition',pos1);
-        waitBarPos=get(h,'OuterPosition');
-        set(h,'OuterPosition',[pos2(1)/2, pos1(2)/3, waitBarPos(3), waitBarPos(4)]);
+        set(h,'Units','pixels','OuterPosition',[(scnsize(3)-366)/2, (pos1(2)-103)/2, 366, 103]);
 
         for sens = fieldnames(index)'
             sensit=sens{1};
+            waitbar(prog/size(fieldnames(index),1),h,['Calculating calibration coefficients for ',sensit,' sensitivity']);
 
             % Sorting the two arrays for Linux mode compatability.
             loads.(sensit)=sort(loads.(sensit));
@@ -145,7 +145,6 @@ function Calibration
 
             %Updating progress bar
             prog=prog+1;
-            waitbar(prog/6,h,'Calculating calibration coefficients');
             figure(gEval)
         end
         save([measPathName 'calibration.mat'], 'x','error');
