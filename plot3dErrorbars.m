@@ -11,24 +11,20 @@ function [h]=plot3dErrorbars(x, y, z, e)
 
     % create the standard 3d scatterplot
     hold off;
-    h=plot3(x, y, z, '.k');
+    h=plot3(x(:), y(:), z(:), '.k');
 
     % looks better with large points
     set(h, 'MarkerSize', 25);
     hold on
 
     % now draw the vertical errorbar for each point
-    for i=1:length(x)
-            xV = [x(i); x(i)];
-            yV = [y(i); y(i)];
-            zMin = z(i) + e(i);
-            zMax = z(i) - e(i);
+    zMin = z + e;
+    zMax = z - e;
 
-            zV = [zMin, zMax];
-            % draw vertical error bar
-            h=plot3(xV, yV, zV, '-k');
-            set(h, 'LineWidth', 2);
-    end
+    % draw vertical error bar
+    plot3(x(:), y(:), zMin(:), '-k');
+    plot3(x(:), y(:), zMax(:), '-k');
+    set(h, 'LineWidth', 2);
     
     % now we want to fit a surface to our data
     % the  0.25 and 0.1 define the density of the fit surface
@@ -41,7 +37,7 @@ function [h]=plot3dErrorbars(x, y, z, e)
 
     % fit the surface to the data; 
     % matlab has several choices for the fit;  below is "linear"
-    zg=griddata(x, y, z, xg,yg,'linear');
+    zg=griddata(x(:), y(:), z(:), xg,yg,'linear');
     % draw the mesh on our plot
     mesh(xg,yg,zg), xlabel('x axis'), ylabel('y axis'), zlabel('z axis')
 end

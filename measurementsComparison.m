@@ -42,13 +42,13 @@ function measurementsComparison
     x=repmat(1:size(data,4),size(data,5),1)';
     y=repmat(1:size(data,5),size(data,4),1);
     
-    plot3dErrorbars(x(:),y(:),meanMeas(1,:),sdMeas(1,:));
+    hplot = plot3dErrorbars(x,y,meanMeas(1,:,:),sdMeas(1,:,:));
     h = uicontrol('style','slider','units','pixel','position',[20 20 300 20]);
     addlistener(h,'ActionEvent',@(hObject, event) makeplot(hObject,x,y,meanMeas,sdMeas));
 
     function makeplot(hObject,x,y,meanMeas,sdMeas)
-        n = ceil(get(hObject,'Value')*100+1);
-        plot3dErrorbars(x(:),y(:),meanMeas(n,:),sdMeas(n,:));
+        n = floor(get(hObject,'Value')*99+1);
+        plot3dErrorbars(x,y,meanMeas(n,:,:),sdMeas(n,:,:));
         refreshdata;
     end
 
