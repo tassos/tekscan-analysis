@@ -1,5 +1,24 @@
-function [data, sensitivity] = readTekscan(calibPathName, calibFileName)
-    text = fileread(strtrim([calibPathName calibFileName]));
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%                       Reading tekScan ASCII files
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Function: Reading TekScan ASCII files and deriving useful information
+% such as sensitivity
+%
+% Input
+% - fileName: Path and filename of TekScan ASCII file
+%
+% Output 
+% - Data: Pressure data from ASCII file in a 3 dimentional matrix. First
+% dimension is for the time, second for the rows and third for the columns
+% - Sensitivity: Selected sensitivity for the TekScan measurement
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function [data, sensitivity] = readTekscan(fileName)
+    text = fileread(strtrim(fileName));
 
     %Reading out information about the sensor (number of columns, rows etc).
     ncols=str2double(regexp(text,'(?<=COLS )\d*','match'));

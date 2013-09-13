@@ -1,5 +1,22 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%                       Comparing the different calibrations
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Function: Comparing the results of different calibrations on different
+% sensors
+%
+% Input
+% None
+%
+% Output 
+% None
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 function calibrationsComparison
-    initialFolder = 'C:/users/u0074517/Documents/PhD/Foot-ankle project/Measurements';
+    initialFolder = 'C:/users/u0074517/Documents/PhD/Foot-ankle project/Measurements/Calibration analysis';
     directories = uipickfiles('FilterSpec',initialFolder);
     
     h=waitbar(0,'Initialising waitbar...');

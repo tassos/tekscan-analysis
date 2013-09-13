@@ -40,7 +40,7 @@ function measurementsCalibration
 
     for i=1:size(measFileName,1)        
         waitbar((i/size(measFileName,1)),h,'Reading calibration files');
-        [data,sensit] = readTekscan(measPathName,measFileName(i,:));
+        [data,sensit] = readTekscan([measPathName measFileName(i,:)]);
         
         calibratedData=polyval(x.(sensit),data);
         calibratedData(calibratedData < 0) =0; %#ok<NASGU> The variable is actually used in the save function two lines below.

@@ -1,4 +1,29 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%                       Reading TekScan calibration files
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Function: Reading TekScan ASCII files that are used for calculating the
+% calibration coefficients
+%
+% Input
+% - h: handle of a waitbar
+% - pathName: Folder that contains the calibration files
+% - batch: boolean that is used for batch calibration mode
+%
+% Output 
+% - meanData: Cell array with the average value that is measured in the
+% TekScan calibration files, organised for different sensitivities
+% - loads: The applied load during calibration, organised for different
+% sensitivities
+% - index: Integer indicating the number of different calibration points
+% for each sensitivity
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 function [meanData, loads, index] = readCalibrationFiles(h,pathName,batch)
+    %If in batch mode, then load all the ASCII files in the folder
     if batch
         calibPathName = [pathName,'/'];
         calibFileName = dir([calibPathName,'*.asf']);
@@ -10,6 +35,8 @@ function [meanData, loads, index] = readCalibrationFiles(h,pathName,batch)
         calibFileName=char(calibFileName);
     end
     
+    %If the calibration files have been read in the past, load the stored
+    %values
     file_target = [calibPathName 'meanData.mat'];
     if exist(file_target,'file')
         load(file_target,'-mat','meanData','loads')
@@ -28,7 +55,7 @@ function [meanData, loads, index] = readCalibrationFiles(h,pathName,batch)
         %second is for the different loading levels
         for i=1:size(calibFileName,1)
             waitbar((i/size(calibFileName,1)),h,'Reading calibration files');
-            [data,sensitivity] = readTekscan(calibPathName,calibFileName(i,:));
+            [data,sensitivity] = readTekscan([calibPathName calibFileName(i,:)]);
 
             %Checking if the index for the sensitivity that is calculated has
             %been created. If not, then it is created.
@@ -40,6 +67,7 @@ function [meanData, loads, index] = readCalibrationFiles(h,pathName,batch)
                 meanData.(sensitivity)(index.(sensitivity),1)=mean(data(:));
                 loads.(sensitivity)(index.(sensitivity),1)=str2double(calibFileName(i,1:length(regexp(calibFileName(i,:),'\d'))))/loadArea;
         end
+        %Save the values to be used next time
         save(file_target, 'meanData','loads');
     end
 end
