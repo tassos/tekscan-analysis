@@ -13,4 +13,5 @@ function calibrationsComparison
             hold on
         end
     end
+    close(h)
 end
