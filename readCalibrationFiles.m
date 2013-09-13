@@ -1,23 +1,19 @@
-function [x, meanData, loads] = readCalibrationFiles(h,measPathName)
-    global xdata ydata
-    
-    %Getting screen size for calculating the proper position of the figures
-    set(0,'Units','pixels') 
-    scnsize = get(0,'ScreenSize');
-    
+function [meanData, loads, index] = readCalibrationFiles(h,pathName,batch)
+    if batch
+        calibPathName = [pathName,'/'];
+        calibFileName = dir([calibPathName,'*.asf']);
+        calibFileName = char(calibFileName.name);
+    else
     %Read calibration files
-    [calibFileName,calibPathName] = uigetfile('.asf','Select folder containing calibration measurement files',...
-        'MultiSelect','on',measPathName);
-    calibFileName=char(calibFileName);
+        [calibFileName,calibPathName] = uigetfile('.asf','Select calibration measurement files',...
+            'MultiSelect','on',pathName);
+        calibFileName=char(calibFileName);
+    end
 
     %Defining loading area
     prompt = {'Enter loading area width (mm):','Enter loading area length (mm):'};
     dimensions = str2double(inputdlg(prompt,'Input',1,{'40','40'}));
     loadArea = dimensions(1)*dimensions(2)*1e-6;
-
-    %Choose order of polynomial to be used for the fitting curve
-    prompt = {'Choose order for the fitted polynomial'};
-    order = str2double(inputdlg(prompt,'Input',1,{'3'}));
 
     %Importing calibration data and inserting in a 2 dimensional array. The
     %first dimension is the rows times the columns of the sensor and the
@@ -54,55 +50,4 @@ function [x, meanData, loads] = readCalibrationFiles(h,measPathName)
             meanData.(sensitivity)(index.(sensitivity),1)=mean(mean(data,2));
             loads.(sensitivity)(index.(sensitivity),1)=str2double(calibFileName(i,1:length(regexp(calibFileName(i,:),'\d'))))/loadArea;
     end
-
-    waitbar(0,h,'Calculating calibration coefficients');
-
-    %Defining a counter for the progress bar
-    prog=0;
-
-    %Positioning the figures in a nice array
-    pos1 = [0, scnsize(4) * (1/3), scnsize(3)/2, 2*scnsize(4)/3];
-    pos2 = [scnsize(3)/2, pos1(2), pos1(3), pos1(4)];
-    fig1 =figure(1);
-    set(fig1,'OuterPosition',pos1);
-    set(h,'Units','pixels','OuterPosition',[(scnsize(3)-366)/2, (pos1(2)-103)/2, 366, 103]);
-
-    for sens = fieldnames(index)'
-        sensit=sens{1};
-        waitbar(prog/size(fieldnames(index),1),h,['Calculating calibration coefficients for ',sensit,' sensitivity']);
-
-        % Sorting the two arrays for Linux mode compatability.
-        loads.(sensit)=sort(loads.(sensit));
-        meanData.(sensit)=sort(meanData.(sensit));
-
-        %Defining the range of the the fiting curve
-        t0=min(meanData.(sensit)(:)):1:max(meanData.(sensit)(:));
-
-        %Defining upper and lower boundary limits, and also the initial
-        %values for the Least-Square fitting
-        lb=-Inf(1,order+1);
-        ub=Inf(1,order+1);
-        xo=ones(1,order+1);
-
-        xdata=[meanData.(sensit)];
-        ydata=[loads.(sensit)];
-
-        problem = createOptimProblem('lsqnonlin','x0',xo,'objective',@fitFun,'lb',lb,'ub',ub);
-        ms = MultiStart('PlotFcns',{@gsplotfunccount,@gsplotbestf},'UseParallel','always');
-        [x.(sensit),error.(sensit)]=run(ms,problem,50);
-        gEval = gcf;
-        set(gEval,'OuterPosition',pos2);
-
-        figure(1)
-        hold on
-        % Plotting for confirming least squares convergence
-        scatter([meanData.(sensit)],[loads.(sensit)],'b');
-        ycub=polyval(x.(sensit),t0);
-        plot(t0,ycub,'r','LineWidth',2);
-
-        %Updating progress bar
-        prog=prog+1;
-        figure(gEval)
-    end
-    save([measPathName 'calibration.mat'], 'x','error');
 end

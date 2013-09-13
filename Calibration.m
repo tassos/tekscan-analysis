@@ -34,7 +34,8 @@ function Calibration
     if (exist([measPathName 'calib2ration.mat'],'file')==2);
         load([measPathName 'calibration.mat'],'x');
     else
-        [x] = readCalibrationFiles(h,measPathName);
+        [meanData,loads,index] = readCalibrationFiles(h,measPathName,0);
+        [x] = calibrationCoeff(h,measPathName,meanData,loads,index);
     end
 
     for i=1:size(measFileName,1)
