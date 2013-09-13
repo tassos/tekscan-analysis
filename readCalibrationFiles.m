@@ -39,7 +39,7 @@ function [meanData, loads, index] = readCalibrationFiles(h,pathName,batch)
     %values
     file_target = [calibPathName 'meanData.mat'];
     if exist(file_target,'file')
-        load(file_target,'-mat','meanData','loads')
+        load(file_target,'-mat','meanData','loads','index')
     else  
         %Defining loading area
         if ~batch
@@ -68,6 +68,6 @@ function [meanData, loads, index] = readCalibrationFiles(h,pathName,batch)
                 loads.(sensitivity)(index.(sensitivity),1)=str2double(calibFileName(i,1:length(regexp(calibFileName(i,:),'\d'))))/loadArea;
         end
         %Save the values to be used next time
-        save(file_target, 'meanData','loads');
+        save(file_target, 'meanData','loads','index');
     end
 end
