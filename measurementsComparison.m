@@ -50,7 +50,7 @@ function measurementsComparison
     
     hplot = plot3dErrorbars(x,y,meanMeas(1,:,:),sdMeas(1,:,:));
     h = uicontrol('style','slider','units','pixel','position',[20 20 300 20]);
-    addlistener(h,'ActionEvent',@(hObject, event) makeplot(hObject,x,y,meanMeas,sdMeas));
+    addlistener(h,'ContinuousValueChange',@(hObject, event) makeplot(hObject,x,y,meanMeas,sdMeas));
 
     function makeplot(hObject,x,y,meanMeas,sdMeas)
         n = floor(get(hObject,'Value')*99+1);
