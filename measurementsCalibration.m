@@ -39,7 +39,7 @@ function measurementsCalibration
     end
 
     for i=1:size(measFileName,1)        
-        waitbar((i/size(measFileName,1)),h,'Reading calibration files');
+        waitbar((i/size(measFileName,1)),h,'Calibrating measurement files');
         [data,sensit] = readTekscan([measPathName measFileName(i,:)]);
         
         calibratedData=polyval(x.(sensit),data);

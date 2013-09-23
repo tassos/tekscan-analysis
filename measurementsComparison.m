@@ -29,6 +29,12 @@ function measurementsComparison
     load([measPathName measFileName{1}],'calibratedData');
     data=zeros([size(measFileName),size(calibratedData)]);
     
+    %Remove files that are not really measurements
+    faulty= ~cellfun('isempty',strfind(measFileName,'calibration.mat'));
+    measFileName(faulty)=[];
+    faulty= ~cellfun('isempty',strfind(measFileName,'meanData.mat'));
+    measFileName(faulty)=[];
+    
     for i=1:size(measFileName,2)
         load([measPathName measFileName{i}],'calibratedData');
         data(1,i,:,:,:) = calibratedData;
