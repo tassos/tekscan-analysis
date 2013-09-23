@@ -45,10 +45,9 @@ function measurementsComparison
     sdMeas=squeeze(std(data,0,2));
     
     %Define a grid to plot the results
-    x=repmat(1:size(data,4),size(data,5),1)';
-    y=repmat(1:size(data,5),size(data,4),1);
+    [y,x]=meshgrid(1:1:size(data,5),1:1:size(data,4));
     
-    hplot = plot3dErrorbars(x,y,meanMeas(1,:,:),sdMeas(1,:,:));
+    plot3dErrorbars(x,y,meanMeas(1,:,:),sdMeas(1,:,:));
     h = uicontrol('style','slider','units','pixel','position',[20 20 300 20]);
     addlistener(h,'ContinuousValueChange',@(hObject, event) makeplot(hObject,x,y,meanMeas,sdMeas));
 
