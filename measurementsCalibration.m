@@ -19,10 +19,17 @@ function measurementsCalibration
     clear all
     close all force
     clc
-
+    
+    isWindows = exist('C:/Users/u0074517/Documents/PhD/Foot-ankle project/Measurements','dir');
+    if isWindows
+        initialFolder = 'C:/Users/u0074517/Documents/PhD/Foot-ankle project/Measurements';
+    else
+        initialFolder = '/media/storage/Storage/PhD/Measurements';
+    end 
+    
     %Read measurements files
     [measFileName,measPathName] = uigetfile('.asf','Select measurement files',...
-        'MultiSelect','on','C:\users\u0074517\Documents\PhD\Foot-Ankle Project\Measurements');
+        'MultiSelect','on',initialFolder);
     measFileName=char(measFileName);
 
     %Initialising a waitbar that shows the progress to the user
