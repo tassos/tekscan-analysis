@@ -15,9 +15,17 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function measurementsComparison
+
+    isWindows = exist('C:/Users/u0074517/Documents/PhD/Foot-ankle project/Measurements','dir');
+    if isWindows
+        initialFolder = 'C:/Users/u0074517/Documents/PhD/Foot-ankle project/Measurements';
+    else
+        initialFolder = '/media/storage/Storage/PhD/Measurements';
+    end 
+    
     %Choose files to 
     [measFileName,measPathName] = uigetfile('.mat','Select measurement files',...
-        'MultiSelect','on','C:\users\u0074517\Documents\PhD\Foot-Ankle Project\Measurements');
+        'MultiSelect','on',initialFolder);
     
     if ~iscell(measFileName)
         measFileName={measFileName};
@@ -55,6 +63,26 @@ function measurementsComparison
         n = floor(get(hObject,'Value')*99+1);
         plot3dErrorbars(x,y,meanMeas(n,:,:),sdMeas(n,:,:));
         refreshdata;
+    end
+
+    % Defining the regions that will be plotted
+    meanValue=zeros(size(data,3));
+    cols = {1:16, 17:32};
+    rows = {1:15, 16:30, 31:46};
+    for i=1:length(rows)
+        for j=1:length(cols)
+            subplot(3,2,j+(i-1)*length(cols))
+            for k=1:size(data,2)
+                hold on
+                %Calculating the mean for each region at each timestep
+                for l=1:size(data,3)
+                    test=data(1,k,l,rows{i},cols{j});
+                    meanValue(l) = mean(test(:));
+                end
+                plot(meanValue/1e6);
+            end
+            xlabel('Stance phase 0-100%'), ylabel('Pressure (MPa)')
+        end
     end
 
 end
