@@ -30,7 +30,10 @@ function measurementsCalibration
     %Read measurements files
     [measFileName,measPathName] = uigetfile('.asf','Select measurement files',...
         'MultiSelect','on',initialFolder);
-    measFileName=char(measFileName);
+
+    if ~iscell(measFileName)
+        measFileName={measFileName};
+    end
 
     %Initialising a waitbar that shows the progress to the user
     h=waitbar(0,'Initialising waitbar...');
@@ -45,13 +48,13 @@ function measurementsCalibration
         [x] = calibrationCoeff(h,measPathName,meanData,loads,index);
     end
 
-    for i=1:size(measFileName,1)        
-        waitbar((i/size(measFileName,1)),h,'Calibrating measurement files');
-        [data,sensit] = readTekscan([measPathName measFileName(i,:)]);
+    for i=1:size(measFileName,2)        
+        waitbar((i/size(measFileName,2)),h,'Calibrating measurement files');
+        [data,sensit] = readTekscan([measPathName measFileName{i}]);
         
         calibratedData=polyval(x.(sensit),data);
         calibratedData(calibratedData < 0) =0; %#ok<NASGU> The variable is actually used in the save function two lines below.
-        fileName=strtrim(measFileName(i,:));
+        fileName=strtrim(measFileName{i});
         save([measPathName 'Calibrated_' fileName(1:end-4) '.mat'],'calibratedData');
     end
     close(h);
