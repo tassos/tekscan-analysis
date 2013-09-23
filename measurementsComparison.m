@@ -16,6 +16,10 @@
 
 function measurementsComparison
 
+    clear all
+    close all force
+    clc
+
     isWindows = exist('C:/Users/u0074517/Documents/PhD/Foot-ankle project/Measurements','dir');
     if isWindows
         initialFolder = 'C:/Users/u0074517/Documents/PhD/Foot-ankle project/Measurements';
@@ -85,5 +89,18 @@ function measurementsComparison
             xlabel('Stance phase 0-100%'), ylabel('Pressure (MPa)')
         end
     end
+    
+    figure(3)
+    xCen=zeros(size(data,3));
+    yCen=zeros(size(data,3));
+    hold on
+    for k=1:size(data,2)
+        for l=1:size(data,3)
+            xCen(l)=sum(sum(x.*squeeze(data(1,k,l,:,:))))/sum(sum(squeeze(data(1,k,l,:,:))));
+            yCen(l)=sum(sum(y.*squeeze(data(1,k,l,:,:))))/sum(sum(squeeze(data(1,k,l,:,:))));
+        end
+        plot(xCen,yCen)
+    end
+    xlim([1,max(x(:))]),ylim([1,max(y(:))])
 
 end
