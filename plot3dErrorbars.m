@@ -28,8 +28,8 @@ function [h]=plot3dErrorbars(x, y, z, e)
 
     % fit the surface to the data;
     % matlab has several choices for the fit;  below is "linear"
-    zg=griddata(x(:), y(:), z(:), xg,yg,'spline')/1e6;
-    zgSd=griddata(x(:), y(:), zMax(:), xg,yg,'spline')/1e6;
+    zg=griddata(x(:), y(:), z(:), xg,yg,'linear')/1e6;
+    zgSd=griddata(x(:), y(:), zMax(:), xg,yg,'linear')/1e6;
     % draw the mesh on our plot
     surf(xg,yg,zg,'EdgeColor','r'), xlabel('Sensor columns'), ylabel('Sensor rows'), zlabel('Pressure (MPa)')
     if exist('viewAngle','var')
