@@ -30,7 +30,7 @@ function [x] = calibrationCoeff(h,pathName,meanData,loads, index)
         meanData.(sensit)=sort(meanData.(sensit));
 
         %Defining the range of the the fiting curve
-        t0=min(meanData.(sensit)(:)):1:max(meanData.(sensit)(:));
+        t0=min(meanData.(sensit)(:)):1:max(meanData.(sensit)(:)+5);
 
         %Defining upper and lower boundary limits, and also the initial
         %values for the Least-Square fitting
