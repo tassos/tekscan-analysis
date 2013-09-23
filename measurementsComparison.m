@@ -65,6 +65,7 @@ function measurementsComparison
         refreshdata;
     end
 
+    figure(2)
     % Defining the regions that will be plotted
     meanValue=zeros(size(data,3));
     cols = {1:16, 17:32};
