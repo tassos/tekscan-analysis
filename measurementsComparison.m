@@ -76,7 +76,6 @@ function measurementsComparison
         refreshdata;
     end
 
-
     figure(2)
     % Defining the regions that the mean will be calculated for
     meanMeas=zeros(size(data,3),size(data,2));
@@ -86,47 +85,36 @@ function measurementsComparison
         for j=1:length(cols)
             subplot(length(rows),length(cols),j+(i-1)*length(cols))
             for k=1:size(data,2)
-                hold on
                 %Calculating the mean for each region at each timestep
                 for l=1:size(data,3)
                     area=data(1,k,l,rows{i},cols{j});
                     meanMeas(l,k) = mean(area(:))/1e6;
                 end
             end
-            meanValue = mean(meanMeas,2)';
-            sdValue=std(meanMeas,0,2)';
-            X1=[0:1:99,fliplr(0:1:99)];
-            X2=[meanValue+sdValue,fliplr(meanValue-sdValue)];
-            fill(X1,X2,[0.9,0.9,1]);
-            for k=1:size(data,2)
-                plot(meanMeas(:,k));
-            end
+            plot3dConfInter(meanMeas)
             xlabel('Stance phase (%)'), ylabel('Pressure (MPa)')
         end
     end
     
     % Plotting location of center of pressure in the two directions
     figure(3)
-    xCen=zeros(size(data,3));
-    yCen=zeros(size(data,3));
+    xCen=zeros(size(data,3),size(data,2));
+    yCen=zeros(size(data,3),size(data,2));
     for k=1:size(data,2)
         for l=1:size(data,3)
-            xCen(l)=sum(sum(x.*squeeze(data(1,k,l,:,:))))/sum(sum(squeeze(data(1,k,l,:,:))));
-            yCen(l)=sum(sum(y.*squeeze(data(1,k,l,:,:))))/sum(sum(squeeze(data(1,k,l,:,:))));
+            xCen(l,k)=sum(sum(x.*squeeze(data(1,k,l,:,:))))/sum(sum(squeeze(data(1,k,l,:,:))));
+            yCen(l,k)=sum(sum(y.*squeeze(data(1,k,l,:,:))))/sum(sum(squeeze(data(1,k,l,:,:))));
         end
-        subplot(2,1,1)
-        hold on
-        plot(xCen)
-        subplot(2,1,2)
-        hold on
-        plot(yCen)
     end
     subplot(2,1,1)
+    hold on
+    plot3dConfInter(xCen)
     ylabel('Center of pressure in A/P direction (sensel)')
-    xlim([1,max(x(:))]),ylim([1,max(y(:))])
+    ylim([1,max(x(:))])
     subplot(2,1,2)
+    hold on
+    plot3dConfInter(yCen)
     ylabel('Center of pressure in M/L direction (sensel)')
     xlabel('Stance phase (%)')
-    xlim([1,max(x(:))]),ylim([1,max(y(:))])
-
+    ylim([1,max(y(:))])
 end
