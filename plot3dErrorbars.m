@@ -32,6 +32,7 @@ function [h]=plot3dErrorbars(x, y, z, e, plotSD)
     zgSd=griddata(x(:), y(:), zMax(:), xg,yg,'linear')/1e6;
     % draw the mesh on our plot
     surf(xg,yg,zg,'EdgeColor','r'), xlabel('Sensor columns'), ylabel('Sensor rows'), zlabel('Pressure (MPa)')
+    rotate3d on
     if exist('viewAngle','var')
         set(gca,'CameraViewAngle',viewAngle,'CameraPosition',cameraPos);
     end
