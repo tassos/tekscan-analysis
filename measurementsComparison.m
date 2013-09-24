@@ -59,19 +59,19 @@ function measurementsComparison
     %Define a grid to plot the results
     [y,x]=meshgrid(1:1:size(data,5),1:1:size(data,4));
     
-    plot3dErrorbars(x,y,meanMeas(1,:,:),sdMeas(1,:,:));
+    plot3dErrorbars(x,y,meanMeas(1,:,:),sdMeas(1,:,:),1);
     h = uicontrol('style','slider','units','pixel','position',[20 20 300 20]);
     addlistener(h,'ContinuousValueChange',@(hObject, event) makeplot(hObject,x,y,meanMeas,sdMeas));
 
     function makeplot(hObject,x,y,meanMeas,sdMeas)
         n = floor(get(hObject,'Value')*99+1);
-        plot3dErrorbars(x,y,meanMeas(n,:,:),sdMeas(n,:,:));
+        plot3dErrorbars(x,y,meanMeas(n,:,:),sdMeas(n,:,:),1);
         refreshdata;
     end
 
     figure(2)
     % Defining the regions that will be plotted
-    meanValue=zeros(size(data,3));
+    meanMeas=zeros(size(data,3),size(data,2));
     cols = {1:16, 17:32};
     rows = {1:15, 16:30, 31:46};
     for i=1:length(rows)
@@ -81,26 +81,44 @@ function measurementsComparison
                 hold on
                 %Calculating the mean for each region at each timestep
                 for l=1:size(data,3)
-                    test=data(1,k,l,rows{i},cols{j});
-                    meanValue(l) = mean(test(:));
+                    area=data(1,k,l,rows{i},cols{j});
+                    meanMeas(l,k) = mean(area(:));
                 end
-                plot(meanValue/1e6);
             end
-            xlabel('Stance phase 0-100%'), ylabel('Pressure (MPa)')
+            meanValue = mean(meanMeas,2)';
+            sdValue=std(meanMeas,0,2)';
+            X1=[0:1:99,fliplr(0:1:99)];
+            X2=[meanValue+sdValue,fliplr(meanValue-sdValue)];
+            fill(X1,X2,[0.9,0.9,1]);
+            for k=1:size(data,2)
+                plot(meanMeas(:,k)/1e6);
+            end
+            xlabel('Stance phase (%)'), ylabel('Pressure (MPa)')
+            ylim([0,4]);
         end
     end
     
+    % Plotting location of center of pressure in the two directions
     figure(3)
     xCen=zeros(size(data,3));
     yCen=zeros(size(data,3));
-    hold on
     for k=1:size(data,2)
         for l=1:size(data,3)
             xCen(l)=sum(sum(x.*squeeze(data(1,k,l,:,:))))/sum(sum(squeeze(data(1,k,l,:,:))));
             yCen(l)=sum(sum(y.*squeeze(data(1,k,l,:,:))))/sum(sum(squeeze(data(1,k,l,:,:))));
         end
-        plot(xCen,yCen)
+        subplot(2,1,1)
+        hold on
+        plot(xCen)
+        subplot(2,1,2)
+        hold on
+        plot(yCen)
     end
+    subplot(2,1,1)
+    ylabel('Center of pressure in A/P direction (sensel)')
+    subplot(2,1,2)
+    ylabel('Center of pressure in M/L direction (sensel)')
+    xlabel('Stance phase (%)')
     xlim([1,max(x(:))]),ylim([1,max(y(:))])
 
 end
