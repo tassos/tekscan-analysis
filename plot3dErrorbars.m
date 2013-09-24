@@ -1,4 +1,4 @@
-function [h]=plot3dErrorbars(x, y, z, e)
+function [h]=plot3dErrorbars(x, y, z, e, plotSD)
     % Source: http://code.izzid.com/2007/08/19/How-to-make-a-3D-plot-with-errorbars-in-matlab.html
 
     % This matlab function plots 3d data using the plot3 function
@@ -35,9 +35,10 @@ function [h]=plot3dErrorbars(x, y, z, e)
     if exist('viewAngle','var')
         set(gca,'CameraViewAngle',viewAngle,'CameraPosition',cameraPos);
     end
-    hold on
-	surf(xg,yg,zgSd,'FaceAlpha',0.15,'FaceColor','b','EdgeColor','none')
+    if plotSD
+        hold on
+        surf(xg,yg,zgSd,'FaceAlpha',0.15,'FaceColor','b','EdgeColor','none')
+    end
     axis tight 
     axis normal
 end
-

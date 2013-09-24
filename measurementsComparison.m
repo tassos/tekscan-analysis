@@ -61,11 +61,12 @@ function measurementsComparison
     
     plot3dErrorbars(x,y,meanMeas(1,:,:),sdMeas(1,:,:),1);
     h = uicontrol('style','slider','units','pixel','position',[20 20 300 20]);
-    addlistener(h,'ContinuousValueChange',@(hObject, event) makeplot(hObject,x,y,meanMeas,sdMeas));
+    g = uicontrol('string','Plot SD','style','checkbox','units','pixel','position',[20 50 150 20],'Value',1);
+    addlistener(h,'ContinuousValueChange',@(hObject, event) makeplot(hObject,x,y,meanMeas,sdMeas,g));
 
-    function makeplot(hObject,x,y,meanMeas,sdMeas)
+    function makeplot(hObject,x,y,meanMeas,sdMeas,g)
         n = floor(get(hObject,'Value')*99+1);
-        plot3dErrorbars(x,y,meanMeas(n,:,:),sdMeas(n,:,:),1);
+        plot3dErrorbars(x,y,meanMeas(n,:,:),sdMeas(n,:,:),get(g, 'value'));
         refreshdata;
     end
 
