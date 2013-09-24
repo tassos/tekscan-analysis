@@ -65,6 +65,7 @@ function measurementsComparison
     % Define a grid to plot the results and then plot them
     [y,x]=meshgrid(1:1:size(data,5),1:1:size(data,4));
     
+    figure(1)
     plot3dErrorbars(x,y,meanMeas(1,:,:),sdMeas(1,:,:),1);
     h = uicontrol('style','slider','units','pixel','position',[20 20 300 20]);
     g = uicontrol('string','Plot SD','style','checkbox','units','pixel','position',[20 50 150 20],'Value',1);
@@ -79,8 +80,8 @@ function measurementsComparison
     figure(2)
     % Defining the regions that the mean will be calculated for
     meanMeas=zeros(size(data,3),size(data,2));
-    cols = {1:16, 17:32};
     rows = {1:15, 16:30, 31:46};
+    cols = {1:16, 17:32};
     for i=1:length(rows)
         for j=1:length(cols)
             subplot(length(rows),length(cols),j+(i-1)*length(cols))
@@ -107,12 +108,10 @@ function measurementsComparison
         end
     end
     subplot(2,1,1)
-    hold on
     plot3dConfInter(xCen)
     ylabel('Center of pressure in A/P direction (sensel)')
     ylim([1,max(x(:))])
     subplot(2,1,2)
-    hold on
     plot3dConfInter(yCen)
     ylabel('Center of pressure in M/L direction (sensel)')
     xlabel('Stance phase (%)')
