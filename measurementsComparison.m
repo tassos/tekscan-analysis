@@ -76,7 +76,7 @@ function measurementsComparison
     rows = {1:15, 16:30, 31:46};
     for i=1:length(rows)
         for j=1:length(cols)
-            subplot(3,2,j+(i-1)*length(cols))
+            subplot(length(rows),length(cols),j+(i-1)*length(cols))
             for k=1:size(data,2)
                 hold on
                 %Calculating the mean for each region at each timestep
