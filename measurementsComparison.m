@@ -1,25 +1,23 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%                       Comparing the different measurements
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% Function: Comparing the results of different measurements
-%
-% Input
-% None
-%
-% Output 
-% None
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Comparing the different measurements
+% Function: Comparing the results of different measurements. No inputs or
+% outputs from this function. The mean pressure distribution between the
+% different measurements, the mean pressure in various areas for all the
+% measurements and the position of the center of pressure for all the
+% measurements are plotted.
 
+%% Initialising function and detecting OS
+% Due to the fact that I work on two different laptops, it's easier if I
+% detect in which one of the two I am, so that the file choosing dialog is
+% looking at the right directory
 function measurementsComparison
 
     clear all
     close all force
     clc
 
+    % I check if the directory where I usually store my data exists, so
+    % that it uses that directory as the default in the dialog, to speed
+    % things up
     isWindows = exist('C:/Users/u0074517/Documents/PhD/Foot-ankle project/Measurements','dir');
     if isWindows
         initialFolder = 'C:/Users/u0074517/Documents/PhD/Foot-ankle project/Measurements';
@@ -27,36 +25,44 @@ function measurementsComparison
         initialFolder = '/media/storage/Storage/PhD/Measurements';
     end 
     
-    %Choose files to 
+    %% Loading measurement files
+    % Choose measurements files to load and compare
     [measFileName,measPathName] = uigetfile('.mat','Select measurement files',...
         'MultiSelect','on',initialFolder);
     
+    % If the array of filenames is not a cell, convert it (e.g. in case only one
+    % file is selected)
     if ~iscell(measFileName)
         measFileName={measFileName};
     end
     
-    %Calculate the size of the array data. First dimension is for different
-    %measurements, the rest are following the same convention as all the
-    %Tekscan related files.
+    % Calculate the size of the array data.
+    % First dimension is for different measurements, the rest
+    % are following the same convention as all the Tekscan related files.
     load([measPathName measFileName{1}],'calibratedData');
     data=zeros([size(measFileName),size(calibratedData)]);
     
-    %Remove files that are not really measurements
+    % Remove files that are not really measurements
     faulty= ~cellfun('isempty',strfind(measFileName,'calibration.mat'));
     measFileName(faulty)=[];
     faulty= ~cellfun('isempty',strfind(measFileName,'meanData.mat'));
     measFileName(faulty)=[];
     
+    % Load calibrated data from measurement files
     for i=1:size(measFileName,2)
         load([measPathName measFileName{i}],'calibratedData');
         data(1,i,:,:,:) = calibratedData;
     end
     
-    %Now we can do statistics
+    %% Statistics
+    % We are calculating the mean pressure of each sensel for the different
+    % measurements. Then we calculate the standard deviation of each sensel
+    % for the different measurements
     meanMeas=squeeze(mean(data,2));
     sdMeas=squeeze(std(data,0,2));
     
-    %Define a grid to plot the results
+    %% Plotting
+    % Define a grid to plot the results and then plot them
     [y,x]=meshgrid(1:1:size(data,5),1:1:size(data,4));
     
     plot3dErrorbars(x,y,meanMeas(1,:,:),sdMeas(1,:,:),1);
@@ -70,8 +76,9 @@ function measurementsComparison
         refreshdata;
     end
 
+
     figure(2)
-    % Defining the regions that will be plotted
+    % Defining the regions that the mean will be calculated for
     meanMeas=zeros(size(data,3),size(data,2));
     cols = {1:16, 17:32};
     rows = {1:15, 16:30, 31:46};
@@ -83,7 +90,7 @@ function measurementsComparison
                 %Calculating the mean for each region at each timestep
                 for l=1:size(data,3)
                     area=data(1,k,l,rows{i},cols{j});
-                    meanMeas(l,k) = mean(area(:));
+                    meanMeas(l,k) = mean(area(:))/1e6;
                 end
             end
             meanValue = mean(meanMeas,2)';
@@ -92,10 +99,9 @@ function measurementsComparison
             X2=[meanValue+sdValue,fliplr(meanValue-sdValue)];
             fill(X1,X2,[0.9,0.9,1]);
             for k=1:size(data,2)
-                plot(meanMeas(:,k)/1e6);
+                plot(meanMeas(:,k));
             end
             xlabel('Stance phase (%)'), ylabel('Pressure (MPa)')
-            ylim([0,4]);
         end
     end
     
@@ -117,6 +123,7 @@ function measurementsComparison
     end
     subplot(2,1,1)
     ylabel('Center of pressure in A/P direction (sensel)')
+    xlim([1,max(x(:))]),ylim([1,max(y(:))])
     subplot(2,1,2)
     ylabel('Center of pressure in M/L direction (sensel)')
     xlabel('Stance phase (%)')
