@@ -16,8 +16,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function calibrationsComparison
-    initialFolder = 'C:/users/u0074517/Documents/PhD/Foot-ankle project/Measurements/Calibration analysis';
-    directories = uipickfiles('FilterSpec',initialFolder);
+    directories = uipickfiles('FilterSpec',OSDetection);
     coleur = hsv(size(directories,2));
     
     h=waitbar(0,'Initialising waitbar...');

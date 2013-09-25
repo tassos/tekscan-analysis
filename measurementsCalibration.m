@@ -20,16 +20,9 @@ function measurementsCalibration
     close all force
     clc
     
-    isWindows = exist('C:/Users/u0074517/Documents/PhD/Foot-ankle project/Measurements','dir');
-    if isWindows
-        initialFolder = 'C:/Users/u0074517/Documents/PhD/Foot-ankle project/Measurements';
-    else
-        initialFolder = '/media/storage/Storage/PhD/Measurements';
-    end 
-    
     %Read measurements files
     [measFileName,measPathName] = uigetfile('.asf','Select measurement files',...
-        'MultiSelect','on',initialFolder);
+        'MultiSelect','on',OSDetection);
 
     if ~iscell(measFileName)
         measFileName={measFileName};
@@ -45,7 +38,7 @@ function measurementsCalibration
         load([measPathName 'calibration.mat'],'x');
     else
         [meanData,loads,index] = readCalibrationFiles(h,measPathName,0);
-        [x] = calibrationCoeff(h,measPathName,meanData,loads,index);
+        [x] = calibrationCoeff(h,measPathName,meanData,loads/1e6,index);
     end
 
     for i=1:size(measFileName,2)        

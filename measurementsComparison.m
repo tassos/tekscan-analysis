@@ -1,34 +1,19 @@
-%% Comparing the different measurements
+function measurementsComparison
+%MEASUREMENTSCOMPARISON Comparing the different TekScan measurements
 % Function: Comparing the results of different measurements. No inputs or
 % outputs from this function. The mean pressure distribution between the
 % different measurements, the mean pressure in various areas for all the
 % measurements and the position of the center of pressure for all the
 % measurements are plotted.
-
-%% Initialising function and detecting OS
-% Due to the fact that I work on two different laptops, it's easier if I
-% detect in which one of the two I am, so that the file choosing dialog is
-% looking at the right directory
-function measurementsComparison
-
     clear all
     close all force
     clc
-
-    % I check if the directory where I usually store my data exists, so
-    % that it uses that directory as the default in the dialog, to speed
-    % things up
-    isWindows = exist('C:/Users/u0074517/Documents/PhD/Foot-ankle project/Measurements','dir');
-    if isWindows
-        initialFolder = 'C:/Users/u0074517/Documents/PhD/Foot-ankle project/Measurements';
-    else
-        initialFolder = '/media/storage/Storage/PhD/Measurements';
-    end 
     
     %% Loading measurement files
+    
     % Choose measurements files to load and compare
     [measFileName,measPathName] = uigetfile('.mat','Select measurement files',...
-        'MultiSelect','on',initialFolder);
+        'MultiSelect','on',OSDetection);
     
     % If the array of filenames is not a cell, convert it (e.g. in case only one
     % file is selected)
