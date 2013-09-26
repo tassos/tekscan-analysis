@@ -72,15 +72,16 @@ function measurementsComparison
     cols{colDiv}(cols{colDiv}>max(y(:)))=[];
     
     figure(1)
-    plot3dErrorbars(x,y,meanMeas(1,:,:),sdMeas(1,:,:),1);
+    plot3dErrorbars(x,y,meanMeas(1,:,:),sdMeas(1,:,:),rows,cols,1,1);
     xlabel('Sensor columns'), ylabel('Sensor rows'), zlabel('Pressure (Pa)');
     h = uicontrol('style','slider','units','pixel','position',[20 20 300 20]);
     g = uicontrol('string','Plot SD','style','checkbox','units','pixel','position',[20 50 150 20],'Value',1);
-    addlistener(h,'ContinuousValueChange',@(hObject, event) makeplot(hObject,x,y,meanMeas,sdMeas,g));
+    f = uicontrol('string','Plot Area division','style','checkbox','units','pixel','position',[20 80 150 20],'Value',1);
+    addlistener(h,'ContinuousValueChange',@(hObject, event) makeplot(hObject,x,y,meanMeas,sdMeas,rows,cols,f,g));
 
-    function makeplot(hObject,x,y,meanMeas,sdMeas,g)
+    function makeplot(hObject,x,y,meanMeas,sdMeas,rows,cols,f,g)
         n = floor(get(hObject,'Value')*99+1);
-        plot3dErrorbars(x,y,meanMeas(n,:,:),sdMeas(n,:,:),get(g, 'value'));
+        plot3dErrorbars(x,y,meanMeas(n,:,:),sdMeas(n,:,:),rows,cols,get(f,'value'),get(g, 'value'));
         xlabel('Sensor columns'), ylabel('Sensor rows'), zlabel('Pressure (Pa)');
         refreshdata;
     end
