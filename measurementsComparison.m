@@ -36,8 +36,8 @@ function measurementsComparison
     % Load calibrated data from measurement files
     for i=1:size(measFileName,2)
         load([measPathName measFileName{i}],'calibratedData','spacing');
-        %Converting Pa to MPa and mm to m
-        data(1,i,:,:,:) = calibratedData/1e6;
+        data(1,i,:,:,:) = calibratedData;
+        %Converting mm to m
         colSpacing=spacing{1}/1e3; %#ok<USENS> The variable is loaded three lines above
         rowSpacing=spacing{2}/1e3;
     end
@@ -53,8 +53,27 @@ function measurementsComparison
     % Define a grid to plot the results and then plot them
     [y,x]=meshgrid(1:1:size(data,5),1:1:size(data,4));
     
+    % Decide how the sensor will be split in areas in a clever way
+    rowDiv = 3;
+    colDiv = 2;
+    rows{rowDiv}=[];
+    cols{colDiv}=[];
+    previous=0;
+    for i=1:rowDiv
+        rows{i} = (1:ceil(max(x(:))/rowDiv)) + previous;
+        previous = max([rows{:}]);
+    end
+    rows{rowDiv}(rows{rowDiv}>max(x(:)))=[];
+    previous=0;
+    for i=1:colDiv
+        cols{i} = (1:ceil(max(y(:))/colDiv)) + previous;
+        previous = max([cols{:}]);
+    end
+    cols{colDiv}(cols{colDiv}>max(y(:)))=[];
+    
     figure(1)
     plot3dErrorbars(x,y,meanMeas(1,:,:),sdMeas(1,:,:),1);
+    xlabel('Sensor columns'), ylabel('Sensor rows'), zlabel('Pressure (Pa)');
     h = uicontrol('style','slider','units','pixel','position',[20 20 300 20]);
     g = uicontrol('string','Plot SD','style','checkbox','units','pixel','position',[20 50 150 20],'Value',1);
     addlistener(h,'ContinuousValueChange',@(hObject, event) makeplot(hObject,x,y,meanMeas,sdMeas,g));
@@ -62,29 +81,29 @@ function measurementsComparison
     function makeplot(hObject,x,y,meanMeas,sdMeas,g)
         n = floor(get(hObject,'Value')*99+1);
         plot3dErrorbars(x,y,meanMeas(n,:,:),sdMeas(n,:,:),get(g, 'value'));
+        xlabel('Sensor columns'), ylabel('Sensor rows'), zlabel('Pressure (Pa)');
         refreshdata;
     end
 
     figure(2)
     % Defining the regions that the mean will be calculated for
-    meanMeas=zeros(size(data,2),size(data,3),2);
+    forceArea=zeros(size(data,2),size(data,3),2);
     coleurMeas=hsv(size(data,2));
     coleurStat={[0.9,0.9,1],'b'};
-    rows = {1:15, 16:30, 31:46};
-    cols = {1:16, 17:32};
     for i=1:length(rows)
         for j=1:length(cols)
             subplot(length(rows),length(cols),j+(i-1)*length(cols))
             for k=1:size(data,2)
                 %Calculating the mean for each region at each timestep
                 for l=1:size(data,3)
-                    area = ((max(cols{j})-min(cols{j}))*colSpacing)*((max(rows{j})-min(rows{j}))*rowSpacing);
+                    area = ((max(cols{j})-min(cols{j}))*colSpacing)*((max(rows{i})-min(rows{i}))*rowSpacing);
                     areaPressure=data(1,k,l,rows{i},cols{j});
-                    meanMeas(k,l,2) = sum(areaPressure(:))/area;
+                    forceArea(k,l,2) = sum(areaPressure(:))*area;
                 end
             end
-            plot3dConfInter(meanMeas, coleurMeas, coleurStat, 2)
-            xlabel('Stance phase (%)'), ylabel('Pressure (MPa)')
+            plot3dConfInter(forceArea, coleurMeas, coleurStat, 2)
+            if i==3, xlabel('Stance phase (%)'), end
+            if (i==2 && j==1), ylabel('Force (N)'), end
         end
     end
     
@@ -94,17 +113,18 @@ function measurementsComparison
     yCen=zeros(size(data,2),size(data,3),2);
     for k=1:size(data,2)
         for l=1:size(data,3)
-            xCen(k,l,2)=sum(sum(x.*squeeze(data(1,k,l,:,:))))/sum(sum(squeeze(data(1,k,l,:,:))));
-            yCen(k,l,2)=sum(sum(y.*squeeze(data(1,k,l,:,:))))/sum(sum(squeeze(data(1,k,l,:,:))));
+            dataTemp = squeeze(data(1,k,l,:,:));
+            xCen(k,l,2)=sum(sum(x.*dataTemp))/sum(dataTemp(:));
+            yCen(k,l,2)=sum(sum(y.*dataTemp))/sum(dataTemp(:));
         end
     end
     subplot(2,1,1)
     plot3dConfInter(xCen,coleurMeas,coleurStat,2)
-    ylabel('Center of pressure in A/P direction (sensel)')
+    ylabel('CoP in A/P direction (sensel)')
     ylim([1,max(x(:))])
     subplot(2,1,2)
     plot3dConfInter(yCen,coleurMeas,coleurStat,2)
-    ylabel('Center of pressure in M/L direction (sensel)')
+    ylabel('CoP in M/L direction (sensel)')
     xlabel('Stance phase (%)')
     ylim([1,max(y(:))])
 end
