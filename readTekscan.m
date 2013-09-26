@@ -17,12 +17,15 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [data, sensitivity] = readTekscan(fileName)
+function [data, sensitivity, spacing] = readTekscan(fileName)
     text = fileread(strtrim(fileName));
 
     %Reading out information about the sensor (number of columns, rows etc).
     ncols=str2double(regexp(text,'(?<=COLS )\d*','match'));
     nrows=str2double(regexp(text,'(?<=ROWS )\d*','match'));
+    colSpacing=str2double(regexp(text,'(?<=COL_SPACING )\d*.\d*','match'));
+    rowSpacing=str2double(regexp(text,'(?<=ROW_SPACING )\d*.\d*','match'));
+    spacing = {colSpacing, rowSpacing};
     endFrame=str2double(regexp(text,'(?<=END_FRAME )\d*','match'));
     startFrame=str2double(regexp(text,'(?<=START_FRAME )\d*','match'));
     sensitivity = regexp(text,'(?<=SENSITIVITY )\S*','match');

@@ -35,8 +35,11 @@ function measurementsComparison
     
     % Load calibrated data from measurement files
     for i=1:size(measFileName,2)
-        load([measPathName measFileName{i}],'calibratedData');
+        load([measPathName measFileName{i}],'calibratedData','spacing');
+        %Converting Pa to MPa and mm to m
         data(1,i,:,:,:) = calibratedData/1e6;
+        colSpacing=spacing{1}/1e3; %#ok<USENS> The variable is loaded three lines above
+        rowSpacing=spacing{2}/1e3;
     end
     
     %% Statistics
@@ -75,8 +78,9 @@ function measurementsComparison
             for k=1:size(data,2)
                 %Calculating the mean for each region at each timestep
                 for l=1:size(data,3)
-                    area=data(1,k,l,rows{i},cols{j});
-                    meanMeas(k,l,2) = mean(area(:));
+                    area = ((max(cols{j})-min(cols{j}))*colSpacing)*((max(rows{j})-min(rows{j}))*rowSpacing);
+                    areaPressure=data(1,k,l,rows{i},cols{j});
+                    meanMeas(k,l,2) = sum(areaPressure(:))/area;
                 end
             end
             plot3dConfInter(meanMeas, coleurMeas, coleurStat, 2)
