@@ -58,13 +58,14 @@ function measurementsComparison
     pos1 = [0, scnsize(4) * (1/2), scnsize(3)/3, scnsize(4)/2];
     pos2 = [scnsize(3)/3, pos1(2), 2*scnsize(3)/3, pos1(4)];
     pos3 = [scnsize(3)/3, 0, pos2(3), pos2(4)];
+    pos4 = [0, 0, pos1(3), pos1(4)];
     
     % Define a grid to plot the results and then plot them
     [y,x]=meshgrid(1:1:size(data,5),1:1:size(data,4));
     
     % Decide how the sensor will be split in areas in a clever way
-    rowDiv = 3;
-    colDiv = 2;
+    rowDiv = 1;
+    colDiv = 1;
     rows{rowDiv}=[];
     cols{colDiv}=[];
     previous=0;
@@ -139,4 +140,14 @@ function measurementsComparison
     ylabel('CoP in M/L direction (sensel)')
     xlabel('Stance phase (%)')
     ylim([1,max(y(:))])
+    
+    figure(4)
+    set(4,'OuterPosition',pos4);
+    maxPressure=zeros(size(data,2),size(data,3),2);
+    for k=1:size(data,2)
+        for l=1:size(data,3)
+            maxPressure(k,l,2) = max(max(data(1,k,l,:,:)));
+        end
+    end
+    plot3dConfInter(maxPressure, coleurMeas, coleurStat, 2);
 end
