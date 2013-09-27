@@ -30,32 +30,37 @@ function measurementsCalibration
 
     %Initialising a waitbar that shows the progress to the user
     h=waitbar(0,'Initialising waitbar...');
-
-    %Check to see if calibration with this sensor is already made. If
-    %calibration file doesn't exists, go on with calculating the fitting
-    %coefficients.
-    if (exist([measPathName 'calibration.mat'],'file')==2);
-        load([measPathName 'calibration.mat'],'x');
-    else
-        [meanData,loads,index] = readCalibrationFiles(h,measPathName,0);
-        [x] = calibrationCoeff(h,measPathName,meanData,loads,index);
-    end
     
     % Loading foot side and position of the sensor for deciding whether
     % flipping of the data is needed, so that all measurements are aligned
     % in the same direction. If it is a Right foot and the sensor was
     % upside Down, or if it's a left foot and the sensor was upside Up,
     % flipping is needed.
-    load([measPathName 'footSide.mat'],'Right','upsideUp');
-    flip=xor(Right,upsideUp);
+    load([measPathName '../Foot details.mat'],'foottype','upsideUp','sensor');
+    Right=strcmp(foottype,'RIGHT');
 
     for i=1:size(measFileName,2)
         waitbar((i/size(measFileName,2)),h,'Calibrating measurement files');
         [data,sensit,spacing] = readTekscan([measPathName measFileName{i}]); %#ok<NASGU> The variable is actually used in the save function five lines below.
         
+        footcase = lower(regexp(measFileName{i},'^[a-zA-Z]*','match'));
+        
+        sensorFileName=[measPathName,'/../../Calibration matr2ices/',sensor.(footcase{:}){:},'.mat'];
+        calibrationFolder=[measPathName,'/../../Calibration measurements/',sensor.(footcase{:}){:}];
+        
+        %Check to see if calibration with this sensor is already made. If
+        %calibration file doesn't exists, go on with calculating the fitting
+        %coefficients.
+        if (exist(sensorFileName,'file')==2);
+            load(sensorFileName,'x');
+        else
+            [meanData,loads,index] = readCalibrationFiles(h,calibrationFolder,1);
+            [x] = calibrationCoeff(h,measPathName,meanData,loads,index);
+        end
+        
         calibratedData=polyval(x.(sensit),data);
         calibratedData(calibratedData < 0) =0;
-        if flip
+        if xor(Right,upsideUp.(footcase{:}))
             for k=1:size(calibratedData,1)
                 calibratedData(k,:,:)=fliplr(squeeze(calibratedData(k,:,:)));
             end
