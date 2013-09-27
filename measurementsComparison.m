@@ -64,8 +64,8 @@ function measurementsComparison
     [y,x]=meshgrid(1:1:size(data,5),1:1:size(data,4));
     
     % Decide how the sensor will be split in areas in a clever way
-    rowDiv = 1;
-    colDiv = 1;
+    rowDiv = 3;
+    colDiv = 2;
     rows{rowDiv}=[];
     cols{colDiv}=[];
     previous=0;
@@ -81,10 +81,11 @@ function measurementsComparison
     end
     cols{colDiv}(cols{colDiv}>max(y(:)))=[];
     
-    figure(1)
-    set(1,'OuterPosition',pos1);
+    fig1=figure('name','Pressure distribution over the area of the sensor');
+    set(fig1,'OuterPosition',pos1);
     plot3dErrorbars(x,y,meanMeas(1,:,:),sdMeas(1,:,:),rows,cols,1,1);
     xlabel('Sensor columns'), ylabel('Sensor rows'), zlabel('Pressure (Pa)');
+    title('Pressure distribution over the area of the sensor')
     h = uicontrol('style','slider','units','pixel','position',[20 20 300 20]);
     g = uicontrol('string','Plot SD','style','checkbox','units','pixel','position',[20 50 150 20],'Value',1);
     f = uicontrol('string','Plot Area division','style','checkbox','units','pixel','position',[20 80 150 20],'Value',1);
@@ -94,12 +95,13 @@ function measurementsComparison
         n = floor(get(hObject,'Value')*99+1);
         plot3dErrorbars(x,y,meanMeas(n,:,:),sdMeas(n,:,:),rows,cols,get(f,'value'),get(g, 'value'));
         xlabel('Sensor columns'), ylabel('Sensor rows'), zlabel('Pressure (Pa)');
+        title('Pressure distribution over the area of the sensor')
         refreshdata;
     end
 
-    figure(2)
+    fig2=figure('name','Resulting force in different areas of the sensor');
     % Defining the regions that the mean will be calculated for
-    set(2,'OuterPosition',pos2);
+    set(fig2,'OuterPosition',pos2);
     forceArea=zeros(size(data,2),size(data,3),2);
     coleurMeas=hsv(size(data,2));
     coleurStat={[0.9,0.9,1],'b'};
@@ -114,14 +116,15 @@ function measurementsComparison
                 end
             end
             plot3dConfInter(forceArea, coleurMeas, coleurStat, 2)
-            if j==1, ylabel(['Force (N) (rows ',num2str(min(rows{i})),'-',num2str(max(rows{i})),')']), end
-            if i==3, xlabel(['Stance phase (%) (cols ',num2str(min(cols{j})),'-',num2str(max(cols{j})),')']), end
+            if j==1, ylabel('Force (N)'), end
+            if i==length(rows), xlabel('Stance phase (%)'), end
+            title({['rows: ',num2str(min(rows{i})),'-',num2str(max(rows{i}))],['cols: ',num2str(min(cols{j})),'-',num2str(max(cols{j}))]})
         end
     end
     
     % Plotting location of center of pressure in the two directions
-    figure(3)
-    set(3,'OuterPosition',pos3);
+    fig3=figure('name','CoP position in two directions');
+    set(fig3,'OuterPosition',pos3);
     xCen=zeros(size(data,2),size(data,3),2);
     yCen=zeros(size(data,2),size(data,3),2);
     for k=1:size(data,2)
@@ -135,14 +138,16 @@ function measurementsComparison
     plot3dConfInter(xCen,coleurMeas,coleurStat,2)
     ylabel('CoP in A/P direction (sensel)')
     ylim([1,max(x(:))])
+    title('Position of the CoP in x (sensor rows) direction')
     subplot(2,1,2)
     plot3dConfInter(yCen,coleurMeas,coleurStat,2)
     ylabel('CoP in M/L direction (sensel)')
     xlabel('Stance phase (%)')
     ylim([1,max(y(:))])
+    title('Position of the CoP in y (sensor cols) direction')
     
-    figure(4)
-    set(4,'OuterPosition',pos4);
+    fig4=figure('name','Maximum pressure over stance phase duration');
+    set(fig4,'OuterPosition',pos4);
     maxPressure=zeros(size(data,2),size(data,3),2);
     for k=1:size(data,2)
         for l=1:size(data,3)
@@ -150,4 +155,6 @@ function measurementsComparison
         end
     end
     plot3dConfInter(maxPressure, coleurMeas, coleurStat, 2);
+    xlabel('Stance phase (%)'), ylabel('Maximum Pressure (Pa)')
+    title('Maximum pressure over stance phase duration')
 end
