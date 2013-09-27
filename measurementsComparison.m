@@ -50,6 +50,15 @@ function measurementsComparison
     sdMeas=squeeze(std(data,0,2));
     
     %% Plotting
+    
+    %Getting screen size for calculating the proper position of the figures
+    set(0,'Units','pixels') 
+    scnsize = get(0,'ScreenSize');
+    
+    pos1 = [0, scnsize(4) * (1/2), scnsize(3)/3, scnsize(4)/2];
+    pos2 = [scnsize(3)/3, pos1(2), 2*scnsize(3)/3, pos1(4)];
+    pos3 = [scnsize(3)/3, 0, pos2(3), pos2(4)];
+    
     % Define a grid to plot the results and then plot them
     [y,x]=meshgrid(1:1:size(data,5),1:1:size(data,4));
     
@@ -72,6 +81,7 @@ function measurementsComparison
     cols{colDiv}(cols{colDiv}>max(y(:)))=[];
     
     figure(1)
+    set(1,'OuterPosition',pos1);
     plot3dErrorbars(x,y,meanMeas(1,:,:),sdMeas(1,:,:),rows,cols,1,1);
     xlabel('Sensor columns'), ylabel('Sensor rows'), zlabel('Pressure (Pa)');
     h = uicontrol('style','slider','units','pixel','position',[20 20 300 20]);
@@ -88,6 +98,7 @@ function measurementsComparison
 
     figure(2)
     % Defining the regions that the mean will be calculated for
+    set(2,'OuterPosition',pos2);
     forceArea=zeros(size(data,2),size(data,3),2);
     coleurMeas=hsv(size(data,2));
     coleurStat={[0.9,0.9,1],'b'};
@@ -103,13 +114,14 @@ function measurementsComparison
                 end
             end
             plot3dConfInter(forceArea, coleurMeas, coleurStat, 2)
-            if i==3, xlabel('Stance phase (%)'), end
-            if (i==2 && j==1), ylabel('Force (N)'), end
+            if j==1, ylabel(['Force (N) (rows ',num2str(min(rows{i})),'-',num2str(max(rows{i})),')']), end
+            if i==3, xlabel(['Stance phase (%) (cols ',num2str(min(cols{j})),'-',num2str(max(cols{j})),')']), end
         end
     end
     
     % Plotting location of center of pressure in the two directions
     figure(3)
+    set(3,'OuterPosition',pos3);
     xCen=zeros(size(data,2),size(data,3),2);
     yCen=zeros(size(data,2),size(data,3),2);
     for k=1:size(data,2)
