@@ -108,9 +108,8 @@ function measurementsComparison
             for k=1:size(data,2)
                 %Calculating the mean for each region at each timestep
                 for l=1:size(data,3)
-                    area = ((max(cols{j})-min(cols{j}))*colSpacing)*((max(rows{i})-min(rows{i}))*rowSpacing);
                     areaPressure=data(1,k,l,rows{i},cols{j});
-                    forceArea(k,l,2) = sum(areaPressure(:))*area;
+                    forceArea(k,l,2) = sum(areaPressure(:))*rowSpacing*colSpacing;
                 end
             end
             plot3dConfInter(forceArea, coleurMeas, coleurStat, 2)
