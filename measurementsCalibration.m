@@ -43,9 +43,11 @@ function measurementsCalibration
         waitbar((i/size(measFileName,2)),h,'Calibrating measurement files');
         [data,sensit,spacing] = readTekscan([measPathName measFileName{i}]); %#ok<NASGU> The variable is actually used in the save function five lines below.
         
+        %Detecting the foot case of the measurement (tekscan,tap,ta) and
+        %constructing appropriate paths and filenames
         footcase = lower(regexp(measFileName{i},'^[a-zA-Z]*','match'));
-        
-        sensorFileName=[measPathName,'/../../Calibration matr2ices/',sensor.(footcase{:}){:},'.mat'];
+        sensorFolder=[measPathName,'/../../Calibration matrices/'];
+        sensorFileName=[sensorFolder,sensor.(footcase{:}){:},'.mat'];
         calibrationFolder=[measPathName,'/../../Calibration measurements/',sensor.(footcase{:}){:}];
         
         %Check to see if calibration with this sensor is already made. If
@@ -55,7 +57,7 @@ function measurementsCalibration
             load(sensorFileName,'x');
         else
             [meanData,loads,index] = readCalibrationFiles(h,calibrationFolder,1);
-            [x] = calibrationCoeff(h,measPathName,meanData,loads,index);
+            [x] = calibrationCoeff(h,measPathName,sensorFileName,meanData,loads,index);
         end
         
         calibratedData=polyval(x.(sensit),data);
