@@ -91,7 +91,7 @@ function measurementsComparison
     fig1=figure('name','Pressure distribution over the area of the sensor');
     set(fig1,'OuterPosition',pos1);
     plot3dErrorbars(x,y,meanMeas(1,:,:),sdMeas(1,:,:),rowsPlot,colsPlot,1,1);
-    set(gca,'CameraPosition',[0 0 3.75*1e7],'DataAspectRatio',[1 1 5e5]);
+    set(gca,'CameraPosition',[0 0 3.75*1e7],'DataAspectRatio',[1 1 3e5]);
     xlabel('A(-)/P(+) direction'), ylabel('M(-)/L(+) direction'), zlabel('Pressure (Pa)');
     title('Pressure distribution over the area of the sensor')
     h = uicontrol('style','slider','units','pixel','position',[20 20 300 20]);
