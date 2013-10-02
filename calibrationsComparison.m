@@ -24,8 +24,7 @@ function calibrationsComparison
     for z=1:size(directories,2)
         [meanData,loads]=readCalibrationFiles(h,directories{z},1);
         for sens=fieldnames(meanData)'
-            sensit = sens{1};
-            scatter([meanData.(sensit)],[loads.(sensit)],10,coleur(z,:));
+            scatter([meanData.(sens{1})],[loads.(sens{1})],10,coleur(z,:));
             hold on
         end
     end
