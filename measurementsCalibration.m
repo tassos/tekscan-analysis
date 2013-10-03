@@ -25,7 +25,11 @@ function measurementsCalibration
         'MultiSelect','on',OSDetection);
 
     if ~iscell(measFileName)
-        measFileName={measFileName};
+        if measFileName == 0
+            return
+        else
+            measFileName={measFileName};
+        end
     end
 
     %Initialising a waitbar that shows the progress to the user
@@ -66,8 +70,8 @@ function measurementsCalibration
                 calibratedData(k,:,:)=fliplr(squeeze(calibratedData(k,:,:)));
             end
         end
-        fileName=strtrim(measFileName{i});
-        save([measPathName 'Calibrated_' fileName(1:end-4) '.mat'],'calibratedData','spacing');
+        fileName=strtrim(measFileName{i}(1:end-4));
+        save([measPathName 'Calibrated_' fileName '.mat'],'calibratedData','spacing','fileName');
     end
     close(h);
 end
