@@ -27,19 +27,23 @@ function measurementsComparison
     load([measPathName measFileName{1}],'calibratedData');
     data=zeros([size(measFileName),size(calibratedData)]);
     
+    paThreshold = 5e4;
+    
     % Remove files that are not really measurements
     faulty= ~cellfun('isempty',strfind(measFileName,'calibration.mat'));
     measFileName(faulty)=[];
     faulty= ~cellfun('isempty',strfind(measFileName,'meanData.mat'));
     measFileName(faulty)=[];
     
+    legendNames{size(measFileName,2)}=[];
     % Load calibrated data from measurement files
     for i=1:size(measFileName,2)
-        load([measPathName measFileName{i}],'calibratedData','spacing');
-        data(1,i,:,:,:) = calibratedData;
+        load([measPathName measFileName{i}],'calibratedData','spacing','fileName');
+        data(1,i,:,:,:) = smooth3(calibratedData);
         %Converting mm to m
         colSpacing=spacing{1}/1e3; %#ok<USENS> The variable is loaded three lines above
         rowSpacing=spacing{2}/1e3;
+        legendNames{i}=fileName;
     end
     
     %% Statistics
@@ -55,10 +59,12 @@ function measurementsComparison
     set(0,'Units','pixels') 
     scnsize = get(0,'ScreenSize');
     
-    pos1 = [0, scnsize(4) * (1/2), scnsize(3)/3, scnsize(4)/2];
-    pos2 = [scnsize(3)/3, pos1(2), 2*scnsize(3)/3, pos1(4)];
-    pos3 = [scnsize(3)/3, 0, pos2(3), pos2(4)];
-    pos4 = [0, 0, pos1(3), pos1(4)];
+    pos1 = [0, scnsize(4)/2, scnsize(3)/3, scnsize(4)/2];
+    pos2 = [scnsize(3)/3, pos1(2), scnsize(3)/3, pos1(4)];
+    pos3 = [2*scnsize(3)/3, pos1(2), scnsize(3)/3, pos1(4)];
+    pos4 = [2*scnsize(3)/3, 0, scnsize(3)/3, pos1(4)];
+    pos5 = [scnsize(3)/3, 0, scnsize(3)/3, pos1(4)];
+    pos6 = [0, 0, pos1(3), pos1(4)];
     
     % Define a grid to plot the results and then plot them
     [y,x]=meshgrid(floor(-size(data,5)/2)+1:1:floor(size(data,5)/2),...
@@ -90,18 +96,21 @@ function measurementsComparison
     
     fig1=figure('name','Pressure distribution over the area of the sensor');
     set(fig1,'OuterPosition',pos1);
-    plot3dErrorbars(x,y,meanMeas(1,:,:),sdMeas(1,:,:),rowsPlot,colsPlot,1,1);
+    plot3dErrorbars(x,y,meanMeas,sdMeas,1,rowsPlot,colsPlot,1,size(data,2)-1,1);
+    zlim([0 max(meanMeas(:))]);
     set(gca,'CameraPosition',[0 0 3.75*1e7],'DataAspectRatio',[1 1 3e5]);
     xlabel('A(-)/P(+) direction'), ylabel('M(-)/L(+) direction'), zlabel('Pressure (Pa)');
     title('Pressure distribution over the area of the sensor')
     h = uicontrol('style','slider','units','pixel','position',[20 20 300 20]);
-    g = uicontrol('string','Plot SD','style','checkbox','units','pixel','position',[20 50 60 20],'Value',1);
+    g = uicontrol('string','Plot SD','style','checkbox','units','pixel','position',[20 50 60 20],'Value',~~(size(data,2)-1));
     f = uicontrol('string','Plot Area division','style','checkbox','units','pixel','position',[20 80 105 20],'Value',1);
-    addlistener(h,'ContinuousValueChange',@(hObject, event) makeplot(hObject,x,y,meanMeas,sdMeas,rowsPlot,colsPlot,f,g));
+    s = uicontrol('string','Shading interpolation','style','checkbox','units','pixel','position',[20 110 115 20],'Value',1);
+    addlistener(h,'ContinuousValueChange',@(hObject, event) makeplot(hObject,x,y,meanMeas,sdMeas,rowsPlot,colsPlot,f,g,s));
 
-    function makeplot(hObject,x,y,meanMeas,sdMeas,rows,cols,f,g)
+    function makeplot(hObject,x,y,meanMeas,sdMeas,rows,cols,f,g,s)
         n = floor(get(hObject,'Value')*99+1);
-        plot3dErrorbars(x,y,meanMeas(n,:,:),sdMeas(n,:,:),rows,cols,get(f,'value'),get(g, 'value'));
+        plot3dErrorbars(x,y,meanMeas,sdMeas,n,rows,cols,get(f,'value'),get(g, 'value'),get(s,'value'));
+        zlim([0 max(meanMeas(:))]);
         xlabel('A(-)/P(+) direction'), ylabel('M(-)/L(+) direction'), zlabel('Pressure (Pa)');
         title('Pressure distribution over the area of the sensor')
         refreshdata;
@@ -110,17 +119,24 @@ function measurementsComparison
     fig2=figure('name','Resulting force in different areas of the sensor');
     % Defining the regions that the mean will be calculated for
     set(fig2,'OuterPosition',pos2);
+    fig3=figure('name','Contact area in different areas of the sensor');
+    set(fig3,'OuterPosition',pos3);
     forceArea=zeros(size(data,2),size(data,3),2);
+    forceTotal=forceArea;
+    contactArea=forceArea;
     coleurMeas=hsv(size(data,2));
     coleurStat={[0.9,0.9,1],'b'};
     for i=1:length(rows)
         for j=1:length(cols)
+            figure(2)
             subplot(length(rows),length(cols),j+(i-1)*length(cols))
             for k=1:size(data,2)
                 %Calculating the mean for each region at each timestep
                 for l=1:size(data,3)
                     areaPressure=data(1,k,l,rows{i},cols{j});
                     forceArea(k,l,2) = sum(areaPressure(:))*rowSpacing*colSpacing;
+                    forceTotal(k,l,2) = sum(sum(data(1,k,l,:,:)))*rowSpacing*colSpacing;
+                    contactArea(k,l,2) = size(areaPressure(areaPressure>paThreshold),1)*rowSpacing*colSpacing;
                 end
             end
             plot3dConfInter(forceArea, coleurMeas, coleurStat, 2)
@@ -128,12 +144,20 @@ function measurementsComparison
             if i==length(rows), xlabel('Stance phase (%)'), end
             title({['rows: ',num2str(min(rowsPlot{i})),' to ',num2str(max(rowsPlot{i}))],...
                 ['cols: ',num2str(min(colsPlot{j})),' to ',num2str(max(colsPlot{j}))]})
+            figure(3)
+            subplot(length(rows),length(cols),j+(i-1)*length(cols))
+            plot3dConfInter(contactArea, coleurMeas, coleurStat, 2)
+            if j==1, ylabel('Contact Area (m^2)'), end
+            if i==length(rows), xlabel('Stance phase (%)'), end
+            title({['rows: ',num2str(min(rowsPlot{i})),' to ',num2str(max(rowsPlot{i}))],...
+                ['cols: ',num2str(min(colsPlot{j})),' to ',num2str(max(colsPlot{j}))]})
         end
     end
+
     
     % Plotting location of center of pressure in the two directions
-    fig3=figure('name','CoP position in two directions');
-    set(fig3,'OuterPosition',pos3);
+    fig4=figure('name','CoP position in two directions');
+    set(fig4,'OuterPosition',pos4);
     xCen=zeros(size(data,2),size(data,3),2);
     yCen=zeros(size(data,2),size(data,3),2);
     for k=1:size(data,2)
@@ -154,9 +178,16 @@ function measurementsComparison
     xlabel('Stance phase (%)')
     ylim([min(y(:)),max(y(:))])
     title('Position of the CoP in M/L direction (sensor col)')
+        
+    %Plotting sum of forces that are measured with the sensor
+    fig5=figure('name','Total force through the ankle joint');
+    set(fig5,'OuterPosition',pos5);
+    plot3dConfInter(forceTotal, coleurMeas, coleurStat, 2)
+    ylabel('Force (N)'), xlabel('Stance phase (%)')
+    title('Total force through the ankle joint')
     
-    fig4=figure('name','Peak pressure over stance phase duration');
-    set(fig4,'OuterPosition',pos4);
+    fig6=figure('name','Peak pressure over stance phase duration');
+    set(fig6,'OuterPosition',pos6);
     maxPressure=zeros(size(data,2),size(data,3),2);
     for k=1:size(data,2)
         for l=1:size(data,3)
@@ -164,6 +195,7 @@ function measurementsComparison
         end
     end
     plot3dConfInter(maxPressure, coleurMeas, coleurStat, 2);
+    legend([{'Std'} legendNames {'Mean'}])
     xlabel('Stance phase (%)'), ylabel('Maximum Pressure (Pa)')
     title('Peak pressure over stance phase duration')
 end
