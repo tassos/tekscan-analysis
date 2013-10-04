@@ -40,16 +40,42 @@ function measurementsCalibration
     % in the same direction. If it is a Right foot and the sensor was
     % upside Down, or if it's a left foot and the sensor was upside Up,
     % flipping is needed.
-    load([measPathName '../Foot details.mat'],'foottype','upsideUp','sensor');
-    Right=strcmp(foottype,'RIGHT');
+    
+    % Checking if a file with the sensor information exists
+    toLoad = [measPathName '../Foot details.mat'];
+    if exist(toLoad,'file')
+        load([measPathName '../Foot details.mat'],'foottype','upsideUp','sensor');
+        Right=strcmp(foottype,'RIGHT');
+        manual = 0;
+    % If it doesn't, then the user is asked to select the sensor
+    else
+        filesList = dir([OSDetection '/Calibration measurements']);
+        isub = [filesList(:).isdir];
+        sensorsList = {filesList(isub).name}';
+        sensorsList(ismember(sensorsList,{'.','..'}))=[];
+        g = figure('Position',[300 300 200 500],'Name','Selection');
+        parentpanel = uipanel('Units','pixels','Title','Choose sensor','Position',[5 50 180 400]);
+        lbs = uicontrol ('Parent',parentpanel,'Style','listbox','String',sensorsList,'Units','Pixels','Position',[5 5 170 300]);
+        uicontrol('Style','pushbutton','String','Done','Position',[50 5 100 30],'Callback',@hDoneCallback);
+        uiwait
+        sensor.tekscan=sensorsList(get(lbs,'Value'),1);
+        footcase = 'tekscan';
+        upsideUp.tekscan=0;
+        Right=0;
+        manual = 1;
+        close(g)
+    end
 
     for i=1:size(measFileName,2)
         waitbar((i/size(measFileName,2)),h,'Calibrating measurement files');
         [data,sensit,spacing] = readTekscan([measPathName measFileName{i}]); %#ok<NASGU> The variable is actually used in the save function five lines below.
         
         %Detecting the foot case of the measurement (tekscan,tap,ta) and
-        %constructing appropriate paths and filenames
-        footcase = cell2mat(lower(regexp(measFileName{i},'^[a-zA-Z]*','match')));
+        %constructing appropriate paths and filenames. If we are in
+        %'manual' mode, then the case is defined earlier
+        if ~manual
+            footcase = cell2mat(lower(regexp(measFileName{i},'^[a-zA-Z]*','match')));
+        end
         sensorFileName=[OSDetection, '/Calibration matrices/',sensor.(footcase){:},'.mat'];
         calibrationFolder=[OSDetection '/Calibration measurements/',sensor.(footcase){:}];
         
@@ -74,4 +100,8 @@ function measurementsCalibration
         save([measPathName 'Calibrated_' fileName '.mat'],'calibratedData','spacing','fileName');
     end
     close(h);
+end
+
+function hDoneCallback(~, ~)
+    uiresume
 end
