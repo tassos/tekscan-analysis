@@ -54,7 +54,11 @@ function [x, yi] = calibrationCoeff(h,pathName,sensorFileName,meanData,loads,ind
             hold on
             % Interpolating between the measurement points using the PCHIP
             % method
-            yi.(sensit) = pchip([0;meanData.(sensit)],[0;loads.(sensit)],0:floor(max(meanData.(sensit))+0.2));
+            if meanData.(sensit)(1)~=0;
+                meanData.(sensit)=[0;meanData.(sensit)];
+                loads.(sensit)=[0;loads.(sensit)];
+            end
+            yi.(sensit) = pchip(meanData.(sensit),loads.(sensit),0:floor(max(meanData.(sensit))+0.2));
             
             % Extrapolating for points further from the measurements,
             % keeping a steady slope
