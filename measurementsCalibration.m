@@ -83,13 +83,26 @@ function measurementsCalibration
         %calibration file doesn't exists, go on with calculating the fitting
         %coefficients.
         if (exist(sensorFileName,'file')==2);
-            load(sensorFileName,'x');
+            load(sensorFileName,'x','yi');
         else
             [meanData,loads,index] = readCalibrationFiles(h,calibrationFolder,1);
-            [x] = calibrationCoeff(h,measPathName,sensorFileName,meanData,loads,index);
+            [x, yi] = calibrationCoeff(h,measPathName,sensorFileName,meanData,loads,index);
         end
         
-        calibratedData=polyval(x.(sensit),data);
+        if i==1;
+            prompt = {'Choose calibration curve to be used'};
+            calibrationCurve = questdlg(prompt,'Calibration curve','PCHIP','Polynomial fitting','PCHIP');
+        end
+        
+        % Deciding which calibration curve to use for calibrating the data,
+        % based on user selection above.
+        switch calibrationCurve
+            case 'Curve fitting'
+                calibratedData=polyval(x.(sensit),data);
+            case 'PCHIP'
+                calibratedData=yi.(sensit)(data+1);
+        end       
+        
         calibratedData(calibratedData < 0) =0;
         if xor(Right,upsideUp.(footcase))
             for k=1:size(calibratedData,1)

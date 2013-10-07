@@ -1,4 +1,4 @@
-function [x] = calibrationCoeff(h,pathName,sensorFileName,meanData,loads,index)
+function [x, yi] = calibrationCoeff(h,pathName,sensorFileName,meanData,loads,index)
     global xdata ydata
     
     if (exist([pathName 'calibration.mat'],'file')==2);
@@ -33,7 +33,7 @@ function [x] = calibrationCoeff(h,pathName,sensorFileName,meanData,loads,index)
             meanData.(sensit)=sort(meanData.(sensit));
 
             %Defining the range of the the fiting curve
-            t0=min(meanData.(sensit)(:)):1:max(meanData.(sensit)(:));
+            t0=min(meanData.(sensit)(:)):1:max(meanData.(sensit)(:)+6);
 
             %Defining upper and lower boundary limits, and also the initial
             %values for the Least-Square fitting
@@ -52,15 +52,28 @@ function [x] = calibrationCoeff(h,pathName,sensorFileName,meanData,loads,index)
 
             figure(1)
             hold on
+            % Interpolating between the measurement points using the PCHIP
+            % method
+            yi.(sensit) = pchip([0;meanData.(sensit)],[0;loads.(sensit)],0:floor(max(meanData.(sensit))+0.2));
+            
+            % Extrapolating for points further from the measurements,
+            % keeping a steady slope
+            for i=floor(max(meanData.(sensit))+0.2)+1:255
+                yi.(sensit)(end+1)=2*yi.(sensit)(end)-yi.(sensit)(end-1);
+            end
+            plot(0:floor(max(meanData.(sensit))),yi.(sensit)(1:floor(max(meanData.(sensit)))+1),'b');
+            
             % Plotting for confirming least squares convergence
-            scatter([meanData.(sensit)],[loads.(sensit)],'b');
             ycub=polyval(x.(sensit),t0);
             plot(t0,ycub,'r','LineWidth',2);
+            scatter([meanData.(sensit)],[loads.(sensit)],'g','fill');
+            
+            legend({'PCHIP','Polynomial fitting','MeanData'});
 
             %Updating progress bar
             prog=prog+1;
             figure(gEval)
         end
-        save(sensorFileName, 'x','error');
+        save(sensorFileName, 'x','yi','error');
     end
 end
