@@ -44,9 +44,9 @@ function [meanData, loads, index] = readCalibrationFiles(h,pathName,batch)
         %Defining loading area
         if ~batch
             prompt = {'Enter loading area width (mm):','Enter loading area length (mm):'};
-            dimensions = str2double(inputdlg(prompt,'Input',1,{'40','40'}));
+            dimensions = str2double(inputdlg(prompt,'Input',1,{'30','40'}));
         else
-            dimensions(1:2)=40;
+            dimensions(1:2)=[30, 40];
         end
         loadArea = dimensions(1)*dimensions(2)*1e-6;
 
