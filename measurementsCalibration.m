@@ -87,9 +87,8 @@ function measurementsCalibration
         else
             [meanData,loads,index] = readCalibrationFiles(h,calibrationFolder,1);
             [x, yi] = calibrationCoeff(h,measPathName,sensorFileName,meanData,loads,index);
-        end
-        
-        if i==1;
+            
+            % Asking the user which calibration curve to be used
             prompt = {'Choose calibration curve to be used'};
             calibrationCurve = questdlg(prompt,'Calibration curve','PCHIP','Polynomial fitting','PCHIP');
         end
