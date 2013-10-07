@@ -16,7 +16,7 @@
 
 function measurementsCalibration
 
-    clear all
+    clear
     close all force
     clc
     

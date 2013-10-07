@@ -5,7 +5,7 @@ function measurementsComparison
 % different measurements, the mean pressure in various areas for all the
 % measurements and the position of the center of pressure for all the
 % measurements are plotted.
-    clear all
+    clear
     close all force
     clc
     
