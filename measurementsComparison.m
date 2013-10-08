@@ -18,7 +18,11 @@ function measurementsComparison
     % If the array of filenames is not a cell, convert it (e.g. in case only one
     % file is selected)
     if ~iscell(measFileName)
-        measFileName={measFileName};
+        if measFileName == 0
+            return
+        else
+            measFileName={measFileName};
+        end
     end
     
     % Calculate the size of the array data.
