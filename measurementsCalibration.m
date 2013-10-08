@@ -84,6 +84,7 @@ function measurementsCalibration
         %coefficients.
         if (exist(sensorFileName,'file')==2);
             load(sensorFileName,'x','yi');
+            calibrationCurve = 'PCHIP';
         else
             [meanData,loads,index] = readCalibrationFiles(h,calibrationFolder,1);
             [x, yi] = calibrationCoeff(h,measPathName,sensorFileName,meanData,loads,index);
