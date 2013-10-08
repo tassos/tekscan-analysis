@@ -92,4 +92,7 @@ function measurementsComparison
     
     % Plot peak pressure over stance phase
     plotPeakPressure (pos6, data, legendNames)
+    
+    % Plot kinematics information for the roll-offs
+    plotKinematics (measPathName, legendNames)
 end
