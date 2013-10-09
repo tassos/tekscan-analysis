@@ -1,4 +1,4 @@
-function plot3Dpressure (pos, x, y, meanMeas, sdMeas, rowsPlot, colsPlot, plotSD)
+function [h] = plot3Dpressure (pos, x, y, meanMeas, sdMeas, rowsPlot, colsPlot, plotSD)
 
     fig1=figure('name','Pressure distribution over the area of the sensor');
     set(fig1,'OuterPosition',pos);
