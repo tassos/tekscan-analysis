@@ -29,13 +29,14 @@ function plotKinematics (h, measPathName, fileNames)
         coleurMeas=hsv(size(kinematicsData,1));
         coleurStat={[0.9,0.9,1],'b'};
         
-        figure
+        figure('Name','Ankle angular kinematics over stance phase')
+        ylabels={'IV(-)/EV(+)°','IR(-)/ER(+)°','DF(-)/PF(+)°'};
         for i=1:3
             subplot(3,1,i)
             plot3dConfInter(kinematicsData,coleurMeas,coleurStat,i)
+            ylabel(ylabels{i});
         end
         xlabel('Stance Phase(%)')
-        title('Ankle rotation in three directions (I/E,IR/ER,PF/DF)')
         legend([{'Std'} fileNames(filesIndex) {'Mean'}])
     end
 end
