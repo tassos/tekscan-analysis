@@ -11,12 +11,13 @@ function [h] = plot3Dpressure (pos, x, y, meanMeas, sdMeas, rowsPlot, colsPlot, 
     g = uicontrol('string','Plot SD','style','checkbox','units','pixel','position',[20 50 60 20],'Value',plotSD);
     f = uicontrol('string','Plot Area division','style','checkbox','units','pixel','position',[20 80 105 20],'Value',1);
     s = uicontrol('string','Shading interpolation','style','checkbox','units','pixel','position',[20 110 115 20],'Value',1);
-    addlistener(h,'ContinuousValueChange',@(hObject, event) makePlot(hObject,x,y,meanMeas,sdMeas,rowsPlot,colsPlot,f,g,s));
+    addlistener(h,'ContinuousValueChange',@(hObject, event) makePlot(hObject,x,y,meanMeas,sdMeas,rowsPlot,colsPlot,fig1,f,g,s));
 
 end
 
-function makePlot(hObject, x, y, meanMeas, sdMeas, rows, cols, f, g, s)
+function makePlot(hObject, x, y, meanMeas, sdMeas, rows, cols, fig, f, g, s)
     n = floor(get(hObject,'Value')*99+1);
+    figure(fig);
     plot3dErrorbars(x,y,meanMeas,sdMeas,n,rows,cols,get(f,'value'),get(g, 'value'),get(s,'value'));
     zlim([0 max(meanMeas(:))]);
     xlabel('A(-)/P(+) direction'), ylabel('M(-)/L(+) direction'), zlabel('Pressure (Pa)');

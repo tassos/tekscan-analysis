@@ -1,7 +1,7 @@
-function plotCenterPressure (pos, x, y, data)
+function plotCenterPressure (pos, h, x, y, data)
     % Plotting location of center of pressure in the two directions
-    fig4=figure('name','CoP position in two directions');
-    set(fig4,'OuterPosition',pos);
+    fig=figure('name','CoP position in two directions');
+    set(fig,'OuterPosition',pos);
     
     coleurMeas=hsv(size(data,2));
     coleurStat={[0.9,0.9,1],'b'};

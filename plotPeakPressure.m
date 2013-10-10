@@ -1,10 +1,10 @@
-function plotPeakPressure(pos, data, legendNames)
+function plotPeakPressure(pos, h, data, legendNames)
     
     coleurMeas=hsv(size(data,2));
     coleurStat={[0.9,0.9,1],'b'};
 
-    fig6=figure('name','Peak pressure over stance phase duration');
-    set(fig6,'OuterPosition',pos);
+    fig=figure('name','Peak pressure over stance phase duration');
+    set(fig,'OuterPosition',pos);
     maxPressure=zeros(size(data,2),size(data,3),2);
     for k=1:size(data,2)
         for l=1:size(data,3)
@@ -15,4 +15,5 @@ function plotPeakPressure(pos, data, legendNames)
     legend([{'Std'} legendNames {'Mean'}])
     xlabel('Stance phase (%)'), ylabel('Maximum Pressure (Pa)')
     title('Peak pressure over stance phase duration')
+    addlistener(h,'ContinuousValueChange',@(hObject, event) plotVert(hObject, fig, maxPressure));
 end
