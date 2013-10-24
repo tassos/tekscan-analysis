@@ -22,8 +22,8 @@ function plotAnkle3D(h,voetPath,kinematicsData)
     % Draw the bones
     figure
     g = axes;
-    GUI_PlotShells(g, F_Tib, V_Tib_New2, [], 0, [], 0, 0);
-    GUI_PlotShells(g, F_Tal, V_Tal, [], 0, [], 0, 0);
+    GUI_PlotShells(g, F_Tib, V_Tib_New2, 'red', 0, [], 0, 0);
+    GUI_PlotShells(g, F_Tal, V_Tal, 'yellow', 0, [], 0, 0);
 
     % Listen to changes on the button of the 3dErrorBar plot and change
     % the joint rotation to that of the corresponding time point

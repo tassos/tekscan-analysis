@@ -96,7 +96,7 @@ function measurementsComparison
     plotForceTotal (pos5, h, data, senselArea)
     
     % Plot peak pressure over stance phase
-    plotPeakPressure (pos6, h, data, legendNames)
+    plotPeakPressure (pos6, h, data)
     
     % Plot kinematics information for the roll-offs
     plotKinematics (h, measPathName, legendNames)

@@ -20,10 +20,12 @@ function plotCenterPressure (pos, h, x, y, data)
     ylabel('CoP in A/P direction (sensel)')
     ylim([min(x(:)),max(x(:))])
     title('Position of the CoP in A/P direction (sensor row)')
+    grid on
     subplot(2,1,2)
     plot3dConfInter(yCen,coleurMeas,coleurStat,2)
     ylabel('CoP in M/L direction (sensel)')
     xlabel('Stance phase (%)')
     ylim([min(y(:)),max(y(:))])
     title('Position of the CoP in M/L direction (sensor col)')
+    grid on
 end

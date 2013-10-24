@@ -21,7 +21,7 @@ function calibrationsComparison
     clc
 
     directories = uipickfiles('FilterSpec',OSDetection);
-    if directories == 0
+    if isempty(directories)
         return
     end
     coleur = hsv(size(directories,2));
@@ -43,9 +43,11 @@ function calibrationsComparison
             close(g)
         end
         for sens=sensitivities'
-            scatter([meanData.(sens{1})],[loads.(sens{1})],10,coleur(z,:));
+            scatter([meanData.(sens{1})],[loads.(sens{1})],30,coleur(z,:),'fill');
             hold on
         end
+        ylabel('Pressure (Pa)')
+        xlabel('Sensel response (0-255)')
     end
     close(h)
 end

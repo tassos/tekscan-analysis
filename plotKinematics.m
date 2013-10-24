@@ -35,6 +35,7 @@ function plotKinematics (h, measPathName, fileNames)
             subplot(3,1,i)
             plot3dConfInter(kinematicsData,coleurMeas,coleurStat,i)
             ylabel(ylabels{i});
+            grid on
         end
         xlabel('Stance Phase(%)')
         legend([{'Std'} fileNames(filesIndex) {'Mean'}])

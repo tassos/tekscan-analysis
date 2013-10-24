@@ -70,7 +70,8 @@ function [x, yi] = calibrationCoeff(h,pathName,sensorFileName,meanData,loads,ind
             % Plotting for confirming least squares convergence
             ycub=polyval(x.(sensit),t0);
             plot(t0,ycub,'r','LineWidth',2);
-            scatter([meanData.(sensit)],[loads.(sensit)],'g','fill');
+            scatter([meanData.(sensit)],[loads.(sensit)],40,'g','fill');
+            xlabel('Sensel response (0-255)'),ylabel('Pressure (Pa)');
             
             legend({'PCHIP','Polynomial fitting','MeanData'});
 

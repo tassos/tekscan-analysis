@@ -31,6 +31,7 @@ function plotForceArea (pos1, pos2, h, data, rows, cols, rowsPlot, colsPlot, sen
             if i==length(rows), xlabel('Stance phase (%)'), end
             title({['rows: ',num2str(min(rowsPlot{i})),' to ',num2str(max(rowsPlot{i}))],...
                 ['cols: ',num2str(min(colsPlot{j})),' to ',num2str(max(colsPlot{j}))]})
+            grid minor
             figure(3)
             subplot(length(rows),length(cols),j+(i-1)*length(cols))
             plot3dConfInter(contactArea, coleurMeas, coleurStat, 2)
@@ -38,6 +39,7 @@ function plotForceArea (pos1, pos2, h, data, rows, cols, rowsPlot, colsPlot, sen
             if i==length(rows), xlabel('Stance phase (%)'), end
             title({['rows: ',num2str(min(rowsPlot{i})),' to ',num2str(max(rowsPlot{i}))],...
                 ['cols: ',num2str(min(colsPlot{j})),' to ',num2str(max(colsPlot{j}))]})
+            grid minor
         end
     end
 end
