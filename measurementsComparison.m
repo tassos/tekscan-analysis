@@ -8,6 +8,9 @@ function measurementsComparison
     clear
     close all force
     clc
+    g = genpath('../Common');
+    addpath(g);
+    
     
     %% Loading measurement files
     
