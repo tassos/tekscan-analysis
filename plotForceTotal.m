@@ -1,4 +1,4 @@
-function plotForceTotal(pos, h, data, senselArea)
+function plotForceTotal(pos, h, data, senselArea, legendNames)
 
     coleurMeas=hsv(size(data,2));
     coleurStat={[0.9,0.9,1],'b'};
@@ -17,6 +17,7 @@ function plotForceTotal(pos, h, data, senselArea)
     line([0 0],[min(forceTotal(:)) max(forceTotal(:))]);
     ylabel('Force (N)'), xlabel('Stance phase (%)')
     title('Total force through the ankle joint')
-    addlistener(h,'ContinuousValueChange',@(hObject, event) plotVert(hObject, fig, forceTotal));
+    addlistener(h,'ContinuousValueChange',@(hObject, event) plotVert(hObject, fig, forceTotal, legendNames));
     grid on
+    legend([{'Std'} legendNames {'Mean'}])
 end

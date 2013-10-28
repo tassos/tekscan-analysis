@@ -93,10 +93,10 @@ function measurementsComparison
     plotCenterPressure (pos4, h, x, y, data)
 
     % Plot total force through the joint over stance phase
-    plotForceTotal (pos5, h, data, senselArea)
+    plotForceTotal (pos5, h, data, senselArea, legendNames)
     
     % Plot peak pressure over stance phase
-    plotPeakPressure (pos6, h, data)
+    plotPeakPressure (pos6, h, data, legendNames)
     
     % Plot kinematics information for the roll-offs
     plotKinematics (h, measPathName, legendNames)
