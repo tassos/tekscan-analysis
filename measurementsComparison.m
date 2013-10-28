@@ -46,7 +46,7 @@ function measurementsComparison
         colSpacing=spacing{1}/1e3; %#ok<USENS> The variable is loaded three lines above
         rowSpacing=spacing{2}/1e3;
         senselArea = colSpacing*rowSpacing;
-        legendNames{i}=fileName;
+        legendNames{i}=strrep(fileName,'_',' ');
     end
     
     %% Statistics
