@@ -74,7 +74,15 @@ function measurementsCalibration
         %constructing appropriate paths and filenames. If we are in
         %'manual' mode, then the case is defined earlier
         if ~manual
-            footcase = cell2mat(lower(regexp(measFileName{i},'^[a-zA-Z]*','match')));
+            footcase = cell2mat(lower(regexp(measFileName{i},'^[a-zA-Z\d]*','match')));
+            switch footcase
+                case 'static2'
+                    footcase = 'tekscan';
+                case 'static3'
+                    footcase = 'tap';
+                case 'static4'
+                    footcase = 'ta';
+            end
         end
         sensorFileName=[OSDetection, '/Calibration matrices/',sensor.(footcase){:},'.mat'];
         calibrationFolder=[OSDetection '/Calibration measurements/',sensor.(footcase){:}];
