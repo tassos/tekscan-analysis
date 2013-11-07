@@ -3,7 +3,7 @@ function plotForceTotal(pos, h, data, senselArea, legendNames)
     coleurMeas=hsv(size(data,2));
     coleurStat={[0.9,0.9,1],'b'};
 
-    forceTotal=zeros(size(data,2),size(data,3),2);
+    forceTotal=nan(size(data,2),size(data,3),2);
     for k=1:size(data,2)
         for l=1:size(data,3)
             forceTotal(k,l,2) = sum(sum(data(1,k,l,:,:)))*senselArea;

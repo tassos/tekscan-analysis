@@ -32,7 +32,7 @@ function measurementsComparison
     % First dimension is for different measurements, the rest
     % are following the same convention as all the Tekscan related files.
     load([measPathName measFileName{1}],'calibratedData');
-    data=zeros([size(measFileName),size(calibratedData)]);
+    data=nan([size(measFileName),size(calibratedData)]);
         
     % Remove files that are not really measurements
     faulty= ~cellfun('isempty',strfind(measFileName,'calibration.mat'));
@@ -44,7 +44,8 @@ function measurementsComparison
     % Load calibrated data from measurement files
     for i=1:size(measFileName,2)
         load([measPathName measFileName{i}],'calibratedData','spacing','fileName');
-        data(1,i,:,:,:) = smooth3(calibratedData);
+        data(1,:,length(data):length(calibratedData),:,:)=NaN;
+        data(1,i,1:size(calibratedData,1),:,:) = smooth3(calibratedData);
         %Converting mm to m
         colSpacing=spacing{1}/1e3; %#ok<USENS> The variable is loaded three lines above
         rowSpacing=spacing{2}/1e3;
@@ -56,8 +57,8 @@ function measurementsComparison
     % We are calculating the mean pressure of each sensel for the different
     % measurements. Then we calculate the standard deviation of each sensel
     % for the different measurements
-    meanMeas=squeeze(mean(data,2));
-    sdMeas=squeeze(std(data,0,2));
+    meanMeas=squeeze(nanmean(data,2));
+    sdMeas=squeeze(nanstd(data,0,2));
     
     %% Plotting
     
