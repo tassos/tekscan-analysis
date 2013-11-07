@@ -17,8 +17,11 @@ function [h] = plot3Dpressure (pos, x, y, meanMeas, sdMeas, rowsPlot, colsPlot, 
 end
 
 function makePlot(hObject, x, y, meanMeas, sdMeas, rows, cols, fig, t, f, g, s)
-    n = floor(get(hObject,'Value')*99+1);
-    set(t,'string',[num2str(n) char(37)]);
+    % n is used for obtaining the right position in the array, while p is
+    % used for writing the percentage of the measurement
+    n = floor(get(hObject,'Value')*(length(meanMeas)-1)+1);
+    p = floor(get(hObject,'Value')*99+1);
+    set(t,'string',[num2str(p) char(37)]);
     figure(fig);
     plot3dErrorbars(x,y,meanMeas,sdMeas,n,rows,cols,get(f,'value'),get(g, 'value'),get(s,'value'));
     zlim([0 max(meanMeas(:))]);

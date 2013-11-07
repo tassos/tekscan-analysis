@@ -1,5 +1,5 @@
 function plotVert(hObject, fig, measurement, legendNames)
-    n = floor(get(hObject,'Value')*99+1);
+    n = floor(get(hObject,'Value')*(length(measurement)-1)+1);
     figure(fig)
     legend off
     lines = findall(0,'type','line');
