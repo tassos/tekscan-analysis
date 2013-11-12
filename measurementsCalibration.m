@@ -75,13 +75,17 @@ function measurementsCalibration
         %'manual' mode, then the case is defined earlier
         if ~manual
             footcase = cell2mat(lower(regexp(measFileName{i},'^[a-zA-Z\d]*','match')));
+            static = 0;
             switch footcase
                 case 'static2'
                     footcase = 'tekscan';
+                    static = 1;
                 case 'static3'
                     footcase = 'tap';
+                    static = 1;
                 case 'static4'
                     footcase = 'ta';
+                    static = 1;
             end
         end
         sensorFileName=[OSDetection, '/Calibration matrices/',sensor.(footcase){:},'.mat'];
@@ -117,7 +121,12 @@ function measurementsCalibration
                 calibratedData(k,:,:)=fliplr(squeeze(calibratedData(k,:,:)));
             end
         end
+        
         fileName=strtrim(measFileName{i}(1:end-4));
+        if static
+            [pressureData, forceLevels] = staticProtocolAnalysis(calibratedData,measPathName,fileName); %#ok<ASGLU,NASGU> Variables are saved below
+            save([measPathName 'Ordered_' fileName '.mat'],'pressureData','forceLevels');
+        end
         save([measPathName 'Calibrated_' fileName '.mat'],'calibratedData','spacing','fileName');
     end
     close(h);
