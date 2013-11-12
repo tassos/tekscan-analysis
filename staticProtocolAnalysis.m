@@ -30,7 +30,7 @@ function staticProtocolAnalysis
     sRateT=10;
     sRateRt=500;
     
-    for i=1:size(measFileName,1);
+    for i=1:size(measFileName,2);
         %Finding the root of the file name and searching for the
         %corresponding Real-Time file. If no corresponding rT file is
         %found, then move to the next measurement
@@ -73,8 +73,11 @@ function staticProtocolAnalysis
         % If the number of steps is not an integer, save the last step
         if ~~mod(length(calibratedData)+10,40);
             finalRow = min(length(calibratedData),steps*40-10);
-            pressureData(steps+1,:,:) = mean(calibratedData(steps*40+1:finalRow,:,:),1);
-            forceLevels(steps+1,:) = mean(forces(steps*40+1:finalRow,:),1);
+            pressureData(steps+1,:,:) = mean(calibratedData(steps*40+1:finalRow,:,:),1); %#ok<NASGU> Variable is saved a few lines below
+            forceLevels(steps+1,:) = mean(forces(steps*40+1:finalRow,:),1); %#ok<NASGU> Variable is saved a few lines below
         end
+        
+        % Save data in a file
+        save([measPathName 'Organised_' fileName '.mat'],'pressureData','forceLevels','calibratedData','spacing','fileName');
     end
 end
