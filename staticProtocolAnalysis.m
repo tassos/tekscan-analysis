@@ -55,23 +55,26 @@ function staticProtocolAnalysis
         load([measPathName measFileName{i}],'calibratedData','spacing','fileName');
         
         %Calculating number of steps in the static protocol measurement
-        steps=ceil(length(calibratedData)/40);%#ok<NODEF> Variable is loaded a few lines above
+        steps=floor(length(calibratedData)+10/40);%#ok<NODEF> Variable is loaded a few lines above
         
         %Initialising storing arrays for speed optimisation
         pressureData=zeros(steps,size(calibratedData,2),size(calibratedData,3));
         forceLevels=zeros(steps,size(forces,2));
+        
+        %Start storing all the data for each step in a separate row.
         for j=1:steps
-            if j==steps
-                pressureData(j,:,:) = mean(calibratedData((j-1)*40+1:end,:,:),1);
-                forceLevels(j,:) = mean(forces((j-1)*40+1:end,:),1);
+            pressureData(j,:,:) = mean(calibratedData((j-1)*40+1:j*40-10,:,:),1);
+            forceLevels(j,:) = mean(forces((j-1)*40+1:j*40-10,:),1);
+            if (j*40+1)>length(calibratedData)
                 break
-            else
-                pressureData(j,:,:) = mean(calibratedData((j-1)*40+1:j*40-10,:,:),1);
-                forceLevels(j,:) = mean(forces((j-1)*40+1:j*40-10,:),1);
-                if (j*40+1)>length(calibratedData)
-                    break
-                end
             end
+        end
+        
+        % If the number of steps is not an integer, save the last step
+        if ~~mod(length(calibratedData)+10,40);
+            finalRow = min(length(calibratedData),steps*40-10);
+            pressureData(steps+1,:,:) = mean(calibratedData(steps*40+1:finalRow,:,:),1);
+            forceLevels(steps+1,:) = mean(forces(steps*40+1:finalRow,:),1);
         end
     end
 end
