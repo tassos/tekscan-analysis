@@ -45,16 +45,25 @@ function staticProtocolAnalysis
         load([measPathName measFileName{i}],'calibratedData','spacing','fileName');
         
         pressureData = zeros(size(A,1),size(calibratedData,2),size(calibratedData,3));%#ok<NODEF> This variable is loaded a few lines above
+        forceLevels = zeros(size(A,1),size(A,2)-2);
+        k=0;
         for j=1:size(A,1)-1
             if (A(j+1,1)*sRate > size(calibratedData,1))
-                pressureData(j,:,:) = mean(calibratedData(A(j,1)*sRate+1:end,:,:),1);
-                pressureData(j+1:end,:,:)=[];
+                if A(j,2:end-1) == A(j+1,2:end-1)
+                    k=k+1;
+                    pressureData(k,:,:) = mean(calibratedData(A(j,1)*sRate+1:end,:,:),1);
+                    forceLevels(k,:) = A(j,2:end-1);
+                end
                 continue
             else
-                pressureData(j,:,:) = mean(calibratedData(A(j,1)*sRate+1:A(j+1,1)*sRate,:,:),1);
+                if A(j,2:end-1) == A(j+1,2:end-1)
+                    k=k+1;
+                    pressureData(k,:,:) = mean(calibratedData(A(j,1)*sRate+1:A(j+1,1)*sRate,:,:),1);
+                    forceLevels(k,:) = A(j,2:end-1);
+                end
             end
         end
-        
-        
+        pressureData(k+1:end,:,:)=[];
+        forceLevels(k+1:end,:,:)=[];
     end
 end
