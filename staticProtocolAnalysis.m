@@ -27,11 +27,13 @@ function staticProtocolAnalysis
     end
     
     %Sampling rate of the TekScan measurements
-    sRate=10;
+    sRateT=10;
+    sRateRt=500;
     
     for i=1:size(measFileName,1);
         %Finding the root of the file name and searching for the
-        %corresponding Real-Time file
+        %corresponding Real-Time file. If no corresponding rT file is
+        %found, then move to the next measurement
         fileID = regexp(measFileName{i},'(?<=Calibrated_)\w*','match');
         indexRt = findFile([fileID{1},'_'],filesRt);
         
@@ -41,37 +43,35 @@ function staticProtocolAnalysis
         end
         
         % Loading the TDMS file and extracting the muscle input file of the
-        % simulation
+        % simulation and the syncronisation signal
         loadcelldata = TDMS_readTDMSFile([pathRt filesRt(indexRt).name]);
-        inputFile = loadcelldata.data{5};
-        A = importdata(inputFile{1},'\t');
+        
+        forces = downsample([loadcelldata.data{8}',loadcelldata.data{9}',...
+            loadcelldata.data{10}',loadcelldata.data{11}',...
+            loadcelldata.data{12}',loadcelldata.data{13}'],sRateRt/sRateT);
         
         %Loading TekScan measurement and storing in an array the mean of
         %the pressure for each muscle activation level.
         load([measPathName measFileName{i}],'calibratedData','spacing','fileName');
         
+        %Calculating number of steps in the static protocol measurement
+        steps=ceil(length(calibratedData)/40);%#ok<NODEF> Variable is loaded a few lines above
+        
         %Initialising storing arrays for speed optimisation
-        pressureData = zeros(size(A,1),size(calibratedData,2),size(calibratedData,3));%#ok<NODEF> This variable is loaded a few lines above
-        forceLevels = zeros(size(A,1),size(A,2)-2);
-        k=0;
-        for j=1:size(A,1)-1
-            if (A(j+1,1)*sRate > size(calibratedData,1))
-                if A(j,2:end-1) == A(j+1,2:end-1)
-                    k=k+1;
-                    pressureData(k,:,:) = mean(calibratedData(A(j,1)*sRate+1:end,:,:),1);
-                    forceLevels(k,:) = A(j,2:end-1);
-                end
-                continue
+        pressureData=zeros(steps,size(calibratedData,2),size(calibratedData,3));
+        forceLevels=zeros(steps,size(forces,2));
+        for j=1:steps
+            if j==steps
+                pressureData(j,:,:) = mean(calibratedData((j-1)*40+1:end,:,:),1);
+                forceLevels(j,:) = mean(forces((j-1)*40+1:end,:),1);
+                break
             else
-                if A(j,2:end-1) == A(j+1,2:end-1)
-                    k=k+1;
-                    pressureData(k,:,:) = mean(calibratedData(A(j,1)*sRate+1:A(j+1,1)*sRate,:,:),1);
-                    forceLevels(k,:) = A(j,2:end-1);
+                pressureData(j,:,:) = mean(calibratedData((j-1)*40+1:j*40-10,:,:),1);
+                forceLevels(j,:) = mean(forces((j-1)*40+1:j*40-10,:),1);
+                if (j*40+1)>length(calibratedData)
+                    break
                 end
             end
         end
-        %Removing unused rows
-        pressureData(k+1:end,:,:)=[];
-        forceLevels(k+1:end,:,:)=[];
     end
 end
