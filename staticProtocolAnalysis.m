@@ -26,9 +26,12 @@ function staticProtocolAnalysis
         end
     end
     
+    %Sampling rate of the TekScan measurements
     sRate=10;
     
     for i=1:size(measFileName,1);
+        %Finding the root of the file name and searching for the
+        %corresponding Real-Time file
         fileID = regexp(measFileName{i},'(?<=Calibrated_)\w*','match');
         indexRt = findFile([fileID{1},'_'],filesRt);
         
@@ -37,13 +40,17 @@ function staticProtocolAnalysis
             continue
         end
         
+        % Loading the TDMS file and extracting the muscle input file of the
+        % simulation
         loadcelldata = TDMS_readTDMSFile([pathRt filesRt(indexRt).name]);
         inputFile = loadcelldata.data{5};
-        
         A = importdata(inputFile{1},'\t');
         
+        %Loading TekScan measurement and storing in an array the mean of
+        %the pressure for each muscle activation level.
         load([measPathName measFileName{i}],'calibratedData','spacing','fileName');
         
+        %Initialising storing arrays for speed optimisation
         pressureData = zeros(size(A,1),size(calibratedData,2),size(calibratedData,3));%#ok<NODEF> This variable is loaded a few lines above
         forceLevels = zeros(size(A,1),size(A,2)-2);
         k=0;
@@ -63,6 +70,7 @@ function staticProtocolAnalysis
                 end
             end
         end
+        %Removing unused rows
         pressureData(k+1:end,:,:)=[];
         forceLevels(k+1:end,:,:)=[];
     end
