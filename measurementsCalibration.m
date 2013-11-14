@@ -124,12 +124,13 @@ function measurementsCalibration
         
         fileName=strtrim(measFileName{i}(1:end-4));
         if static
-            [pressureData, forceLevels] = staticProtocolAnalysis(calibratedData,measPathName,fileName); %#ok<NASGU> Variables are saved below
-            if length(pressureData)~=1
-                save([measPathName 'Organised_' fileName '.mat'],'pressureData','forceLevels');
+            [calibratedData, forceLevels] = staticProtocolAnalysis(calibratedData,measPathName,fileName); %#ok<NASGU> Variables are saved below
+            if length(calibratedData)~=1
+                save([measPathName 'Organised_' fileName '.mat'],'forceLevels','calibratedData','spacing','fileName');
             end
+        else
+            save([measPathName 'Calibrated_' fileName '.mat'],'calibratedData','spacing','fileName');
         end
-        save([measPathName 'Calibrated_' fileName '.mat'],'calibratedData','spacing','fileName');
     end
     close(h);
 end
