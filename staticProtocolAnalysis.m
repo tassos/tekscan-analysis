@@ -18,6 +18,8 @@ function [pressureData, forceLevels] = staticProtocolAnalysis(calibratedData, me
 
     if indexRt == 0
         warndlg(['No Real-Time measurement was found for ' filename ' measurement file'],'!! Warning !!')
+        pressureData=0;
+        forceLevels=0;
         return
     end
 
