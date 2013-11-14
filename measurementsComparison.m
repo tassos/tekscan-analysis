@@ -28,6 +28,8 @@ function measurementsComparison
         end
     end
     
+    static = regexp(measFileName{1},'Organised');
+   
     % Calculate the size of the array data.
     % First dimension is for different measurements, the rest
     % are following the same convention as all the Tekscan related files.
@@ -45,7 +47,11 @@ function measurementsComparison
     for i=1:size(measFileName,2)
         load([measPathName measFileName{i}],'calibratedData','spacing','fileName');
         data(1,:,length(data):length(calibratedData),:,:)=NaN;
-        data(1,i,1:size(calibratedData,1),:,:) = smooth3(calibratedData);
+        if static
+            data(1,i,1:size(calibratedData,1),:,:) = calibratedData;
+        else
+            data(1,i,1:size(calibratedData,1),:,:) = smooth3(calibratedData);
+        end
         %Converting mm to m
         colSpacing=spacing{1}/1e3; %#ok<USENS> The variable is loaded three lines above
         rowSpacing=spacing{2}/1e3;
