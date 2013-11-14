@@ -30,13 +30,16 @@ function [data, sensitivity, spacing] = readTekscan(fileName)
     startFrame=str2double(regexp(text,'(?<=START_FRAME )\d*','match'));
     sensitivity = regexp(text,'(?<=SENSITIVITY )\S*','match');
     sensitivity = strrep(sensitivity{1},'-','');
-    data=zeros(endFrame,nrows,ncols);
-
-    for j=startFrame:endFrame
-        %Reading the data from the correct frame
-        rawData=regexp(text,['(?<=Frame ' num2str(j) '\r\n)((\d*,\d*)*\r\n)*'],'match');
-        cellData=textscan(rawData{1},'%f','Delimiter',',');
-        rawdata=reshape(cellData{1},ncols,nrows)';
-        data(j,:,:)=rawdata;
-    end
+    
+    frameStr = ['Frame ' num2str(startFrame) '\r\n'];
+    strEnd = strfind(text,sprintf(frameStr)) + length(sprintf(frameStr));
+    
+    rawData = regexprep(text(strEnd:end),'Frame \d*|@@','');
+    rawData = strrep(rawData,sprintf('\r\n'),';');
+    rawData = strrep(rawData,';;',';');
+    rawData = strrep(rawData,';;',';');
+    rawData = strrep(rawData,',',';');
+    rawData = textscan(rawData,'%f','Delimiter',';');
+    data = reshape(rawData{1},ncols,nrows,(endFrame-startFrame+1));
+    data = permute(data,[3 2 1]);
 end
