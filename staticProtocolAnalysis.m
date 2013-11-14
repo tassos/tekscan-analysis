@@ -32,7 +32,7 @@ function [pressureData, forceLevels] = staticProtocolAnalysis(calibratedData, me
         loadcelldata.data{12}',loadcelldata.data{13}'],sRateRt/sRateT);
 
     %Calculating number of steps in the static protocol measurement
-    steps=floor(length(calibratedData)+10/40);
+    steps=floor((length(calibratedData)+10)/40);
 
     %Initialising storing arrays for speed optimisation
     pressureData=zeros(steps,size(calibratedData,2),size(calibratedData,3));
