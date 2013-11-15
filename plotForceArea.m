@@ -1,4 +1,4 @@
-function plotForceArea (pos1, pos2, h, data, rows, cols, rowsPlot, colsPlot, senselArea)
+function plotForceArea (pos1, pos2, data, rows, cols, rowsPlot, colsPlot, senselArea)
 
     fig=figure('name','Resulting force in different areas of the sensor');
     % Defining the regions that the mean will be calculated for

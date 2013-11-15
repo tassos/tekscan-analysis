@@ -1,4 +1,4 @@
-function plotCenterPressure (pos, h, x, y, data)
+function plotCenterPressure (pos, x, y, data)
     % Plotting location of center of pressure in the two directions
     fig=figure('name','CoP position in two directions');
     set(fig,'OuterPosition',pos);

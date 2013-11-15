@@ -96,11 +96,11 @@ function measurementsComparison
     h = plot3Dpressure(pos1, x, y, meanMeas, sdMeas, rowsPlot, colsPlot, plotSD);
 
     % Plot pressure and force of the different areas over stance phase
-    plotForceArea (pos2, pos3, h, data, rows, cols, rowsPlot, colsPlot, senselArea);
+    plotForceArea (pos2, pos3, data, rows, cols, rowsPlot, colsPlot, senselArea);
 
     % Plot location of center of pressure in two directions over stance
     % phase
-    plotCenterPressure (pos4, h, x, y, data)
+    plotCenterPressure (pos4, x, y, data)
 
     % Plot total force through the joint over stance phase
     plotForceTotal (pos5, h, data, senselArea, legendNames)
