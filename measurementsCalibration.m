@@ -68,7 +68,10 @@ function measurementsCalibration
 
     for i=1:size(measFileName,2)
         waitbar((i/size(measFileName,2)),h,'Calibrating measurement files');
-        [data,sensit,spacing] = readTekscan([measPathName measFileName{i}]); %#ok<NASGU> The variable is actually used in the save function five lines below.
+        [data,sensit,spacing] = readTekscan([measPathName measFileName{i}]);...
+            %#ok<NASGU> The variable is actually used in the save function few lines below.
+        
+        cleanData = pressureCleanUp(data);
         
         %Detecting the foot case of the measurement (tekscan,tap,ta) and
         %constructing appropriate paths and filenames. If we are in
@@ -110,9 +113,9 @@ function measurementsCalibration
         % based on user selection above.
         switch calibrationCurve
             case 'Curve fitting'
-                calibratedData=polyval(x.(sensit),data);
+                calibratedData=polyval(x.(sensit),cleanData);
             case 'PCHIP'
-                calibratedData=yi.(sensit)(data+1);
+                calibratedData=yi.(sensit)(cleanData+1);
         end       
         
         calibratedData(calibratedData < 0) =0;
@@ -124,7 +127,8 @@ function measurementsCalibration
         
         fileName=strtrim(measFileName{i}(1:end-4));
         if static
-            [calibratedData, forceLevels] = staticProtocolAnalysis(calibratedData,measPathName,fileName); %#ok<NASGU> Variables are saved below
+            [calibratedData, forceLevels] =...
+                staticProtocolAnalysis(calibratedData,measPathName,fileName); %#ok<NASGU> Variables are saved below
             if length(calibratedData)~=1
                 save([measPathName 'Organised_' fileName '.mat'],'forceLevels','calibratedData','spacing','fileName');
             end
