@@ -43,31 +43,19 @@ function measurementsCalibration
     
     % Checking if a file with the sensor information exists
     toLoad = [measPathName '../Foot details.mat'];
-    if exist(toLoad,'file')
-        load([measPathName '../Foot details.mat'],'foottype','upsideUp','sensor');
-        Right=strcmp(foottype,'RIGHT');
-        manual = 0;
-    % If it doesn't, then the user is asked to select the sensor
-    else
-        filesList = dir([OSDetection '/Calibration measurements']);
-        isub = [filesList(:).isdir];
-        sensorsList = {filesList(isub).name}';
-        sensorsList(ismember(sensorsList,{'.','..'}))=[];
-        g = figure('Position',[300 300 200 500],'Name','Selection');
-        parentpanel = uipanel('Units','pixels','Title','Choose sensor','Position',[5 50 180 400]);
-        lbs = uicontrol ('Parent',parentpanel,'Style','listbox','String',sensorsList,'Units','Pixels','Position',[5 5 170 300]);
-        uicontrol('Style','pushbutton','String','Done','Position',[50 5 100 30],'Callback',@hDoneCallback);
-        uiwait
-        sensor.tekscan=sensorsList(get(lbs,'Value'),1);
-        footcase = 'tekscan';
-        upsideUp.tekscan=0;
-        Right=0;
-        manual = 1;
-        close(g)
+    if ~exist(toLoad,'file')
+        % If it doesn't, then the user is asked to select it him/herself
+        [footFile, footPath] = uigetfile([measPathName,'*.mat'],'Select variable with foot details');
+        toLoad = [footPath, footFile];
     end
+    load(toLoad,'foottype','upsideUp','sensor','footnumber');
+    Right=strcmp(foottype,'RIGHT');
+    manual = 0;
+    
 
     for i=1:size(measFileName,2)
-        waitbar((i/size(measFileName,2)),h,'Calibrating measurement files');
+        label = strrep(measFileName{i}(1:end-4),'_',' ');
+        waitbar((i/size(measFileName,2)),h,['Calibrating ' label ' measurement']);
         [data,sensit,spacing] = readTekscan([measPathName measFileName{i}]);...
             %#ok<NASGU> The variable is actually used in the save function few lines below.
         
@@ -125,10 +113,11 @@ function measurementsCalibration
             end
         end
         
-        fileName=strtrim(measFileName{i}(1:end-4));
+        fileNameRt=strtrim(measFileName{i}(1:end-4));
+        fileName = [lower(footnumber) '_' fileNameRt];
         if static
             [calibratedData, forceLevels] =...
-                staticProtocolAnalysis(calibratedData,measPathName,fileName); %#ok<NASGU> Variables are saved below
+                staticProtocolAnalysis(calibratedData,measPathName,fileNameRt); %#ok<NASGU> Variables are saved below
             if length(calibratedData)~=1
                 save([measPathName 'Organised_' fileName '.mat'],'forceLevels','calibratedData','spacing','fileName');
             end
@@ -137,8 +126,4 @@ function measurementsCalibration
         end
     end
     close(h);
-end
-
-function hDoneCallback(~, ~)
-    uiresume
 end
