@@ -33,10 +33,17 @@ function [data, sensitivity, spacing] = readTekscan(fileName)
     
     frameStr = ['Frame ' num2str(startFrame) '\r\n'];
     strEnd = strfind(text,sprintf(frameStr)) + length(sprintf(frameStr));
-    rawData = strrep(text(strEnd:end),sprintf('\r\n\r\nFrame '),',');
-    rawData = strrep(rawData,sprintf('\r\n'),',');
-    rawData = textscan(rawData,'%n','Delimiter',',');
-    rawData{1}(ncols*nrows*startFrame+startFrame:ncols*nrows+1:nrows*ncols*(endFrame-1)+endFrame-1)=[];
+    
+    rawData = textscan(text(strEnd:end),'%f','CommentStyle','Frame','Delimiter',',');
+    
+%     % This is a slightly faster way to scrap the data, but less robust
+%     % than the 'textscan' solution. The speedup is around .5" for a
+%     % string of 25M chars (a tekscan measurement of 15' at 10Hz).
+%     rawData = strrep(text(strEnd:end),sprintf('\r\n\r\nFrame '),',');
+%     rawData = strrep(rawData,sprintf('\r\n'),',');
+%     rawData = textscan(rawData,'%n','Delimiter',',');
+%     rawData{1}(ncols*nrows*startFrame+startFrame:ncols*nrows+1:nrows*ncols*(endFrame-1)+endFrame-1)=[];
+    
     data = reshape(rawData{1},ncols,nrows,(endFrame-startFrame+1));
     data = permute(data,[3 2 1]);
 end
