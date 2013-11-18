@@ -97,16 +97,19 @@ function measurementsComparison
 
     % Plot pressure and force of the different areas over stance phase
     plotForceArea (pos2, pos3, data, rows, cols, rowsPlot, colsPlot, senselArea);
+    
+    % Plot peak pressure over stance phase
+    peakLocation = plotPeakPressure (pos6, h, data, legendNames);
 
     % Plot location of center of pressure in two directions over stance
     % phase
     plotCenterPressure (pos4, x, y, data)
+    
+    % Plot location of peak pressure in two directions over stance phase
+    plotPeakLocation (pos4, x, y, peakLocation)
 
     % Plot total force through the joint over stance phase
     plotForceTotal (pos5, h, data, senselArea, legendNames)
-    
-    % Plot peak pressure over stance phase
-    plotPeakPressure (pos6, h, data, legendNames)
     
     % Plot kinematics information for the roll-offs
     plotKinematics (h, measPathName, legendNames)
