@@ -14,6 +14,8 @@ function [forceArea, forceAreaHeader, contactArea, contactAreaHeader] =...
     
     forceArea=zeros(size(data,2),size(data,3),length(rows)*length(cols));
     contactArea=forceArea;
+    forceAreaHeader = cell(1,length(cols)*length(rows));
+    contactAreaHeader = cell(1,length(cols)*length(rows));
     
     paThreshold = 5e4; %Pa
     

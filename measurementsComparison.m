@@ -124,21 +124,22 @@ function measurementsComparison
     % Plot total force through the joint over stance phase
     forceTotal = plotForceTotal (pos5, h, data, senselArea, legendNames, toPlot);
     
+    %% Saving
     prompt = {'Do you want to save to a file?'};
     saveToFile = questdlg(prompt,'Save to file?','Yes','No','Yes');
     
     if strcmp(saveToFile,'Yes')
-        legendNames = [{'mean','std'},legendNames{:}];
+        legendNames = [legendNames{:},{'mean','std'}];
         dataToSave=zeros(size(data,3),1,size(data,2));
         
         headers = [forceAreaHeader, contactAreaHeader, {'PeakPressure','PeakLocation A/P','PeakLocation M/L','CoP A/P','CoP M/L','forceTotal'}];
         
         cated = {forceArea,contactArea,peakPressure(:,:,2),peakLocation,xCen(:,:,2),yCen(:,:,2),forceTotal(:,:,2)};
-        dataToSave(:,:,1)=nanmean(dataToSave,3);
-        dataToSave(:,:,2)=nanstd(dataToSave,0,3);
         for i=1:length(cated)
             dataToSave = [dataToSave,permute(cated{i},[2 3 1])];
         end
+        dataToSave(:,:,end+1)=nanmean(dataToSave,3);
+        dataToSave(:,:,end+1)=nanstd(dataToSave,0,3);
         [FileName,PathName] = uiputfile([measPathName,'/*.xls'],'Save measurements as...');
         warning('off','MATLAB:xlswrite:AddSheet');
         for j=1:size(dataToSave,3)
