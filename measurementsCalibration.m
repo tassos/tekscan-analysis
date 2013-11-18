@@ -49,9 +49,6 @@ function measurementsCalibration
         toLoad = [footPath, footFile];
     end
     load(toLoad,'foottype','upsideUp','sensor','footnumber');
-    Right=strcmp(foottype,'RIGHT');
-    manual = 0;
-    
 
     for i=1:size(measFileName,2)
         label = strrep(measFileName{i}(1:end-4),'_',' ');
@@ -64,20 +61,18 @@ function measurementsCalibration
         %Detecting the foot case of the measurement (tekscan,tap,ta) and
         %constructing appropriate paths and filenames. If we are in
         %'manual' mode, then the case is defined earlier
-        if ~manual
-            footcase = cell2mat(lower(regexp(measFileName{i},'^[a-zA-Z\d]*','match')));
-            static = 0;
-            switch footcase
-                case 'static2'
-                    footcase = 'tekscan';
-                    static = 1;
-                case 'static3'
-                    footcase = 'tap';
-                    static = 1;
-                case 'static4'
-                    footcase = 'ta';
-                    static = 1;
-            end
+        footcase = cell2mat(lower(regexp(measFileName{i},'^[a-zA-Z\d]*','match')));
+        static = 0;
+        switch footcase
+            case 'static2'
+                footcase = 'tekscan';
+                static = 1;
+            case 'static3'
+                footcase = 'tap';
+                static = 1;
+            case 'static4'
+                footcase = 'ta';
+                static = 1;
         end
         sensorFileName=[OSDetection, '/Calibration matrices/',sensor.(footcase){:},'.mat'];
         calibrationFolder=[OSDetection '/Calibration measurements/',sensor.(footcase){:}];
@@ -107,13 +102,13 @@ function measurementsCalibration
         end       
         
         calibratedData(calibratedData < 0) =0;
-        if xor(Right,upsideUp.(footcase))
+        if xor(strcmp(foottype,'RIGHT'),upsideUp.(footcase))
             for k=1:size(calibratedData,1)
                 calibratedData(k,:,:)=fliplr(squeeze(calibratedData(k,:,:)));
             end
         end
         
-        fileNameRt=strtrim(measFileName{i}(1:end-4));
+        fileNameRt = strtrim(measFileName{i}(1:end-4));
         fileName = [lower(footnumber) '_' fileNameRt];
         if static
             [calibratedData, forceLevels] =...
