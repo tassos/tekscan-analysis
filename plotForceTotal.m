@@ -1,4 +1,4 @@
-function plotForceTotal(pos, h, data, senselArea, legendNames)
+function forceTotal = plotForceTotal(pos, h, data, senselArea, legendNames, toPlot)
 
     coleurMeas=hsv(size(data,2));
     coleurStat={[0.9,0.9,1],'b'};
@@ -10,14 +10,16 @@ function plotForceTotal(pos, h, data, senselArea, legendNames)
         end
     end
     
-    %Plotting sum of forces that are measured with the sensor
-    fig=figure('name','Total force through the ankle joint');
-    set(fig,'OuterPosition',pos);
-    plot3dConfInter(forceTotal, coleurMeas, coleurStat, 2)
-    line([0 0],[min(forceTotal(:)) max(forceTotal(:))]);
-    ylabel('Force (N)'), xlabel('Stance phase (%)')
-    title('Total force through the ankle joint')
-    addlistener(h,'ContinuousValueChange',@(hObject, event) plotVert(hObject, fig, forceTotal, legendNames));
-    grid on
-    legend([{'Std'} legendNames {'Mean'}])
+    if strcmp(toPlot,'Yes')
+        %Plotting sum of forces that are measured with the sensor
+        fig=figure('name','Total force through the ankle joint');
+        set(fig,'OuterPosition',pos);
+        plot3dConfInter(forceTotal, coleurMeas, coleurStat, 2)
+        line([0 0],[min(forceTotal(:)) max(forceTotal(:))]);
+        ylabel('Force (N)'), xlabel('Stance phase (%)')
+        title('Total force through the ankle joint')
+        addlistener(h,'ContinuousValueChange',@(hObject, event) plotVert(hObject, fig, forceTotal, legendNames));
+        grid on
+        legend([{'Std'} legendNames {'Mean'}])
+    end
 end

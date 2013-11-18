@@ -6,11 +6,6 @@ function plotPeakLocation (pos, x, y, data)
     coleurMeas=hsv(size(data,1));
     coleurStat={[0.9,0.9,1],'b'};
 
-    for k=1:size(data,1)
-        for l=1:size(data,2)
-            data(k,l,:) = squeeze(data(k,l,:))-[max(x(:));max(y(:))];
-        end
-    end
     subplot(2,1,1)
     plot3dConfInter(data,coleurMeas,coleurStat,1)    
     ylabel('Peak Location in A/P direction (sensel)')

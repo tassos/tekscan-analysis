@@ -68,10 +68,12 @@ function measurementsComparison
     
     %% Plotting
     
+    toPlot = questdlg('Do you want to plot?','Plot graphs?','Yes','No','No');
+    
     %Getting screen size for calculating the proper position of the figures
     set(0,'Units','pixels') 
     scnsize = get(0,'ScreenSize');
-    
+
     pos1 = [0, scnsize(4)/2, scnsize(3)/3, scnsize(4)/2];
     pos2 = [scnsize(3)/3, pos1(2), scnsize(3)/3, pos1(4)];
     pos3 = [2*scnsize(3)/3, pos1(2), scnsize(3)/3, pos1(4)];
@@ -93,24 +95,57 @@ function measurementsComparison
     else
         plotSD=1;
     end
-    h = plot3Dpressure(pos1, x, y, meanMeas, sdMeas, rowsPlot, colsPlot, plotSD);
+    
+    if strcmp(toPlot,'Yes')
+        h = plot3Dpressure(pos1, x, y, meanMeas, sdMeas, rowsPlot, colsPlot, plotSD);
+    else
+        h=0;
+    end
 
     % Plot pressure and force of the different areas over stance phase
-    plotForceArea (pos2, pos3, data, rows, cols, rowsPlot, colsPlot, senselArea);
+    [forceArea, forceAreaHeader, contactArea, contactAreaHeader] =...
+        plotForceArea (pos2, pos3, data, rows, cols, rowsPlot, colsPlot, senselArea, toPlot);
     
     % Plot peak pressure over stance phase
-    peakLocation = plotPeakPressure (pos6, h, data, legendNames);
+    [peakPressure, peakLocation] = plotPeakPressure (pos6, h, x, y, data, legendNames, toPlot);
 
     % Plot location of center of pressure in two directions over stance
     % phase
-    plotCenterPressure (pos4, x, y, data)
+    [xCen, yCen] = plotCenterPressure (pos4, x, y, data, toPlot);
     
-    % Plot location of peak pressure in two directions over stance phase
-    plotPeakLocation (pos4, x, y, peakLocation)
+    if strcmp(toPlot,'Yes')
+        % Plot location of peak pressure in two directions over stance phase
+        plotPeakLocation (pos4, x, y, peakLocation);
+        
+        % Plot kinematics information for the roll-offs
+        plotKinematics (h, measPathName, legendNames);
+    end
 
     % Plot total force through the joint over stance phase
-    plotForceTotal (pos5, h, data, senselArea, legendNames)
+    forceTotal = plotForceTotal (pos5, h, data, senselArea, legendNames, toPlot);
     
-    % Plot kinematics information for the roll-offs
-    plotKinematics (h, measPathName, legendNames)
+    prompt = {'Do you want to save to a file?'};
+    saveToFile = questdlg(prompt,'Save to file?','Yes','No','Yes');
+    
+    if strcmp(saveToFile,'Yes')
+        legendNames = [{'mean','std'},legendNames{:}];
+        dataToSave=zeros(size(data,3),1,size(data,2));
+        
+        headers = [forceAreaHeader, contactAreaHeader, {'PeakPressure','PeakLocation A/P','PeakLocation M/L','CoP A/P','CoP M/L','forceTotal'}];
+        
+        cated = {forceArea,contactArea,peakPressure(:,:,2),peakLocation,xCen(:,:,2),yCen(:,:,2),forceTotal(:,:,2)};
+        dataToSave(:,:,1)=nanmean(dataToSave,3);
+        dataToSave(:,:,2)=nanstd(dataToSave,0,3);
+        for i=1:length(cated)
+            dataToSave = [dataToSave,permute(cated{i},[2 3 1])];
+        end
+        [FileName,PathName] = uiputfile([measPathName,'/*.xls'],'Save measurements as...');
+        warning('off','MATLAB:xlswrite:AddSheet');
+        for j=1:size(dataToSave,3)
+            xlswrite([PathName,FileName],headers,legendNames{j});
+            xlswrite([PathName,FileName],dataToSave(:,2:end,j),legendNames{j},'A2');
+        end
+        warning('on','MATLAB:xlswrite:AddSheet');
+        removeEmptySheets([PathName,FileName]);
+    end
 end
