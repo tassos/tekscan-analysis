@@ -111,7 +111,7 @@ function measurementsComparison
 
     % Plot location of center of pressure in two directions over stance
     % phase
-    [xCen, yCen] = plotCenterPressure (pos4, x, y, data, toPlot);
+    CoP = plotCenterPressure (pos4, x, y, data, toPlot);
     
     if strcmp(toPlot,'Yes')
         % Plot location of peak pressure in two directions over stance phase
@@ -130,21 +130,17 @@ function measurementsComparison
     
     if strcmp(saveToFile,'Yes')
         legendNames = [legendNames{:},{'mean','std'}];
-        dataToSave=zeros(size(data,3),1,size(data,2));
         
         headers = [forceAreaHeader, contactAreaHeader, {'PeakPressure','PeakLocation A/P','PeakLocation M/L','CoP A/P','CoP M/L','forceTotal'}];
         
-        cated = {forceArea,contactArea,peakPressure(:,:,2),peakLocation,xCen(:,:,2),yCen(:,:,2),forceTotal(:,:,2)};
-        for i=1:length(cated)
-            dataToSave = [dataToSave,permute(cated{i},[2 3 1])];
-        end
+        dataToSave = permute(cat(3,forceArea,contactArea,peakPressure(:,:,2),peakLocation,CoP,forceTotal(:,:,2)),[2 3 1]);
         dataToSave(:,:,end+1)=nanmean(dataToSave,3);
         dataToSave(:,:,end+1)=nanstd(dataToSave,0,3);
         [FileName,PathName] = uiputfile([measPathName,'/*.xls'],'Save measurements as...');
         warning('off','MATLAB:xlswrite:AddSheet');
         for j=1:size(dataToSave,3)
             xlswrite([PathName,FileName],headers,legendNames{j});
-            xlswrite([PathName,FileName],dataToSave(:,2:end,j),legendNames{j},'A2');
+            xlswrite([PathName,FileName],dataToSave(:,: ,j),legendNames{j},'A2');
         end
         warning('on','MATLAB:xlswrite:AddSheet');
         removeEmptySheets([PathName,FileName]);
