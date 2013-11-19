@@ -39,6 +39,7 @@ function [data, sensitivity, spacing] = readTekscan(fileName)
 %     % This is a slightly faster way to scrap the data, but less robust
 %     % than the 'textscan' solution. The speedup is around .5" for a
 %     % string of 25M chars (a tekscan measurement of 15' at 10Hz).
+%     % More info: http://stackoverflow.com/questions/19977984/replace-multiple-substrings-using-strrep-in-matlab
 %     rawData = strrep(text(strEnd:end),sprintf('\r\n\r\nFrame '),',');
 %     rawData = strrep(rawData,sprintf('\r\n'),',');
 %     rawData = textscan(rawData,'%n','Delimiter',',');
