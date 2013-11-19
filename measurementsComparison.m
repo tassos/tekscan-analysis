@@ -135,7 +135,6 @@ function measurementsComparison
         legendNames = [legendNames{:},{'mean','std'}];
         
         headers = [forceAreaHeader, contactAreaHeader, {'PeakPressure','PeakLocation A/P','PeakLocation M/L','CoP A/P','CoP M/L','forceTotal'}];
-        
         dataToSave = permute(cat(3,forceArea,contactArea,peakPressure(:,:,2),peakLocation,CoP,forceTotal(:,:,2)),[2 3 1]);
         if static
             headersStatic = {'Peronei','Tib Ant','Tib Post','Flex Dig','Gatroc','Flex Hal','GRF','Hor pos','Sag rot'};
