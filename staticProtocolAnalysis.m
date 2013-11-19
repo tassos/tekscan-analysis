@@ -1,4 +1,4 @@
-function [pressureData, forceLevels] = staticProtocolAnalysis(calibratedData, measPathName, filename)
+function [pressureData, forceLevels] = staticProtocolAnalysis(calibratedData, measPathName, filename, foottype)
 %STATICPROTOCOLANALYSIS Analysing different TekScan static
 % protocol measurements
 % Function: Comparing the results of different static protocol
@@ -32,6 +32,10 @@ function [pressureData, forceLevels] = staticProtocolAnalysis(calibratedData, me
         loadcelldata.data{10}',loadcelldata.data{11}',loadcelldata.data{12}',...
         loadcelldata.data{13}',loadcelldata.data{14}',loadcelldata.data{15}',...
         loadcelldata.data{16}'],sRateRt/sRateT);
+    
+    if strcmp(foottype,'RIGHT')
+        forces = forces(:,[3,2,1,6,5,4,7,8,9]);
+    end
 
     %Calculating number of steps in the static protocol measurement.
     %Checking which measurement (TekScan or Rt) is smaller and taking that
