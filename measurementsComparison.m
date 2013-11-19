@@ -45,7 +45,10 @@ function measurementsComparison
     legendNames{size(measFileName,2)}=[];
     % Load calibrated data from measurement files
     for i=1:size(measFileName,2)
-        load([measPathName measFileName{i}],'calibratedData','spacing','fileName');
+        if static
+            load([measPathName measFileName{i}],'forceLevels');
+        end
+            load([measPathName measFileName{i}],'calibratedData','spacing','fileName');
         data(1,:,length(data):length(calibratedData),:,:)=NaN;
         if static
             data(1,i,1:size(calibratedData,1),:,:) = calibratedData;
@@ -134,15 +137,13 @@ function measurementsComparison
         headers = [forceAreaHeader, contactAreaHeader, {'PeakPressure','PeakLocation A/P','PeakLocation M/L','CoP A/P','CoP M/L','forceTotal'}];
         
         dataToSave = permute(cat(3,forceArea,contactArea,peakPressure(:,:,2),peakLocation,CoP,forceTotal(:,:,2)),[2 3 1]);
+        if static
+            headersStatic = {'Peronei','Tib Ant','Tib Post','Flex Dig','Gatroc','Flex Hal','GRF','Hor pos','Sag rot'};
+            headers = [headers, headersStatic];
+            dataToSave = [dataToSave,repmat(forceLevels,[1 1 size(dataToSave,3)])];
+        end
         dataToSave(:,:,end+1)=nanmean(dataToSave,3);
         dataToSave(:,:,end+1)=nanstd(dataToSave,0,3);
-        [FileName,PathName] = uiputfile([measPathName,'/*.xls'],'Save measurements as...');
-        warning('off','MATLAB:xlswrite:AddSheet');
-        for j=1:size(dataToSave,3)
-            xlswrite([PathName,FileName],headers,legendNames{j});
-            xlswrite([PathName,FileName],dataToSave(:,: ,j),legendNames{j},'A2');
-        end
-        warning('on','MATLAB:xlswrite:AddSheet');
-        removeEmptySheets([PathName,FileName]);
+        overwriteXLS(measPathName, dataToSave, headers, legendNames)
     end
 end
