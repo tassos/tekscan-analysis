@@ -8,7 +8,7 @@ function measurementsComparison
     clear
     close all force
     clc
-    g = genpath('../Common');
+    g = genpath('/Common');
     addpath(g);
     
     
