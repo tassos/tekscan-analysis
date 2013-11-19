@@ -15,22 +15,15 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function measurementsCalibration
+clear
+close all force
+clc
 
-    clear
-    close all force
-    clc
-    
-    %Read measurements files
-    [measFileName,measPathName] = uigetfile('.asf','Select measurement files',...
-        'MultiSelect','on',OSDetection);
-
-    if ~iscell(measFileName)
-        if measFileName == 0
-            return
-        else
-            measFileName={measFileName};
-        end
-    end
+directories = uipickfiles('FilterSpec',OSDetection);
+for z=1:size(directories,2)
+    measPathName = [directories{z},'/Tekscan/'];
+    measFileName = dir([measPathName,'*.asf']);
+    measFileName = {measFileName.name};
 
     %Initialising a waitbar that shows the progress to the user
     h=waitbar(0,'Initialising waitbar...');
@@ -121,4 +114,5 @@ function measurementsCalibration
         end
     end
     close(h);
+end
 end
