@@ -18,21 +18,27 @@ function [pressureData, forceLevels] = staticProtocolAnalysis(calibratedData, me
 
     if indexRt == 0
         warndlg(['No Real-Time measurement was found for ' filename ' measurement file'],'!! Warning !!')
-        pressureData=0;
-        forceLevels=0;
-        return
+        uiwait
+        TDMSfile = uigetfile('.tdms',['Please select appropriate Real-time file for ' filename 'measurement'],pathRt);
+    else
+        TDMSfile = filesRt(indexRt).name;
     end
 
     % Loading the TDMS file and extracting the muscle input file of the
     % simulation and the syncronisation signal
-    loadcelldata = TDMS_readTDMSFile([pathRt filesRt(indexRt).name]);
+    loadcelldata = TDMS_readTDMSFile([pathRt TDMSfile]);
 
     forces = downsample([loadcelldata.data{8}',loadcelldata.data{9}',...
-        loadcelldata.data{10}',loadcelldata.data{11}',...
-        loadcelldata.data{12}',loadcelldata.data{13}'],sRateRt/sRateT);
+        loadcelldata.data{10}',loadcelldata.data{11}',loadcelldata.data{12}',...
+        loadcelldata.data{13}',loadcelldata.data{14}',loadcelldata.data{15}',...
+        loadcelldata.data{16}'],sRateRt/sRateT);
 
-    %Calculating number of steps in the static protocol measurement
-    steps=floor((length(calibratedData)+10)/40);
+    %Calculating number of steps in the static protocol measurement.
+    %Checking which measurement (TekScan or Rt) is smaller and taking that
+    %as a reference.
+    stepsT=floor((length(calibratedData)+10)/40);
+    stepsRt=floor((length(forces)+10)/40);
+    steps=min(stepsT,stepsRt);
 
     %Initialising storing arrays for speed optimisation
     pressureData=zeros(steps,size(calibratedData,2),size(calibratedData,3));
