@@ -11,7 +11,6 @@ function measurementsComparison
     g = genpath('/Common');
     addpath(g);
     
-    
     %% Loading measurement files
     
     % Choose measurements files to load and compare
