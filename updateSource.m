@@ -1,8 +1,9 @@
 function updateSource
-    result = git('pull origin master');
+    git('checkout lite');
+    result = git('pull origin lite');
     if strfind(result,'Already up-to-date.')
         msgbox('Software was already in the latest version');
-    elseif strfind(result,'fatal')
+    elseif strfind(result,'fatal')||strfind(result,'error')
         msgbox(sprintf(['There was a problem with the software ',...
         'update.\nIt returned the following error:\n\n%s'],result));
     else
