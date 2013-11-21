@@ -69,7 +69,6 @@ function measurementsComparison
     sdMeas=squeeze(nanstd(data,0,2));
     
     %% Plotting
-    
     toPlot = questdlg('Do you want to plot?','Plot graphs?','Yes','No','No');
     
     %Getting screen size for calculating the proper position of the figures
@@ -110,10 +109,16 @@ function measurementsComparison
     
     % Plot peak pressure over stance phase
     [peakPressure, peakLocation] = plotPeakPressure (pos6, h, x, y, data, legendNames, toPlot);
+    
+    % Plot peak pressure for the different sub-areas
+    [pressureArea, pressureAreaHeader] = plotPeakArea (pos6, data, rows, cols, rowsPlot, colsPlot, toPlot);
 
     % Plot location of center of pressure in two directions over stance
     % phase
     CoP = plotCenterPressure (pos4, x, y, data, toPlot);
+    
+    % Plot total force through the joint over stance phase
+    forceTotal = plotForceTotal (pos5, h, data, senselArea, legendNames, toPlot);
     
     if strcmp(toPlot,'Yes')
         % Plot location of peak pressure in two directions over stance phase
@@ -122,9 +127,6 @@ function measurementsComparison
         % Plot kinematics information for the roll-offs
         plotKinematics (h, measPathName, legendNames);
     end
-
-    % Plot total force through the joint over stance phase
-    forceTotal = plotForceTotal (pos5, h, data, senselArea, legendNames, toPlot);
     
     %% Saving
     prompt = {'Do you want to save to a file?'};
@@ -133,8 +135,10 @@ function measurementsComparison
     if strcmp(saveToFile,'Yes')
         legendNames = [legendNames{:},{'mean','std'}];
         
-        headers = [forceAreaHeader, contactAreaHeader, {'PeakPressure','PeakLocation A/P','PeakLocation M/L','CoP A/P','CoP M/L','forceTotal'}];
-        dataToSave = permute(cat(3,forceArea,contactArea,peakPressure(:,:,2),peakLocation,CoP,forceTotal(:,:,2)),[2 3 1]);
+        headers = [forceAreaHeader, contactAreaHeader, pressureAreaHeader,...
+            {'PeakPressure','PeakLocation A/P','PeakLocation M/L','CoP A/P','CoP M/L','forceTotal'}];
+        dataToSave = permute(cat(3,forceArea,contactArea,pressureArea,...
+            peakPressure(:,:,2),peakLocation,CoP,forceTotal(:,:,2)),[2 3 1]);
         if static
             headersStatic = {'Peronei','Tib Ant','Tib Post','Flex Dig','Gatroc','Flex Hal','GRF','Hor pos','Sag rot'};
             headers = [headers, headersStatic];
