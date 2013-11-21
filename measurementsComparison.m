@@ -48,7 +48,7 @@ function measurementsComparison
             load([measPathName measFileName{i}],'forceLevels');
         end
             load([measPathName measFileName{i}],'calibratedData','spacing','fileName');
-        data(1,:,length(data):length(calibratedData),:,:)=NaN;
+            data(1,:,length(data)+1:length(calibratedData),:,:)=NaN;
         if static
             data(1,i,1:size(calibratedData,1),:,:) = calibratedData;
         else

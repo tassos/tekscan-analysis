@@ -6,7 +6,7 @@ function plot3dConfInter(measurements, coleurMeas, coleurStat, k)
 %   observations for each variable is plotted.
     for j=1:size(measurements,1)
         hold on
-        plot(measurements(j,:,k),'Color',coleurMeas(j,:));
+        plot(smooth(measurements(j,:,k)),'Color',coleurMeas(j,:));
     end
     meanM = squeeze(nanmean(measurements,1));
     sdM = squeeze(nanstd(measurements,0,1));
@@ -14,5 +14,5 @@ function plot3dConfInter(measurements, coleurMeas, coleurStat, k)
     X1=[1:1:size(meanM,1),fliplr(1:1:size(meanM,1))];
     h= fill(X1,X2,coleurStat{1},'EdgeColor','none');
     uistack(h,'bottom')
-    plot(meanM(:,k),'Color',coleurStat{2},'LineWidth',3)
+    plot(smooth(meanM(:,k)),'Color',coleurStat{2},'LineWidth',3)
 end
