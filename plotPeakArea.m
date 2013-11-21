@@ -25,13 +25,13 @@ function [pressureArea, pressureAreaHeader] =...
             Range = {['rows: ',num2str(min(rowsPlot{i})),' to ',num2str(max(rowsPlot{i}))],...
                     ['cols: ',num2str(min(colsPlot{j})),' to ',num2str(max(colsPlot{j}))]};
             
-            pressureAreaHeader{j+length(cols)*(i-1)}=['ForceArea ' Range{:}];
+            pressureAreaHeader{j+length(cols)*(i-1)}=['PeakPressure ' Range{:}];
             
             if strcmp(toPlot,'Yes')
                 figure(5)
                 subplot(length(rows),length(cols),j+(i-1)*length(cols))
                 plot3dConfInter(pressureArea, coleurMeas, coleurStat, j+length(cols)*(i-1))
-                if j==1, ylabel('Force (N)'), end
+                if j==1, ylabel('Pressure (Pa)'), end
                 if i==length(rows), xlabel('Stance phase (%)'), end
                 title([Range{:}])
                 grid minor

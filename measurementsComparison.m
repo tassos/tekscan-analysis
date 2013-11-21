@@ -125,7 +125,7 @@ function measurementsComparison
         plotPeakLocation (pos4, x, y, peakLocation);
         
         % Plot kinematics information for the roll-offs
-        plotKinematics (h, measPathName, legendNames);
+        % plotKinematics (h, measPathName, legendNames);
     end
     
     %% Saving
