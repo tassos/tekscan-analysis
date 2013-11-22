@@ -8,8 +8,7 @@ function measurementsComparison
     clear
     close all force
     clc
-    g = genpath('/Common');
-    addpath(g);
+    addpath 'Common' 'Common/Plotting' 'Common/Read tdms-files'
     
     %% Loading measurement files
     
