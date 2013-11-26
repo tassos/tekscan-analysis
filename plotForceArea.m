@@ -38,14 +38,14 @@ function [forceArea, forceAreaHeader, contactArea, contactAreaHeader] =...
             if strcmp(toPlot,'Yes')
                 figure(2)
                 subplot(length(rows),length(cols),j+(i-1)*length(cols))
-                plot3dConfInter(forceArea, coleurMeas, coleurStat, j+length(cols)*(i-1))
+                plot3dConfInter(forceArea, coleurMeas, coleurStat, j+length(cols)*(i-1));
                 if j==1, ylabel('Force (N)'), end
                 if i==length(rows), xlabel('Stance phase (%)'), end
                 title([Range{:}])
                 grid minor
                 figure(3)
                 subplot(length(rows),length(cols),j+(i-1)*length(cols))
-                plot3dConfInter(contactArea, coleurMeas, coleurStat, j+length(cols)*(i-1))
+                plot3dConfInter(contactArea, coleurMeas, coleurStat, j+length(cols)*(i-1));
                 if j==1, ylabel('Contact Area (m^2)'), end
                 if i==length(rows), xlabel('Stance phase (%)'), end
                 title([Range{:}])

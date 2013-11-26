@@ -16,13 +16,13 @@ function CoP = plotCenterPressure (pos, x, y, data, toPlot)
         coleurStat={[0.9,0.9,1],'b'};
         
         subplot(2,1,1)
-        plot3dConfInter(CoP,coleurMeas,coleurStat,1)
+        plot3dConfInter(CoP,coleurMeas,coleurStat,1);
         ylabel('CoP in A/P direction (sensel)')
         ylim([min(x(:)),max(x(:))])
         title('Position of the CoP in A/P direction (sensor row)')
         grid on
         subplot(2,1,2)
-        plot3dConfInter(CoP,coleurMeas,coleurStat,2)
+        plot3dConfInter(CoP,coleurMeas,coleurStat,2);
         ylabel('CoP in M/L direction (sensel)')
         xlabel('Stance phase (%)')
         ylim([min(y(:)),max(y(:))])

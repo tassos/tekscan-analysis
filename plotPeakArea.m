@@ -30,7 +30,7 @@ function [pressureArea, pressureAreaHeader] =...
             if strcmp(toPlot,'Yes')
                 figure(5)
                 subplot(length(rows),length(cols),j+(i-1)*length(cols))
-                plot3dConfInter(pressureArea, coleurMeas, coleurStat, j+length(cols)*(i-1))
+                plot3dConfInter(pressureArea, coleurMeas, coleurStat, j+length(cols)*(i-1));
                 if j==1, ylabel('Pressure (Pa)'), end
                 if i==length(rows), xlabel('Stance phase (%)'), end
                 title([Range{:}])

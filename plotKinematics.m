@@ -33,7 +33,7 @@ function plotKinematics (h, measPathName, fileNames)
         ylabels={'IV(-)/EV(+)°','IR(-)/ER(+)°','DF(-)/PF(+)°'};
         for i=1:3
             subplot(3,1,i)
-            plot3dConfInter(kinematicsData,coleurMeas,coleurStat,i)
+            plot3dConfInter(kinematicsData,coleurMeas,coleurStat,i);
             ylabel(ylabels{i});
             grid on
         end

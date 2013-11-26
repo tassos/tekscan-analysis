@@ -14,7 +14,7 @@ function forceTotal = plotForceTotal(pos, h, data, senselArea, legendNames, toPl
         %Plotting sum of forces that are measured with the sensor
         fig=figure('name','Total force through the ankle joint');
         set(fig,'OuterPosition',pos);
-        plot3dConfInter(forceTotal, coleurMeas, coleurStat, 2)
+        plot3dConfInter(forceTotal, coleurMeas, coleurStat, 2);
         line([0 0],[min(forceTotal(:)) max(forceTotal(:))]);
         ylabel('Force (N)'), xlabel('Stance phase (%)')
         title('Total force through the ankle joint')
