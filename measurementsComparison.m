@@ -8,7 +8,7 @@ function measurementsComparison
     clear
     close all force
     clc
-    addpath 'Common' 'Common/Plotting' 'Common/Read tdms-files'
+    addToPath;
     
     %% Loading measurement files
     
@@ -147,4 +147,5 @@ function measurementsComparison
         dataToSave(:,:,end+1)=nanstd(dataToSave,0,3);
         overwriteXLS(measPathName, dataToSave, headers, legendNames)
     end
+    rmpath 'Common' 'Common/Plotting'
 end
