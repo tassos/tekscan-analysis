@@ -68,7 +68,8 @@ function measurementsComparison
     sdMeas=squeeze(nanstd(data,0,2));
     
     %% Plotting
-    toPlot = questdlg('Do you want to plot?','Plot graphs?','Yes','No','No');
+%     toPlot = questdlg('Do you want to plot?','Plot graphs?','Yes','No','No');
+    toPlot='No';
     
     %Getting screen size for calculating the proper position of the figures
     set(0,'Units','pixels') 
@@ -129,7 +130,8 @@ function measurementsComparison
     
     %% Saving
     prompt = {'Do you want to save to a file?'};
-    saveToFile = questdlg(prompt,'Save to file?','Yes','No','Yes');
+%     saveToFile = questdlg(prompt,'Save to file?','Yes','No','Yes');
+    saveToFile = 'Yes';
     
     if strcmp(saveToFile,'Yes')
         headers = [forceAreaHeader, contactAreaHeader, pressureAreaHeader,...
@@ -148,16 +150,16 @@ function measurementsComparison
             for i=1:size(dataToSave,3)
                 if ~isempty(strfind(legendNames{i},cases{j}))
                     k=k+1;
-                    data.(cases{j}(1:end-1)).data(k,:,:) = dataToSave(:,:,i);
-                    data.(cases{j}(1:end-1)).names{k} = ['Trial ' num2str(k)];
+                    Rdata.(cases{j}(1:end-1)).data(k,:,:) = dataToSave(:,:,i);
+                    Rdata.(cases{j}(1:end-1)).names{k} = ['Trial ' sprintf('%02d',k)];
                 end
             end
         end
         name = strsplit(legendNames{i},' ');
-        data.Foot = name{1};
-        data.Variables = headers;
+        Rdata.Foot = name{1};
+        Rdata.Variables = headers;
         
-        save([measPathName '../../Voet 99/Results/Tekscan_Data_' name{1} '.mat'],'data');
+        save([measPathName '../../Voet 99/Results/Tekscan_Data_' name{1} '.mat'],'Rdata');
         
 %         legendNames = [legendNames{:},{'mean','std'}];
 %         dataToSave(:,:,end+1)=nanmean(dataToSave,3);
