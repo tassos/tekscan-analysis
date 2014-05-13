@@ -132,8 +132,6 @@ function measurementsComparison
     saveToFile = questdlg(prompt,'Save to file?','Yes','No','Yes');
     
     if strcmp(saveToFile,'Yes')
-        legendNames = [legendNames{:},{'mean','std'}];
-        
         headers = [forceAreaHeader, contactAreaHeader, pressureAreaHeader,...
             {'PeakPressure','PeakLocation A/P','PeakLocation M/L','CoP A/P','CoP M/L','forceTotal'}];
         dataToSave = permute(cat(3,forceArea,contactArea,pressureArea,...
@@ -143,9 +141,27 @@ function measurementsComparison
             headers = [headers, headersStatic];
             dataToSave = [dataToSave,repmat(forceLevels,[1 1 size(dataToSave,3)])];
         end
-        dataToSave(:,:,end+1)=nanmean(dataToSave,3);
-        dataToSave(:,:,end+1)=nanstd(dataToSave,0,3);
-        overwriteXLS(measPathName, dataToSave, headers, legendNames)
+        
+        cases={'Tekscan ','TAP ','TA '};
+        for j=1:length(cases);
+            k=0;
+            for i=1:size(dataToSave,3)
+                if ~isempty(strfind(legendNames{i},cases{j}))
+                    k=k+1;
+                    data.(cases{j}(1:end-1)).data(k,:,:) = dataToSave(:,:,i);
+                    data.(cases{j}(1:end-1)).names{k} = ['Trial ' num2str(k)];
+                end
+            end
+        end
+        name = strsplit(legendNames{i},' ');
+        data.Foot = name{1};
+        data.Variables = headers;
+        
+        save([measPathName '../../Voet 99/Results/Tekscan_Data_' name{1} '.mat'],'data');
+        
+%         legendNames = [legendNames{:},{'mean','std'}];
+%         dataToSave(:,:,end+1)=nanmean(dataToSave,3);
+%         dataToSave(:,:,end+1)=nanstd(dataToSave,0,3);
+%         overwriteXLS(measPathName, dataToSave, headers, legendNames)
     end
-    rmpath 'Common' 'Common/Plotting'
 end
