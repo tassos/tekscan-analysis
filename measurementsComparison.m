@@ -10,13 +10,14 @@ function measurementsComparison
     clc
     addToPath;
     
-    directories = uipickfiles('FilterSpec',OSDetection);
+    [cases, directories, toPlot, saveToFile] = Questions;
+    
     for z=1:size(directories,2)
+        %% Loading measurement files
         measPathName = [directories{z},'/Tekscan/'];
         measFileName = dir([measPathName,'*.mat']);
-        measFileName = {measFileName.name};
+        measFileName = filesCleanUp(cases,{measFileName.name});
 
-        %% Loading measurement files
         static = regexp(measFileName{1},'Organised');
 
         % Calculate the size of the array data.
@@ -31,20 +32,20 @@ function measurementsComparison
         faulty= ~cellfun('isempty',strfind(measFileName,'meanData.mat'));
         measFileName(faulty)=[];
 
-        legendNames{size(measFileName,2)}=[];
+        legendNames{size(measFileName,2)}=[]; %#ok<AGROW> Not true
         % Load calibrated data from measurement files
         for i=1:size(measFileName,2)
             if static
                 load([measPathName measFileName{i}],'forceLevels');
             end
-                load([measPathName measFileName{i}],'calibratedData','spacing','fileName');
-                data(1,:,length(data)+1:length(calibratedData),:,:)=NaN;
-                data(1,i,1:size(calibratedData,1),:,:) = calibratedData;
+            load([measPathName measFileName{i}],'calibratedData','spacing','fileName');
+            data(1,:,length(data)+1:length(calibratedData),:,:)=NaN;
+            data(1,i,1:size(calibratedData,1),:,:) = calibratedData;
             %Converting mm to m
             colSpacing=spacing{1}/1e3; %#ok<USENS> The variable is loaded three lines above
             rowSpacing=spacing{2}/1e3;
             senselArea = colSpacing*rowSpacing;
-            legendNames{i}=strrep(fileName,'_',' ');
+            legendNames{i}=strrep(fileName,'_',' '); %#ok<AGROW> Not true
         end
         % Trimming the sensor by 2 rows and columns in each side to get rid of
         % high pressure artefacts
@@ -52,8 +53,8 @@ function measurementsComparison
         data(:,:,:,[1:trim,end-trim+1:end],:)=[];
         data(:,:,:,:,[1:trim,end-trim+1:end])=[];
 
-        for i=1:size(measFileName,2)
-            if ~static
+        if ~static            
+            for i=1:size(measFileName,2)
                 data(1,i,1:size(calibratedData,1),:,:) = smooth3(data(1,i,1:size(calibratedData,1),:,:));
             end
         end
@@ -66,8 +67,6 @@ function measurementsComparison
         sdMeas=squeeze(nanstd(data,0,2));
 
         %% Plotting
-    %     toPlot = questdlg('Do you want to plot?','Plot graphs?','Yes','No','No');
-        toPlot='Yes';
 
         %Getting screen size for calculating the proper position of the figures
         set(0,'Units','pixels') 
@@ -127,9 +126,6 @@ function measurementsComparison
         end
 
         %% Saving
-%         prompt = {'Do you want to save to a file?'};
-%         saveToFile = questdlg(prompt,'Save to file?','Yes','No','Yes');
-        saveToFile = 'Yes';
 
         if strcmp(saveToFile,'Yes')
             headers = [forceAreaHeader, contactAreaHeader, pressureAreaHeader,...
@@ -138,11 +134,10 @@ function measurementsComparison
                 peakPressure(:,:,2),peakLocation,CoP,forceTotal(:,:,2)),[2 3 1]);
             if static
                 headersStatic = {'Peronei','Tib Ant','Tib Post','Flex Dig','Gatroc','Flex Hal','GRF','Hor pos','Sag rot'};
-                headers = [headers, headersStatic];
-                dataToSave = [dataToSave,repmat(forceLevels,[1 1 size(dataToSave,3)])];
+                headers = [headers, headersStatic]; %#ok<AGROW> Not true
+                dataToSave = [dataToSave,repmat(forceLevels,[1 1 size(dataToSave,3)])]; %#ok<AGROW> Not true
             end
 
-            cases={'Tekscan ','TAP ','TA '};
             for j=1:length(cases);
                 k=0;
                 for i=1:size(dataToSave,3)
@@ -165,4 +160,32 @@ function measurementsComparison
     %         overwriteXLS(measPathName, dataToSave, headers, legendNames)
         end
     end
+end
+
+function [cases, directories, toPlot, saveToFile] = Questions
+    directories = uipickfiles('FilterSpec',OSDetection);
+    
+    cases = {'Tekscan_','TAP_','TA_'};
+    figure('Position',[300 300 200 300],'Name','Selection');
+    parentpanel2 = uipanel('Units','pixels','Title','Choose combos','Position',[5 50 180 200]);
+    lbs = uicontrol ('Parent',parentpanel2,'Style','listbox','Max',3,'String',cases,'Units','Pixels','Position',[5 5 170 100]);
+    uicontrol('Style','pushbutton','String','Done','Position',[50 5 100 30],'Callback',@hDoneCallback);
+    uiwait
+    cases = cases(get(lbs,'Value'));
+    close
+    
+    toPlot = questdlg('Do you want to plot?','Plot graphs?','Yes','No','No');
+    saveToFile = questdlg('Do you want to save to a file?','Save to file?','Yes','No','Yes');
+end
+
+function newFileNames = filesCleanUp(cases,fileNames)
+
+    newFileNames={};
+    for i=1:length(cases)
+        newFileNames = [newFileNames,fileNames(not(cellfun('isempty',strfind(fileNames,cases{i}))))]; %#ok<AGROW> Nothing I can do about it
+    end
+end
+
+function hDoneCallback(~, ~)
+    uiresume
 end
