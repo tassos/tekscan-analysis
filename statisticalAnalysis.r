@@ -6,7 +6,7 @@ rm(list=ls())
 
 source('directory.r')
 
-choices<-c("PeakPressure","forceTotal")
+choices<-c("PeakPressure","force")
 group<-select.list(choices, preselect = NULL, multiple = TRUE, title = "Select which measurements to recreate", graphics = getOption("menu.graphics"))
 
 myFile<-list()
@@ -53,4 +53,16 @@ if ("PeakPressure" %in% group) {
 	peakPressure$Foot<-factor(peakPressure$Foot)
 	
 	save('peakPressure',file=paste(outdir,'peakPressure.RData',sep=''))
+}
+
+if ("force" %in% group) {
+	force<-data[grep("(forceTotal)",data$Variable),]
+	force$Variable<-factor(force$Variable)
+
+	#Cleaning up of bad or non used measurements
+	force$Variable<-factor(force$Variable)
+	force$Trial<-factor(force$Trial)
+	force$Foot<-factor(force$Foot)
+	
+	save('force',file=paste(outdir,'force.RData',sep=''))
 }
