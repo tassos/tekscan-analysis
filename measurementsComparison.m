@@ -41,6 +41,7 @@ function measurementsComparison
             load([measPathName measFileName{i}],'calibratedData','spacing','fileName');
             data(1,:,length(data)+1:length(calibratedData),:,:)=NaN;
             data(1,i,1:size(calibratedData,1),:,:) = calibratedData;
+            
             %Converting mm to m
             colSpacing=spacing{1}/1e3; %#ok<USENS> The variable is loaded three lines above
             rowSpacing=spacing{2}/1e3;
@@ -49,15 +50,16 @@ function measurementsComparison
         end
         % Trimming the sensor by 2 rows and columns in each side to get rid of
         % high pressure artefacts
-        trim = 2;
+        trim = 3;
         data(:,:,:,[1:trim,end-trim+1:end],:)=[];
         data(:,:,:,:,[1:trim,end-trim+1:end])=[];
-
-        if ~static            
-            for i=1:size(measFileName,2)
-                data(1,i,1:size(calibratedData,1),:,:) = smooth3(data(1,i,1:size(calibratedData,1),:,:));
+        
+        if isempty(static)
+            for i=1:size(data,2)
+                data(1,i,:,:,:) = smooth3(squeeze(data(1,i,:,:,:)));
             end
         end
+
 
         %% Statistics
         % We are calculating the mean pressure of each sensel for the different
