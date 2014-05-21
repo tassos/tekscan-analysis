@@ -139,14 +139,16 @@ function measurementsComparison
                 headers = [headers, headersStatic]; %#ok<AGROW> Not true
                 dataToSave = [dataToSave,repmat(forceLevels,[1 1 size(dataToSave,3)])]; %#ok<AGROW> Not true
             end
-
-            for j=1:length(cases);
+            
+            casesSpace = strrep(cases,'_',' ');
+            clear Rdata
+            for j=1:length(casesSpace);
                 k=0;
                 for i=1:size(dataToSave,3)
-                    if ~isempty(strfind(legendNames{i},cases{j}))
+                    if ~isempty(strfind(legendNames{i},casesSpace{j}))
                         k=k+1;
-                        Rdata.(cases{j}(1:end-1)).data(k,:,:) = dataToSave(:,:,i);
-                        Rdata.(cases{j}(1:end-1)).names{k} = ['Trial ' sprintf('%02d',k)];
+                        Rdata.(casesSpace{j}(1:end-1)).data(k,:,:) = dataToSave(:,:,i);
+                        Rdata.(casesSpace{j}(1:end-1)).names{k} = ['Trial ' sprintf('%02d',k)];
                     end
                 end
             end
