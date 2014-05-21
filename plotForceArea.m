@@ -17,7 +17,8 @@ function [forceArea, forceAreaHeader, contactArea, contactAreaHeader] =...
     forceAreaHeader = cell(1,length(cols)*length(rows));
     contactAreaHeader = cell(1,length(cols)*length(rows));
     
-    paThreshold = 5e4; %Pa
+    paThreshold = 5e5; %Pa Based on matricalli and the super low pressure fujiFilm prescale
+    %http://www.fujifilm.com/products/prescale/prescalefilm/#overview
     
     for i=1:length(rows)
         for j=1:length(cols)
