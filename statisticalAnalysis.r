@@ -26,7 +26,7 @@ for (j in 1:length(myFile)) {
 		case<-dimnames(myData$Rdata)[[1]][[i]]
 		
 		if (case != 'empty') {
-			dimnames(myData$Rdata[[i]][[1]])[[1]]<-unlist(myData$Rdata[[i]][[2]])
+			dimnames(myData$Rdata[[i]][[1]])[[1]]<-myData$Rdata[[i]][[2]]
 			dimnames(myData$Rdata[[i]][[1]])[[2]]<-1:100
 			dimnames(myData$Rdata[[i]][[1]])[[3]]<-unlist(myData$Rdata[[groups+2]])
 			dataTemp[[i]]<-as.data.frame(as.table(myData$Rdata[[i]][[1]]))
