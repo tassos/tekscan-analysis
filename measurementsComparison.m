@@ -19,7 +19,12 @@ function measurementsComparison
         
         % Last variable defines how many measurements from each foot and case should be
         % analysed. If it is set to 0, all measurements are analysed.
-        measFileName = filesCleanUp(cases,{measFileName.name},0);
+        % Second from the end defines the first measurement to be
+        % considered.
+        measFileName = filesCleanUp(cases,{measFileName.name},1,7);
+        if isempty(measFileName)
+            continue
+        end
 
         static = regexp(measFileName{1},'Organised');
 
@@ -185,7 +190,7 @@ function [cases, directories, toPlot, saveToFile] = Questions
     saveToFile = questdlg('Do you want to save to a file?','Save to file?','Yes','No','Yes');
 end
 
-function newFileNames = filesCleanUp(cases,fileNames,n)
+function newFileNames = filesCleanUp(cases,fileNames,m,n)
 
     newFileNames={};
     for i=1:length(cases)
@@ -201,7 +206,12 @@ function newFileNames = filesCleanUp(cases,fileNames,n)
         if ~n
             n=length(tempFileNames);
         end
-        newFileNames = [newFileNames, tempFileNames(1:min(length(tempFileNames),n))]; %#ok<AGROW> Nothing I can do about it
+        if m<=length(tempFileNames)
+            newFileNames = [newFileNames, tempFileNames(m:min(length(tempFileNames),m+n-1))]; %#ok<AGROW> Nothing I can do about it
+        end
+        if ~exist('newFileNames','var')
+            newFileNames=cell(0);
+        end
     end
 end
 
