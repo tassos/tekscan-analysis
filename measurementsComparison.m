@@ -16,7 +16,10 @@ function measurementsComparison
         %% Loading measurement files
         measPathName = [directories{z},'/Tekscan/'];
         measFileName = dir([measPathName,'*.mat']);
-        measFileName = filesCleanUp(cases,{measFileName.name},5);
+        
+        % Last variable defines how many measurements from each foot and case should be
+        % analysed. If it is set to 0, all measurements are analysed.
+        measFileName = filesCleanUp(cases,{measFileName.name},0);
 
         static = regexp(measFileName{1},'Organised');
 
@@ -195,6 +198,9 @@ function newFileNames = filesCleanUp(cases,fileNames,n)
         tempFileNames = tempFileNames(order);
         
         %Keeping only a specific amount of measurements, defined by n
+        if ~n
+            n=length(tempFileNames);
+        end
         newFileNames = [newFileNames, tempFileNames(1:min(length(tempFileNames),n))]; %#ok<AGROW> Nothing I can do about it
     end
 end
