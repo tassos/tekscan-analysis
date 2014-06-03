@@ -16,7 +16,7 @@ function measurementsComparison
         %% Loading measurement files
         measPathName = [directories{z},'/Tekscan/'];
         measFileName = dir([measPathName,'*.mat']);
-        measFileName = filesCleanUp(cases,{measFileName.name});
+        measFileName = filesCleanUp(cases,{measFileName.name},5);
 
         static = regexp(measFileName{1},'Organised');
 
@@ -50,7 +50,7 @@ function measurementsComparison
         end
         % Trimming the sensor by 2 rows and columns in each side to get rid of
         % high pressure artefacts
-        trim = 3;
+        trim = 2;
         data(:,:,:,[1:trim,end-trim+1:end],:)=[];
         data(:,:,:,:,[1:trim,end-trim+1:end])=[];
         
@@ -158,10 +158,10 @@ function measurementsComparison
 
             save([measPathName '../../Voet 99/Results/Tekscan_Data_' name{1} '.mat'],'Rdata');
 
-    %         legendNames = [legendNames{:},{'mean','std'}];
-    %         dataToSave(:,:,end+1)=nanmean(dataToSave,3);
-    %         dataToSave(:,:,end+1)=nanstd(dataToSave,0,3);
-    %         overwriteXLS(measPathName, dataToSave, headers, legendNames)
+%             legendNames = [legendNames{:},{'mean','std'}];
+%             dataToSave(:,:,end+1)=nanmean(dataToSave,3);
+%             dataToSave(:,:,end+1)=nanstd(dataToSave,0,3);
+%             overwriteXLS(measPathName, dataToSave, headers, legendNames)
         end
     end
 end
@@ -182,11 +182,20 @@ function [cases, directories, toPlot, saveToFile] = Questions
     saveToFile = questdlg('Do you want to save to a file?','Save to file?','Yes','No','Yes');
 end
 
-function newFileNames = filesCleanUp(cases,fileNames)
+function newFileNames = filesCleanUp(cases,fileNames,n)
 
     newFileNames={};
     for i=1:length(cases)
-        newFileNames = [newFileNames,fileNames(not(cellfun('isempty',strfind(fileNames,cases{i}))))]; %#ok<AGROW> Nothing I can do about it
+        tempFileNames = fileNames(not(cellfun('isempty',strfind(fileNames,cases{i}))));
+        %Finding the correct order of the measurements by adding a 0 in
+        %front of one digit numbers
+        [~,order] = sort(regexprep(tempFileNames,'(?<=_)\d{1,1}(?=.mat)','0$0'));
+        
+        %Reordering the files based on the order
+        tempFileNames = tempFileNames(order);
+        
+        %Keeping only a specific amount of measurements, defined by n
+        newFileNames = [newFileNames, tempFileNames(1:min(length(tempFileNames),n))]; %#ok<AGROW> Nothing I can do about it
     end
 end
 
