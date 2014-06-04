@@ -3,6 +3,7 @@ library(reshape2)
 require(plyr)
 
 rm(list=ls())
+options("max.print"=300)
 
 source('directory.r')
 
@@ -44,15 +45,21 @@ data$Variable<-factor(data$Variable)
 
 if ("PeakPressure" %in% group) {
 	peakPressure<-data[grep("(PeakPressure)",data$Variable),]
-	peakPressure<-peakPressure[grep("(PeakPressure).",peakPressure$Variable,invert=TRUE),]
 	peakPressure$Variable<-factor(peakPressure$Variable)
 
+	ppArea<-data[grep("(PeakPressure).",data$Variable),]
+	ppArea$Rows<-regmatches(ppArea$Variable,regexpr("(?<=rows: ).*(?=cols:)",ppArea$Variable, perl=TRUE))
+	ppArea$Cols<-regmatches(ppArea$Variable,regexpr("(?<=cols: ).*",ppArea$Variable, perl=TRUE))
+	ppArea$Rows<-factor(ppArea$Rows)
+	ppArea$Cols<-factor(ppArea$Cols)
+	
 	#Cleaning up of bad or non used measurements
 	peakPressure$Variable<-factor(peakPressure$Variable)
 	peakPressure$Trial<-factor(peakPressure$Trial)
 	peakPressure$Foot<-factor(peakPressure$Foot)
 	
 	save('peakPressure',file=paste(outdir,'peakPressure.RData',sep=''))
+	save('ppArea',file=paste(outdir,'ppArea.RData',sep=''))
 }
 
 if ("force" %in% group) {
