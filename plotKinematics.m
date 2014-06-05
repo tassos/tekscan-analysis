@@ -10,7 +10,8 @@ function plotKinematics (h, measPathName, fileNames)
     % corresponding kinematics measurements.
     filesIndex=[];
     for i=1:size(fileNames,2)
-        string = [strrep(fileNames{i},' ','_'),'.mat'];
+        string = regexprep(fileNames{i},'(foot\d* )','Acquisition@position3D@');
+        string = strrep(string,' ','_');
         index = findFile(string,fileList);
         if index~=0
             filesIndex = [filesIndex i]; %#ok<AGROW> No way I can predict the length of this array
