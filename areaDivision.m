@@ -1,6 +1,4 @@
-function [rows, cols, rowsPlot, colsPlot] = areaDivision (x, y, nRows, nCols)
-    rowDiv = nRows;
-    colDiv = nCols;
+function [rows, cols, rowsPlot, colsPlot] = areaDivision (x, y, rowDiv, colDiv)
     rows{rowDiv}=[];
     rowsPlot=rows;
     cols{colDiv}=[];
