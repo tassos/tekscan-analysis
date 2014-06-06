@@ -21,7 +21,7 @@ function measurementsComparison
         % analysed. If it is set to 0, all measurements are analysed.
         % Second from the end defines the first measurement to be
         % considered.
-        measFileName = filesCleanUp(cases,{measFileName.name},1,7);
+        measFileName = filesCleanUp(cases,{measFileName.name},1,0);
         if isempty(measFileName)
             continue
         end
@@ -58,9 +58,9 @@ function measurementsComparison
         end
         % Trimming the sensor by 2 rows and columns in each side to get rid of
         % high pressure artefacts
-        trim = 2;
-        data(:,:,:,[1:trim,end-trim+1:end],:)=[];
-        data(:,:,:,:,[1:trim,end-trim+1:end])=[];
+        trim = 8;
+        data(:,:,:,[1:trim,end-trim+1:end],:)=0;
+        data(:,:,:,:,[1:trim,end-trim+1:end])=0;
         
         if isempty(static)
             for i=1:size(data,2)
@@ -130,10 +130,11 @@ function measurementsComparison
         if strcmp(toPlot,'Yes')
             % Plot location of peak pressure in two directions over stance phase
             plotPeakLocation (pos4, x, y, peakLocation);
-
-            % Plot kinematics information for the roll-offs
-            % plotKinematics (h, measPathName, legendNames);
         end
+        % Plot kinematics information for the roll-offs and project areas
+        % control points on the talus and return the displacements over
+        % stance phase.
+        [dist1, dist2] = plotKinematics (h, measPathName, legendNames, toPlot);
 
         %% Saving
 

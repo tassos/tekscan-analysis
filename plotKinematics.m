@@ -1,4 +1,4 @@
-function plotKinematics (h, measPathName, fileNames)
+function [dist1, dist2] = plotKinematics (h, measPathName, fileNames, toPlot)
 
     % Defining the root path for the foot
     voetPath=[measPathName '../'];
@@ -25,21 +25,23 @@ function plotKinematics (h, measPathName, fileNames)
         % warning message
         warndlg('No kinematics measurements were found for the corresponding TekScan files','!! Warning !!')
     else    
-        plotAnkle3D(h,voetPath,kinematicsData)
+        [dist1, dist2] = plotAnkle3D(h,voetPath,kinematicsData,toPlot);
         
-        coleurMeas=hsv(size(kinematicsData,1));
-        coleurStat={[0.9,0.9,1],'b'};
-        
-        figure('Name','Ankle angular kinematics over stance phase')
-        ylabels={'IV(-)/EV(+)°','IR(-)/ER(+)°','DF(-)/PF(+)°'};
-        for i=1:3
-            subplot(3,1,i)
-            plot3dConfInter(kinematicsData,coleurMeas,coleurStat,i);
-            ylabel(ylabels{i});
-            grid on
+        if strcmp(toPlot,'Yes')
+            coleurMeas=hsv(size(kinematicsData,1));
+            coleurStat={[0.9,0.9,1],'b'};
+
+            figure('Name','Ankle angular kinematics over stance phase')
+            ylabels={'IV(-)/EV(+)°','IR(-)/ER(+)°','DF(-)/PF(+)°'};
+            for i=1:3
+                subplot(3,1,i)
+                plot3dConfInter(kinematicsData,coleurMeas,coleurStat,i);
+                ylabel(ylabels{i});
+                grid on
+            end
+            xlabel('Stance Phase(%)')
+            legend([{'Std'} fileNames(filesIndex) {'Mean'}])
         end
-        xlabel('Stance Phase(%)')
-        legend([{'Std'} fileNames(filesIndex) {'Mean'}])
     end
 end
 
