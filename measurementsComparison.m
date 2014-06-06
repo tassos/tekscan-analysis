@@ -94,7 +94,7 @@ function measurementsComparison
             floor(-size(data,4)/2)+1:1:floor(size(data,4)/2));
 
         % Decide how the sensor will be split in areas in a clever way
-        [rows,cols,rowsPlot,colsPlot] = areaDivision (x, y, 3, 2);
+        [rows,cols,rowsPlot,colsPlot,threshold] = areaDivision (x, y, 3, 2, rowSpacing);
 
         % Plot pressure using a 3D mesh. The area divisions and standard
         % deviation between the measurements is also plotted
@@ -134,7 +134,7 @@ function measurementsComparison
         % Plot kinematics information for the roll-offs and project areas
         % control points on the talus and return the displacements over
         % stance phase.
-        [dist1, dist2] = plotKinematics (h, measPathName, legendNames, toPlot);
+        [dist1, dist2] = plotKinematics (h, measPathName, legendNames, threshold, toPlot);
 
         %% Saving
 

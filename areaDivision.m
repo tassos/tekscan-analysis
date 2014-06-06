@@ -1,4 +1,4 @@
-function [rows, cols, rowsPlot, colsPlot] = areaDivision (x, y, rowDiv, colDiv)
+function [rows, cols, rowsPlot, colsPlot, threshold] = areaDivision (x, y, rowDiv, colDiv, rowSpacing)
     rows{rowDiv}=[];
     rowsPlot=rows;
     cols{colDiv}=[];
@@ -10,6 +10,7 @@ function [rows, cols, rowsPlot, colsPlot] = areaDivision (x, y, rowDiv, colDiv)
         previous = max([rows{:}]);
         rowsPlot{i} = rows{i} + min(x(:)) -1;
     end
+    threshold=rowSpacing*max(rows{i})/rowDiv.*[1,2]*1000+10;
     rows{rowDiv}(rows{rowDiv}>max(rowsTemp(:)))=[];
     previous=0;
     colsTemp = 1:1:max(y(:))-min(y(:))+1;

@@ -1,4 +1,4 @@
-function [dist1, dist2] = plotAnkle3D(h, voetPath, rotations, toPlot)
+function [dist1, dist2] = plotAnkle3D(h, voetPath, rotations, threshold, toPlot)
     % Load the needed data from kinematics analysis
     load([voetPath 'Foot details.mat'],'footnumber');
     load([voetPath 'RefPosition - tekscan.mat']);
@@ -37,10 +37,9 @@ function [dist1, dist2] = plotAnkle3D(h, voetPath, rotations, toPlot)
     
     dist=sqrt(sum((screw(1,:)-screw(3,:)).^2));
 
-    threshold={20,40};
     sPoint=screw(1,:);
     Distance=0;
-    while Distance<=threshold{2}
+    while Distance<=threshold(2)
         [sIndex, sDist] = dsearchn(V_Tib_Cut,sPoint);
         sPoint = V_Tib_Cut(sIndex,:);
         V_Tib_Cut(sIndex,:)=[];
@@ -49,7 +48,7 @@ function [dist1, dist2] = plotAnkle3D(h, voetPath, rotations, toPlot)
         else
             sPoint=screw(1,:);
         end
-        if (Distance>=threshold{1}&&~exist('POI_Tib','var'))
+        if (Distance>=threshold(1)&&~exist('POI_Tib','var'))
             POI_Tib(1,:)=sPoint;
         end
     end
