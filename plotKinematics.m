@@ -25,7 +25,7 @@ function [dist1, dist2] = plotKinematics (h, measPathName, fileNames, threshold,
         % warning message
         warndlg('No kinematics measurements were found for the corresponding TekScan files','!! Warning !!')
     else    
-        [dist1, dist2] = plotAnkle3D(h,voetPath,kinematicsData, threshold, toPlot);
+        [dist1, dist2] = plotAnkle3D(h, voetPath, kinematicsData, threshold, toPlot);
         
         if strcmp(toPlot,'Yes')
             coleurMeas=hsv(size(kinematicsData,1));

@@ -118,7 +118,7 @@ function measurementsComparison
         [peakPressure, peakLocation] = plotPeakPressure (pos6, h, x, y, data, legendNames, toPlot);
 
         % Plot peak pressure for the different sub-areas
-        [pressureArea, pressureAreaHeader] = plotPeakArea (pos6, data, rows, cols, rowsPlot, colsPlot, toPlot);
+        [pressureArea, pressureAreaHeader, pressureAreaTalusHeader] = plotPeakArea (pos6, data, rows, cols, rowsPlot, colsPlot, toPlot);
 
         % Plot location of center of pressure in two directions over stance
         % phase
@@ -135,13 +135,15 @@ function measurementsComparison
         % control points on the talus and return the displacements over
         % stance phase.
         [dist1, dist2] = plotKinematics (h, measPathName, legendNames, threshold, toPlot);
+        
+        pressureAreaTalus = plotPeakAreaTalus (data, rows, cols, dist1, dist2, rowSpacing, colSpacing);
 
         %% Saving
 
         if strcmp(saveToFile,'Yes')
-            headers = [forceAreaHeader, contactAreaHeader, pressureAreaHeader,...
+            headers = [forceAreaHeader, contactAreaHeader, pressureAreaHeader, pressureAreaTalusHeader,...
                 {'PeakPressure','PeakLocation A/P','PeakLocation M/L','CoP A/P','CoP M/L','forceTotal'}];
-            dataToSave = permute(cat(3,forceArea,contactArea,pressureArea,...
+            dataToSave = permute(cat(3,forceArea,contactArea,pressureArea,pressureAreaTalus,...
                 peakPressure(:,:,2),peakLocation,CoP,forceTotal(:,:,2)),[2 3 1]);
             if static
                 headersStatic = {'Peronei','Tib Ant','Tib Post','Flex Dig','Gatroc','Flex Hal','GRF','Hor pos','Sag rot'};

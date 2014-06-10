@@ -12,10 +12,12 @@ source("directory.r")
 load(paste(outdir,'force.RData',sep=''))
 outdir<-paste(outdir,"Graphs_pPressure/",sep='')
 
-pLevel=0.01
+pLevel=0.05
 
-force<-force[grep("(Trial 01|Trial 02)",force$Trial),]
 force$Trial<-factor(force$Trial)
+force<-force[grep("(foot44)|(foot45)",force$Foot, invert = T),]
+force<-force[grep("(Tekscan)|(TAP)",force$Case),]
+force$Foot<-factor(force$Foot)
 
 force$Phase<-1
 phases<-c()
@@ -25,9 +27,9 @@ for (i in phases){
 }
 force$Phase<-factor(force$Phase)
 
-maxpPressure <-ddply(force,.(Foot,Case,Trial,Variable,Phase),function(x) data.frame(Mean=mean(x$Value)))
+mf <-ddply(force,.(Foot,Case,Trial,Variable,Phase),function(x) data.frame(Mean=mean(x$Value)))
 
-p<-ggplot(maxpPressure, aes(Foot, Mean, fill=Case))+geom_boxplot()
+p<-ggplot(mf, aes(Foot, Mean, fill=Case))+geom_boxplot()
 print(p)
 
 # p<-ggplot(subset(force,Case=="Tekscan"), aes(Percentage, Value, color=Foot))+geom_line(aes(group=Foot))
