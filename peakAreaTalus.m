@@ -3,9 +3,9 @@ function pressureArea =...
 
     k=0;
     pressureArea=zeros(size(data,2),size(data,3),length(rows)*length(cols));
+    [point1, point2] = projectKinematics (measPathName, threshold);
     for i=1:size(data,2)
         if strfind(legendNames{i},'Tekscan')
-            [point1, point2] = projectKinematics (measPathName, legendNames{i}, threshold);
 
             if ~(size(point1,1)==1||size(point2,1)==1)
                 [X,Y] = meshgrid(1:max(cols{end}),1:max(rows{end}));
