@@ -10,7 +10,8 @@ function [dist1, dist2] = plotAnkle3D(h, voetPath, rotations, threshold, toPlot)
     toLoadTal = [voetPath,'SpecimenData/KADAVERVOET ',footnumber(5:6),'B - tekscan - Talus.stl'];
     [F_Tib, V_Tib] = STL_ReadFile(toLoadTib, 1, 'Select TIBIA stl-file', Inf, 0, 1);
     [F_Tal, V_Tal] = STL_ReadFile(toLoadTal, 1, 'Select TALUS stl-file', Inf, 0, 1);
-    [~,~,~, screw] = extractLandmarksFromXML([voetPath,'SpecimenData'],'Tibia','Tekscan');
+    [~,~,~,screw] = extractLandmarksFromXML([voetPath,'SpecimenData'],'Tibia','Tekscan');
+    [~,~,~,surfTal] = extractLandmarksFromXML([voetPath,'SpecimenData'],'Talus','Tekscan');
     
     % Find distance of Sagittal plane from the screw insertion point
 %     CoP=TransfoMatrixStlBone_Tib;
@@ -30,50 +31,58 @@ function [dist1, dist2] = plotAnkle3D(h, voetPath, rotations, threshold, toPlot)
     % Apply rotation on the mesh of the tibia bone (needs to be
     % improved, doesn't take into account the reference angles)
     V_Tib_New = (TransfoMatrixStlBone_Tib*V_Tib.'+TranslationMatrixStlBone_Tib*ones(1,size(V_Tib,1)))';
-    V_Tib_New2 = (M*V_Tib_New'-TranslationMatrixStlBone_Tib*ones(1,size(V_Tib,1)))'*TransfoMatrixStlBone_Tib;
+    V_Tib_New = (M*V_Tib_New'-TranslationMatrixStlBone_Tib*ones(1,size(V_Tib,1)))'*TransfoMatrixStlBone_Tib;
     
     % Cut the bone on that plane
-    V_Tib_Cut =  TRI_IntersectWithPlane(F_Tib, V_Tib_New2, screw);
-    
-    dist=sqrt(sum((screw(1,:)-screw(3,:)).^2));
-
-    sPoint=screw(1,:);
-    Distance=0;
-    while Distance<=threshold(2)
-        [sIndex, sDist] = dsearchn(V_Tib_Cut,sPoint);
-        sPoint = V_Tib_Cut(sIndex,:);
-        V_Tib_Cut(sIndex,:)=[];
-        if (sqrt(sum((screw(3,:)-sPoint).^2))>dist||Distance>5)
-            Distance=Distance+sDist;
-        else
-            sPoint=screw(1,:);
-        end
-        if (Distance>=threshold(1)&&~exist('POI_Tib','var'))
-            POI_Tib(1,:)=sPoint;
-        end
-    end
-    POI_Tib(2,:)=sPoint;
-    
-    % Calculate projection of Points of Interest on the Talus and then
-    % find the indeces of the Tibial verteces closer to those ones.
-    POI_Tal=V_Tal(dsearchn(V_Tal,POI_Tib),:);
-    Ind=dsearchn(V_Tib_New2,POI_Tal);
+    V_Tib_Cut = TRI_IntersectWithPlane(F_Tib, V_Tib_New, screw);
     
     dist1=zeros(length(rotations),2);
-    dist2=zeros(length(rotations),2);
-    for i=1:length(rotations)
-        M = transfoMatrix(rotations(1,i,1),rotations(1,i,2),rotations(1,i,3));
-        V_Tib_New = (TransfoMatrixStlBone_Tib*V_Tib.'+TranslationMatrixStlBone_Tib*ones(1,size(V_Tib,1)))';
-        V_Tib_New2 = (M*V_Tib_New'-TranslationMatrixStlBone_Tib*ones(1,size(V_Tib,1)))'*TransfoMatrixStlBone_Tib;
-        Proj_Tib = V_Tib_New2(dsearchn(V_Tib_New2,POI_Tal),:);
-        [dist1(i,:), dist2(i,:)] = DistanceFromVertexToVertex(V_Tib_New2(Ind,:),Proj_Tib,screw(3,:));
+    dist2=ones(length(rotations),2)+diff(threshold);
+    
+    % Checking if the program is able to calculate the position of the
+    % sensor. If not (probably due to bad kinematics data) then set the
+    % distances of the points to zero (it will work but it will take the
+    % areas on the talus the same as on the tibia).
+    if ~isempty(V_Tib_Cut)
+        dist=sqrt(sum((screw(1,:)-screw(3,:)).^2));
+
+        sPoint=screw(1,:);
+        Distance=0;
+        while Distance<=threshold(2)
+            [sIndex, sDist] = dsearchn(V_Tib_Cut,sPoint);
+            sPoint = V_Tib_Cut(sIndex,:);
+            V_Tib_Cut(sIndex,:)=[];
+            if (sqrt(sum((screw(3,:)-sPoint).^2))>dist||Distance>5)
+                Distance=Distance+sDist;
+            else
+                sPoint=screw(1,:);
+            end
+            if (Distance>=threshold(1)&&~exist('POI_Tib','var'))
+                POI_Tib(1,:)=sPoint;
+            end
+        end
+        POI_Tib(2,:)=sPoint;
+
+        % Calculate projection of Points of Interest on the Talus and then
+        % find the indeces of the Tibial verteces closer to those ones.
+        % POI_Tal=V_Tal(dsearchn(V_Tal,POI_Tib),:);
+        POI_Tal=surfTal;
+        Ind=dsearchn(V_Tib_New,POI_Tib);
+
+        for i=1:length(rotations)
+            M = transfoMatrix(rotations(1,i,1),rotations(1,i,2),rotations(1,i,3));
+            V_Tib_New = (TransfoMatrixStlBone_Tib*V_Tib.'+TranslationMatrixStlBone_Tib*ones(1,size(V_Tib,1)))';
+            V_Tib_New = (M*V_Tib_New'-TranslationMatrixStlBone_Tib*ones(1,size(V_Tib,1)))'*TransfoMatrixStlBone_Tib;
+            Proj_Tib = V_Tib_New(dsearchn(V_Tib_New,POI_Tal),:);
+            [dist1(i,:), dist2(i,:)] = DistanceFromVertexToVertex(V_Tib_New(Ind,:),Proj_Tib,screw(3,:));
+        end
     end
 
     if strcmp(toPlot,'Yes')
         % Draw the bones
         figure
         g = axes;
-        GUI_PlotShells(gca, F_Tib, V_Tib_New2, 'red', 0, [], 0, 0);
+        GUI_PlotShells(gca, F_Tib, V_Tib_New, 'red', 0, [], 0, 0);
         GUI_PlotShells(gca, F_Tal, V_Tal, 'yellow', 0, [], 0, 0);
 
         % Listen to changes on the button of the 3dErrorBar plot and change
@@ -87,9 +96,9 @@ function rePlotBones(hObject,g,rotations,V_Tib,V_Tal,F_Tib,F_Tal,TransfoMatrixSt
     n = floor(get(hObject,'Value')*99+1);
     M = transfoMatrix(rotations(1,n,1),rotations(1,n,2),rotations(1,n,3));
     V_Tib_New = (TransfoMatrixStlBone_Tib*V_Tib.'+TranslationMatrixStlBone_Tib*ones(1,size(V_Tib,1)))';
-    V_Tib_New2 = (M*V_Tib_New'-TranslationMatrixStlBone_Tib*ones(1,size(V_Tib,1)))'*TransfoMatrixStlBone_Tib;
+    V_Tib_New = (M*V_Tib_New'-TranslationMatrixStlBone_Tib*ones(1,size(V_Tib,1)))'*TransfoMatrixStlBone_Tib;
     
     cla(g,'reset')
-    GUI_PlotShells(g, F_Tib, V_Tib_New2, [], 0, [], 0, 0);
+    GUI_PlotShells(g, F_Tib, V_Tib_New, [], 0, [], 0, 0);
     GUI_PlotShells(g, F_Tal, V_Tal, [], 0, [], 0, 0);
 end
