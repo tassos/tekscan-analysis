@@ -134,9 +134,8 @@ function measurementsComparison
         % Plot kinematics information for the roll-offs and project areas
         % control points on the talus and return the displacements over
         % stance phase.
-        [dist1, dist2] = plotKinematics (h, measPathName, legendNames, threshold, toPlot);
         
-        pressureAreaTalus = plotPeakAreaTalus (data, rows, cols, dist1, dist2, rowSpacing, colSpacing);
+        pressureAreaTalus = plotPeakAreaTalus (data, rows, cols, measPathName, legendNames, threshold, rowSpacing, colSpacing);
 
         %% Saving
 
@@ -171,7 +170,7 @@ function measurementsComparison
             Rdata.Foot = name{1};
             Rdata.Variables = headers;
             RdataT.Foot = name{1};
-            RdataT.Variables = headers;
+            RdataT.Variables = pressureAreaHeader;
 
             save([measPathName '../../Voet 99/Results/Tekscan_Data_' name{1} '.mat'],'Rdata','RdataT');
         end
