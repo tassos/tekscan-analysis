@@ -151,7 +151,7 @@ function measurementsComparison
             end
             
             casesSpace = strrep(cases,'_',' ');
-            clear Rdata
+            clear Rdata RdataT
             for j=1:length(casesSpace);
                 k=0;
                 for i=1:size(dataToSave,3)
@@ -167,7 +167,7 @@ function measurementsComparison
                 RdataT.('Tekscan').names{i} = ['Trial ' sprintf('%02d',i)];
             end
             
-            name = strsplit(legendNames{i},' ');
+            name = strsplit(legendNames{1},' ');
             Rdata.Foot = name{1};
             Rdata.Variables = headers;
             RdataT.Foot = name{1};
