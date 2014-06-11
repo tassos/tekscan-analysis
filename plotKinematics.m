@@ -19,7 +19,7 @@ function [dist1, dist2] = plotKinematics (measPathName, fileName, threshold)
     else
         % If no corresponding kinematics measurements are found, display a
         % warning message
-        warndlg('No kinematics measurements were found for the corresponding TekScan files','!! Warning !!')
+        warndlg(['No kinematics measurements were found for ',fileName,' measurement'],'!! Warning !!')
         dist1=0;
         dist2=0;
     end
