@@ -10,6 +10,9 @@ function [rows, cols, rowsPlot, colsPlot, threshold] = areaDivision (x, y, rowDi
         previous = max([rows{:}]);
         rowsPlot{i} = rows{i} + min(x(:)) -1;
     end
+    %This is used to detect the 'point of interest' on the sensor. We
+    %multiply by 1000 to convert to mm and we add 10mm, for the distance of
+    %the sensing area from the screw.
     threshold=rowSpacing*max(rows{i})/rowDiv.*[1,2]*1000+10;
     rows{rowDiv}(rows{rowDiv}>max(rowsTemp(:)))=[];
     previous=0;

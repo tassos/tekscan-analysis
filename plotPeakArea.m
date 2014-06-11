@@ -1,4 +1,4 @@
-function [pressureArea, pressureAreaHeader, pressureAreaTalusHeader] =...
+function [pressureArea, pressureAreaHeader] =...
     plotPeakArea (pos1, data, rows, cols, rowsPlot, colsPlot, toPlot)
 
     if strcmp(toPlot,'Yes')
@@ -26,7 +26,6 @@ function [pressureArea, pressureAreaHeader, pressureAreaTalusHeader] =...
                     ['cols: ',num2str(min(colsPlot{j})),' to ',num2str(max(colsPlot{j}))]};
             
             pressureAreaHeader{j+length(cols)*(i-1)}=['PeakPressure ' Range{:}];
-            pressureAreaTalusHeader{j+length(cols)*(i-1)}=['PeakPressure Talus' Range{:}];
             
             if strcmp(toPlot,'Yes')
                 figure(5)

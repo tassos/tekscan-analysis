@@ -118,7 +118,7 @@ function measurementsComparison
         [peakPressure, peakLocation] = plotPeakPressure (pos6, h, x, y, data, legendNames, toPlot);
 
         % Plot peak pressure for the different sub-areas
-        [pressureArea, pressureAreaHeader, pressureAreaTalusHeader] = plotPeakArea (pos6, data, rows, cols, rowsPlot, colsPlot, toPlot);
+        [pressureArea, pressureAreaHeader] = plotPeakArea (pos6, data, rows, cols, rowsPlot, colsPlot, toPlot);
 
         % Plot location of center of pressure in two directions over stance
         % phase
@@ -141,9 +141,9 @@ function measurementsComparison
         %% Saving
 
         if strcmp(saveToFile,'Yes')
-            headers = [forceAreaHeader, contactAreaHeader, pressureAreaHeader, pressureAreaTalusHeader,...
+            headers = [forceAreaHeader, contactAreaHeader, pressureAreaHeader,...
                 {'PeakPressure','PeakLocation A/P','PeakLocation M/L','CoP A/P','CoP M/L','forceTotal'}];
-            dataToSave = permute(cat(3,forceArea,contactArea,pressureArea,pressureAreaTalus,...
+            dataToSave = permute(cat(3,forceArea,contactArea,pressureArea,...
                 peakPressure(:,:,2),peakLocation,CoP,forceTotal(:,:,2)),[2 3 1]);
             if static
                 headersStatic = {'Peronei','Tib Ant','Tib Post','Flex Dig','Gatroc','Flex Hal','GRF','Hor pos','Sag rot'};
@@ -160,19 +160,20 @@ function measurementsComparison
                         k=k+1;
                         Rdata.(casesSpace{j}(1:end-1)).data(k,:,:) = dataToSave(:,:,i);
                         Rdata.(casesSpace{j}(1:end-1)).names{k} = ['Trial ' sprintf('%02d',k)];
+                        if strcmp(casesSpace{j},'Tekscan ')
+                            RdataT.(casesSpace{j}(1:end-1)).data(k,:,:) = pressureAreaTalus(i,:,:);
+                            RdataT.(casesSpace{j}(1:end-1)).names{k} = ['Trial ' sprintf('%02d',k)];
+                        end
                     end
                 end
             end
             name = strsplit(legendNames{i},' ');
             Rdata.Foot = name{1};
             Rdata.Variables = headers;
+            RdataT.Foot = name{1};
+            RdataT.Variables = headers;
 
-            save([measPathName '../../Voet 99/Results/Tekscan_Data_' name{1} '.mat'],'Rdata');
-
-%             legendNames = [legendNames{:},{'mean','std'}];
-%             dataToSave(:,:,end+1)=nanmean(dataToSave,3);
-%             dataToSave(:,:,end+1)=nanstd(dataToSave,0,3);
-%             overwriteXLS(measPathName, dataToSave, headers, legendNames)
+            save([measPathName '../../Voet 99/Results/Tekscan_Data_' name{1} '.mat'],'Rdata','RdataT');
         end
     end
 end
