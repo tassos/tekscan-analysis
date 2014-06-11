@@ -7,7 +7,7 @@ options("max.print"=300)
 
 source('directory.r')
 
-choices<-c("PeakPressure","force","peakLocation")
+choices<-c("PeakPressure","force","peakLocation","PeakPressure Talus")
 group<-select.list(choices, preselect = NULL, multiple = TRUE, title = "Select which measurements to recreate", graphics = getOption("menu.graphics"))
 
 myFile<-list()
@@ -15,13 +15,16 @@ for (i in 1:10) {
 	myFile[i]  <-paste(indir,"Tekscan_Data_Foot", 36+i ,".mat",sep='')
 }
 data<-data.frame()
+ppTArea<-data.frame()
 
 for (j in 1:length(myFile)) {
 	myData <- readMat(myFile[[j]])
 
 	groups <- dim(myData$Rdata)[1]-2
+	groupsT <- dim(myData$RdataT)[1]-2
 	foot <- myData$Rdata[[groups+1]][1]
 	dataTemp<-list()
+	dataTempT<-list()
 
 	for (i in 1:groups) {
 		case<-dimnames(myData$Rdata)[[1]][[i]]
@@ -37,11 +40,28 @@ for (j in 1:length(myFile)) {
 	}
 	dataTemp<-ldply(dataTemp, data.frame)
 	data<-rbind(data,dataTemp)
+	
+	for (i in 1:groupsT) {
+		case<-dimnames(myData$RdataT)[[1]][[i]]
+		
+		if (case != 'empty') {
+			dimnames(myData$RdataT[[i]][[1]])[[1]]<-myData$RdataT[[i]][[2]]
+			dimnames(myData$RdataT[[i]][[1]])[[2]]<-1:100
+			dimnames(myData$RdataT[[i]][[1]])[[3]]<-unlist(myData$RdataT[[groupsT+2]])
+			dataTempT[[i]]<-as.data.frame(as.table(myData$RdataT[[i]][[1]]))
+			dataTempT[[i]]$Case<-as.factor(case)
+			dataTempT[[i]]$Foot<-as.factor(foot)
+		}
+	}
+	dataTempT<-ldply(dataTempT, data.frame)
+	ppTArea<-rbind(ppTArea,dataTempT)
 }
 rm(myData)
 
 colnames(data) <- c("Trial","Percentage","Variable","Value","Case","Foot")
+colnames(ppTArea) <- c("Trial","Percentage","Variable","Value","Case","Foot")
 data$Variable<-factor(data$Variable)
+ppTArea$Variable<-factor(ppTArea$Variable)
 
 if ("PeakPressure" %in% group) {
 	peakPressure<-data[grep("(PeakPressure)",data$Variable),]
@@ -84,4 +104,20 @@ if ("peakLocation" %in% group) {
 	peakL$Foot<-factor(peakL$Foot)
 	
 	save('peakL',file=paste(outdir,'peakL.RData',sep=''))
+}
+
+if ("PeakPressure Talus" %in% group) {
+	ppTArea$Rows<-regmatches(ppTArea$Variable,regexpr("(?<=rows: ).*(?=cols:)",ppTArea$Variable, perl=TRUE))
+	ppTArea$Cols<-regmatches(ppTArea$Variable,regexpr("(?<=cols: ).*",ppTArea$Variable, perl=TRUE))
+	ppTArea$Rows<-factor(ppTArea$Rows)
+	ppTArea$Cols<-factor(ppTArea$Cols)
+	
+	#Cleaning up of bad or non used measurements
+	ppTArea<-ppTArea[grep("(foot39)|foot(44)|(foot45)",ppTArea$Foot,
+	invert=T),]
+	ppTArea$Variable<-factor(ppTArea$Variable)
+	ppTArea$Trial<-factor(ppTArea$Trial)
+	ppTArea$Foot<-factor(ppTArea$Foot)
+	
+	save('ppTArea',file=paste(outdir,'ppTArea.RData',sep=''))
 }
