@@ -135,7 +135,7 @@ function measurementsComparison
         % control points on the talus and return the displacements over
         % stance phase.
         
-        pressureAreaTalus = plotPeakAreaTalus (data, rows, cols, measPathName, legendNames, threshold, rowSpacing, colSpacing);
+        pressureAreaTalus = peakAreaTalus (data, rows, cols, measPathName, legendNames, threshold, rowSpacing, colSpacing);
 
         %% Saving
 

@@ -1,14 +1,12 @@
 function pressureArea =...
-    plotPeakAreaTalus (data, rows, cols, measPathName, legendNames, threshold, rowSpacing, colSpacing)
+    peakAreaTalus (data, rows, cols, measPathName, legendNames, threshold, rowSpacing, colSpacing)
 
     k=0;
-    pressureArea=zeros(1,size(data,3),6);
+    pressureArea=zeros(size(data,2),size(data,3),length(rows)*length(cols));
     for i=1:size(data,2)
-        [point1, point2] = plotKinematics (measPathName, legendNames{i}, threshold);
+        [point1, point2] = projectKinematics (measPathName, legendNames{i}, threshold);
         
         if ~(size(point1,1)==1||size(point2,1)==1)
-            pressureArea=zeros(size(data,2),size(data,3),length(rows)*length(cols));
-
             [X,Y] = meshgrid(1:max(cols{end}),1:max(rows{end}));
 
             % First dimension is y (rows), second is x (cols)
@@ -64,7 +62,7 @@ function pressureArea =...
                 for region=1:size(regions,1)
                     points = inpolygon(X,Y,poix(j,regions(region,:)),poiy(j,regions(region,:)));
                     if isempty(max(data(1,i,j,points))); 
-                        pressureArea(k,j,region) = 0;
+                        pressureArea(k,:,region) = 0;
                     else
                         pressureArea(k,j,region) = max(data(1,i,j,points));
                     end
