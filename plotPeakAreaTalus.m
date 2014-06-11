@@ -2,6 +2,7 @@ function pressureArea =...
     plotPeakAreaTalus (data, rows, cols, measPathName, legendNames, threshold, rowSpacing, colSpacing)
 
     k=0;
+    pressureArea=zeros(1,size(data,3),6);
     for i=1:size(data,2)
         [point1, point2] = plotKinematics (measPathName, legendNames{i}, threshold);
         

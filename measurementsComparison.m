@@ -159,13 +159,14 @@ function measurementsComparison
                         k=k+1;
                         Rdata.(casesSpace{j}(1:end-1)).data(k,:,:) = dataToSave(:,:,i);
                         Rdata.(casesSpace{j}(1:end-1)).names{k} = ['Trial ' sprintf('%02d',k)];
-                        if strcmp(casesSpace{j},'Tekscan ')
-                            RdataT.(casesSpace{j}(1:end-1)).data(k,:,:) = pressureAreaTalus(i,:,:);
-                            RdataT.(casesSpace{j}(1:end-1)).names{k} = ['Trial ' sprintf('%02d',k)];
-                        end
                     end
                 end
             end
+            for i=1:size(pressureAreaTalus,1)
+                RdataT.('Tekscan').data(i,:,:) = pressureAreaTalus(i,:,:);
+                RdataT.('Tekscan').names{i} = ['Trial ' sprintf('%02d',i)];
+            end
+            
             name = strsplit(legendNames{i},' ');
             Rdata.Foot = name{1};
             Rdata.Variables = headers;
