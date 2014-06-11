@@ -72,5 +72,6 @@ function pressureArea =...
             end
         end
     end
+    if k==0; k=1; end
     pressureArea(k+1:end,:,:)=[];
 end
