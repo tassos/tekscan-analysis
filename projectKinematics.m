@@ -75,20 +75,21 @@ function [dist1, dist2] = projectKinematics (measPathName, ~)
         POI_Tal=surfTal;
         Ind=dsearchn(V_Tal_New,POI_Tal);
         
-        videoObj = VideoWriter([voetPath,'Tekscan/BoneKinematics.mp4'],'MPEG-4');
-        open(videoObj);
+%         videoObj = VideoWriter([voetPath,'Tekscan/BoneKinematics.mp4'],'MPEG-4');
+%         open(videoObj);
         for i=1:length(rotTal)
             M = transfoMatrix(rotTal(i,1),rotTal(i,2),rotTal(i,3));
             V_Tal_New = (M*V_Tal_Home'+repmat(trans(i,:)',1,size(V_Tal,1))-repmat(TranslationMatrixStlBone_Tal,1,size(V_Tal,1)))'*TransfoMatrixStlBone_Tal;
             Proj_Tal = V_Tal_New(dsearchn(V_Tal_New,POI_Tib),:);
             [dist1(i,:), dist2(i,:)] = DistanceFromVertexToVertex(V_Tal_New(Ind,:),Proj_Tal,screw(3,:));
-            cla; GUI_PlotShells(gca,F_Tib,V_Tib,'red'); GUI_PlotShells(gca,F_Tal,V_Tal_New,'yellow');
-            view(270,0)
-            text(min(xlim)-5,max(ylim)-5,max(zlim)-5,num2str(i),'FontWeight','bold','BackgroundColor',[.7 .9 .7])
-            frame = getframe;
-            writeVideo(videoObj,frame);
+%             
+%             cla; GUI_PlotShells(gca,F_Tib,V_Tib,'red'); GUI_PlotShells(gca,F_Tal,V_Tal_New,'yellow');
+%             view(270,0)
+%             text(min(xlim)-5,max(ylim)-5,max(zlim)-5,num2str(i),'FontWeight','bold','BackgroundColor',[.7 .9 .7])
+%             frame = getframe;
+%             writeVideo(videoObj,frame);
         end
-        close(videoObj);
-        close gcf;
+%         close(videoObj);
+%         close gcf;
 %     end
 end
