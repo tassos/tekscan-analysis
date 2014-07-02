@@ -47,8 +47,8 @@ function pressureArea =...
 
                 % Gathering all the points of interest (poi) in two arrays (one for x
                 % one for y coordinate)
-                poix(:,end+1:end+8)=[x(:,1),x(:,6),x(:,4),x(:,2),x(:,3),x(:,5),point1(:,2),point2(:,2)];
-                poiy(:,end+1:end+8)=[y(:,1),y(:,6),y(:,4),y(:,2),y(:,3),y(:,5),point1(:,1),point2(:,1)]; 
+                poix=cat(2,poix,[x(:,[1,6,4,2,3,5]),point1(:,2),point2(:,2)]);
+                poiy=cat(2,poiy,[y(:,[1,6,4,2,3,5]),point1(:,1),point2(:,1)]);
 
                 % Defining the 6 regions by the points of interest
                 regions=[11,8,3,4,1,9;
