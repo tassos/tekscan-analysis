@@ -11,10 +11,11 @@ function pressureArea =...
                 [X,Y] = meshgrid(1:max(cols{end}),1:max(rows{end}));
 
                 % First dimension is y (rows), second is x (cols)
-                point1(:,1)=round(point1(:,1)/(colSpacing*1000))+max(cols{1});
-                point1(:,2)=round(point1(:,2)/(rowSpacing*1000))+max(rows{1});
-                point2(:,1)=round(point2(:,1)/(colSpacing*1000))+max(cols{1});
-                point2(:,2)=round(point2(:,2)/(rowSpacing*1000))+max(rows{1});
+                m2mm=1000; % Converting m to mm
+                point1(:,1)=round(point1(:,1)/(colSpacing*m2mm))+max(cols{1});
+                point1(:,2)=round(point1(:,2)/(rowSpacing*m2mm))+max(rows{1});
+                point2(:,1)=round(point2(:,1)/(colSpacing*m2mm))+max(cols{1});
+                point2(:,2)=round(point2(:,2)/(rowSpacing*m2mm))+max(rows{1});
 
                 % Finding the 'contact' points of the area spliting with the borders of
                 % the sensor
@@ -47,8 +48,8 @@ function pressureArea =...
 
                 % Gathering all the points of interest (poi) in two arrays (one for x
                 % one for y coordinate)
-                poix=cat(2,poix,[x(:,[1,6,4,2,3,5]),point1(:,2),point2(:,2)]);
-                poiy=cat(2,poiy,[y(:,[1,6,4,2,3,5]),point1(:,1),point2(:,1)]);
+                poix=horzcat(poix,[x(:,[1,6,4,2,3,5]),point1(:,2),point2(:,2)]); %#ok<*AGROW> Not true
+                poiy=horzcat(poiy,[y(:,[1,6,4,2,3,5]),point1(:,1),point2(:,1)]);
 
                 % Defining the 6 regions by the points of interest
                 regions=[11,8,3,4,1,9;
