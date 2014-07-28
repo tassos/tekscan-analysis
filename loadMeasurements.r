@@ -64,21 +64,21 @@ data$Variable<-factor(data$Variable)
 ppTArea$Variable<-factor(ppTArea$Variable)
 
 if ("PeakPressure" %in% group) {
-	peakPressure<-data[grep("(PeakPressure)",data$Variable),]
-	peakPressure$Variable<-factor(peakPressure$Variable)
-
 	ppArea<-data[grep("(PeakPressure).",data$Variable),]
 	ppArea$Rows<-regmatches(ppArea$Variable,regexpr("(?<=rows: ).*(?=cols:)",ppArea$Variable, perl=TRUE))
 	ppArea$Cols<-regmatches(ppArea$Variable,regexpr("(?<=cols: ).*",ppArea$Variable, perl=TRUE))
 	ppArea$Rows<-factor(ppArea$Rows)
 	ppArea$Cols<-factor(ppArea$Cols)
+	ppArea$Variable<-factor(ppArea$Variable)
 	
 	#Cleaning up of bad or non used measurements
-	peakPressure$Variable<-factor(peakPressure$Variable)
-	peakPressure$Trial<-factor(peakPressure$Trial)
-	peakPressure$Foot<-factor(peakPressure$Foot)
+	pp<-data[grep("(PeakPressure)",data$Variable),]
+	pp<-pp[grep("(PeakPressure).",pp$Variable, invert=T),]
+	pp$Variable<-factor(pp$Variable)
+	pp$Trial<-factor(pp$Trial)
+	pp$Foot<-factor(pp$Foot)
 	
-	save('peakPressure',file=paste(outdir,'peakPressure.RData',sep=''))
+	save('pp',file=paste(outdir,'peakPressure.RData',sep=''))
 	save('ppArea',file=paste(outdir,'ppArea.RData',sep=''))
 }
 
@@ -113,8 +113,7 @@ if ("PeakPressure Talus" %in% group) {
 	ppTArea$Cols<-factor(ppTArea$Cols)
 	
 	#Cleaning up of bad or non used measurements
-	ppTArea<-ppTArea[grep("(foot39)|foot(44)|(foot45)",ppTArea$Foot,
-	invert=T),]
+	ppTArea<-ppTArea[grep("(foot39)|foot(44)|(foot46)",ppTArea$Foot,invert=T),]
 	ppTArea$Variable<-factor(ppTArea$Variable)
 	ppTArea$Trial<-factor(ppTArea$Trial)
 	ppTArea$Foot<-factor(ppTArea$Foot)
