@@ -79,7 +79,7 @@ function measurementsComparison
         %% Plotting
 
         %Getting screen size for calculating the proper position of the figures
-        set(0,'Units','pixels') 
+        set(0,'Units','pixels')
         scnsize = get(0,'ScreenSize');
 
         pos1 = [0, scnsize(4)/2, scnsize(3)/3, scnsize(4)/2];
@@ -131,21 +131,20 @@ function measurementsComparison
             % Plot location of peak pressure in two directions over stance phase
             plotPeakLocation (pos4, x, y, peakLocation);
         end
-        % Plot kinematics information for the roll-offs and project areas
-        % control points on the talus and return the displacements over
-        % stance phase.
-        
-        pressureAreaTalus = peakAreaTalus (data, rows, cols, measPathName, legendNames, threshold, rowSpacing, colSpacing);
 
         %% Saving
 
         if strcmp(saveToFile,'Yes')
+            % Project areas control points on the talus and return the
+            % peak pressure over stance phase.
+            pressureAreaTalus = peakAreaTalus (data, rows, cols, measPathName, legendNames, threshold, rowSpacing, colSpacing);
+            
             headers = [forceAreaHeader, contactAreaHeader, pressureAreaHeader,...
                 {'PeakPressure','PeakLocation A/P','PeakLocation M/L','CoP A/P','CoP M/L','forceTotal'}];
             dataToSave = permute(cat(3,forceArea,contactArea,pressureArea,...
                 peakPressure(:,:,2),peakLocation,CoP,forceTotal(:,:,2)),[2 3 1]);
             if static
-                headersStatic = {'Peronei','Tib Ant','Tib Post','Flex Dig','Gatroc','Flex Hal','GRF','Hor pos','Sag rot'};
+                headersStatic = {'Peronei','Tib Ant','Tib Post','Flex Dig','Gastroc','Flex Hal','GRF','Hor pos','Sag rot'};
                 headers = [headers, headersStatic]; %#ok<AGROW> Not true
                 dataToSave = [dataToSave,repmat(forceLevels,[1 1 size(dataToSave,3)])]; %#ok<AGROW> Not true
             end
@@ -191,7 +190,11 @@ function [cases, directories, toPlot, saveToFile] = Questions
     close
     
     toPlot = questdlg('Do you want to plot?','Plot graphs?','Yes','No','No');
-    saveToFile = questdlg('Do you want to save to a file?','Save to file?','Yes','No','Yes');
+    if strcmp(toPlot,'Yes')
+        saveToFile = questdlg('Do you want to save to a file?','Save to file?','Yes','No','Yes');
+    else
+        saveToFile= 'Yes';
+    end
 end
 
 function newFileNames = filesCleanUp(cases,fileNames,m,n)
