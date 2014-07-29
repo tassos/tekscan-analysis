@@ -38,7 +38,7 @@ function [dist1, dist2] = projectKinematics (voetPath, ~)
     dist2=zeros(length(rotTal),2);
 
     % Find the indeces of the Tibial and Talus verteces closer to the landmarks.
-    IndTib=dsearchn(V_Tib,screw);
+    IndTib=dsearchn(V_Tib,screw(1:2,:));
     IndTal=dsearchn(V_Tal,surfTal);
 
     % Open Video file and prepare axis for its frames.
@@ -55,7 +55,7 @@ function [dist1, dist2] = projectKinematics (voetPath, ~)
         % Project the Tibia landmarks on the Talus and find the coordinates
         % of the projection. Then define the distances between the landmarks
         % and the projections
-        Proj_Tal = V_Tal_New(dsearchn(V_Tal_New,V_Tib_Home(IndTib)),:);
+        Proj_Tal = V_Tal_New(dsearchn(V_Tal_New,V_Tib_Home(IndTib,:)));
         [dist1(i,:), dist2(i,:)] = DistanceFromVertexToVertex(V_Tal_New(IndTal,:),Proj_Tal,screw(3,:));
 
         % Draw the new joint configuration on the figure and write a frame
