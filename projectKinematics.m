@@ -23,8 +23,8 @@ function [dist1, dist2] = projectKinematics (voetPath, ~)
     % Load the STL files and the landmarks of the two bones
     toLoadTib = [voetPath,'/SpecimenData/KADAVERVOET ',footnumber(5:6),'B - tekscan - Tibia.stl'];
     toLoadTal = [voetPath,'/SpecimenData/KADAVERVOET ',footnumber(5:6),'B - tekscan - Talus.stl'];
-    [F_Tib, V_Tib] = STL_ReadFile(toLoadTib, 1, 'Select TIBIA stl-file', Inf, 0, 1);
-    [F_Tal, V_Tal] = STL_ReadFile(toLoadTal, 1, 'Select TALUS stl-file', Inf, 0, 1);
+    [~, V_Tib] = STL_ReadFile(toLoadTib, 1, 'Select TIBIA stl-file', Inf, 0, 1);
+    [~, V_Tal] = STL_ReadFile(toLoadTal, 1, 'Select TALUS stl-file', Inf, 0, 1);
     [~,~,~,screw] = extractLandmarksFromXML([voetPath,'/SpecimenData'],'Tibia','Tekscan');
     [~,~,~,surfTal] = extractLandmarksFromXML([voetPath,'/SpecimenData'],'Talus','Tekscan');
 
@@ -42,11 +42,11 @@ function [dist1, dist2] = projectKinematics (voetPath, ~)
     IndTal=dsearchn(V_Tal,surfTal);
 
     % Open Video file and prepare axis for its frames.
-    videoObj = VideoWriter([voetPath,'/Tekscan/BoneKinematics.mp4'],'MPEG-4');
-    open(videoObj);
-    figure(1);
-    set(gcf, 'Units', 'pixels', 'Position', [10, 10, 650, 850]);
-    set(gca, 'Units', 'pixels', 'Position', [10, 10, 600, 800]);
+%     videoObj = VideoWriter([voetPath,'/Tekscan/BoneKinematics.mp4'],'MPEG-4');
+%     open(videoObj);
+%     figure(1);
+%     set(gcf, 'Units', 'pixels', 'Position', [10, 10, 650, 850]);
+%     set(gca, 'Units', 'pixels', 'Position', [10, 10, 600, 800]);
     for i=1:length(rotTal)
         % Rotate and translate Talus bone
         M = transfoMatrix(rotTal(i,:));
@@ -60,12 +60,12 @@ function [dist1, dist2] = projectKinematics (voetPath, ~)
 
         % Draw the new joint configuration on the figure and write a frame
         % in the video file.
-        cla; GUI_PlotShells(gca,F_Tib,V_Tib_Home,'red'); GUI_PlotShells(gca,F_Tal,V_Tal_New,'yellow');
-        view(0,90);
-        text(max(xlim)-5,max(ylim)-10,max(zlim)+5,num2str(i),'FontWeight','bold','BackgroundColor',[.7 .9 .7])
-        frame = getframe(gca,[0,0,600,800]);
-        writeVideo(videoObj,frame);
+%         cla; GUI_PlotShells(gca,F_Tib,V_Tib_Home,'red'); GUI_PlotShells(gca,F_Tal,V_Tal_New,'yellow');
+%         view(0,90);
+%         text(max(xlim)-5,max(ylim)-10,max(zlim)+5,num2str(i),'FontWeight','bold','BackgroundColor',[.7 .9 .7])
+%         frame = getframe(gca,[0,0,600,800]);
+%         writeVideo(videoObj,frame);
     end
-    close(videoObj);
+%     close(videoObj);
     close gcf;
 end
