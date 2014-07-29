@@ -137,7 +137,7 @@ function measurementsComparison
         if strcmp(saveToFile,'Yes')
             % Project areas control points on the talus and return the
             % peak pressure over stance phase.
-            pressureAreaTalus = peakAreaTalus (data, rows, cols, measPathName, legendNames, threshold, rowSpacing, colSpacing);
+            pressureAreaTalus = peakAreaTalus (data, rows, cols, directories{z}, legendNames, threshold, rowSpacing, colSpacing);
             
             headers = [forceAreaHeader, contactAreaHeader, pressureAreaHeader,...
                 {'PeakPressure','PeakLocation A/P','PeakLocation M/L','CoP A/P','CoP M/L','forceTotal'}];
