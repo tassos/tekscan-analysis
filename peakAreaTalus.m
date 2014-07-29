@@ -9,6 +9,13 @@ function pressureArea =...
     if ~(size(point1,1)==1||size(point2,1)==1)
         [X,Y] = meshgrid(1:max(cols{end}),1:max(rows{end}));
 
+        load([measPathName '/Foot details.mat'],'foottype');
+
+        if strcmp(foottype,'RIGHT')
+            point1(:,2)=-point1(:,2);
+            point2(:,2)=-point2(:,2);
+        end
+
         % First dimension is y (rows), second is x (cols)
         m2mm=1000; % Converting m to mm
         point1(:,1)=point1(:,1)/(colSpacing*m2mm)+max(cols{1});
