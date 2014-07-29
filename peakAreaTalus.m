@@ -2,6 +2,7 @@ function pressureArea =...
     peakAreaTalus (data, rows, cols, measPathName, legendNames, threshold, rowSpacing, colSpacing)
 
     k=0;
+    % Calculate distance between Tibia and Talus grid points.
     pressureArea=zeros(size(data,2),size(data,3),length(rows)*length(cols));
     [point1, point2] = projectKinematics (measPathName, threshold);
     for i=1:size(data,2)
@@ -12,10 +13,10 @@ function pressureArea =...
 
                 % First dimension is y (rows), second is x (cols)
                 m2mm=1000; % Converting m to mm
-                point1(:,1)=round(point1(:,1)/(colSpacing*m2mm))+max(cols{1});
-                point1(:,2)=round(point1(:,2)/(rowSpacing*m2mm))+max(rows{1});
-                point2(:,1)=round(point2(:,1)/(colSpacing*m2mm))+max(cols{1});
-                point2(:,2)=round(point2(:,2)/(rowSpacing*m2mm))+max(rows{1});
+                point1(:,1)=point1(:,1)/(colSpacing*m2mm)+max(cols{1});
+                point1(:,2)=point1(:,2)/(rowSpacing*m2mm)+max(rows{1});
+                point2(:,1)=point2(:,1)/(colSpacing*m2mm)+max(cols{1});
+                point2(:,2)=point2(:,2)/(rowSpacing*m2mm)+max(rows{1});
 
                 % Finding the 'contact' points of the area spliting with the borders of
                 % the sensor
@@ -32,8 +33,8 @@ function pressureArea =...
                         x(p,j+4)=xlim(j);
                     end
                 end
-                %Defining points at the corners of the sensor, to make sure that all
-                %the sensing area inside the polygon is selected.
+                % Defining points at the corners of the sensor, to make sure that all
+                % the sensing area inside the polygon is selected.
                 clear poix poiy
                 poix(1)=min(cols{1})-1;
                 poiy(1)=max(rows{end})+1;
@@ -47,7 +48,7 @@ function pressureArea =...
                 poiy=repmat(poiy,length(point1),1);
 
                 % Gathering all the points of interest (poi) in two arrays (one for x
-                % one for y coordinate)
+                % and one for y coordinate)
                 poix=horzcat(poix,[x(:,[1,6,4,2,3,5]),point1(:,2),point2(:,2)]); %#ok<*AGROW> Not true
                 poiy=horzcat(poiy,[y(:,[1,6,4,2,3,5]),point1(:,1),point2(:,1)]);
 
@@ -60,6 +61,8 @@ function pressureArea =...
                     12,6,3,2,1,5];
 
                 k=k+1;
+                % Find the peak pressure in each of the areas for each time
+                % point
                 for j=1:size(data,3)
                     for region=1:size(regions,1)
                         points = inpolygon(X,Y,poix(j,regions(region,:)),poiy(j,regions(region,:)));
