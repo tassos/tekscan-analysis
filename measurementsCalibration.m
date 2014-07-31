@@ -107,7 +107,7 @@ for z=1:size(directories,2)
             [calibratedData, forceLevels] =...
                 staticProtocolAnalysis(calibratedData,measPathName,fileNameRt,foottype,footnumber,'pres'); %#ok<NASGU> Variables are saved below
             if length(calibratedData)~=1
-                save([measPathName 'StaticProtocol/Organised_' fileName '.mat'],'forceLevels','calibratedData','spacing','fileName');
+                save([measPathName 'StaticProtocol/Organised_' lower(footnumber) '_' footcase '.mat'],'forceLevels','calibratedData','spacing','fileName');
             end
         else
             save([measPathName 'Calibrated_' fileName '.mat'],'calibratedData','spacing','fileName');
