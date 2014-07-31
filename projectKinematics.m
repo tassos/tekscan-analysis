@@ -1,4 +1,4 @@
-function [dist1, dist2] = projectKinematics (voetPath, ~)
+function [dist1, dist2] = projectKinematics (voetPath, threshold)
 
     % Load the needed data from kinematics analysis
     load([voetPath '/Foot details.mat'],'footnumber','foottype');
@@ -23,23 +23,48 @@ function [dist1, dist2] = projectKinematics (voetPath, ~)
     % Load the STL files and the landmarks of the two bones
     toLoadTib = [voetPath,'/SpecimenData/KADAVERVOET ',footnumber(5:6),'B - tekscan - Tibia.stl'];
     toLoadTal = [voetPath,'/SpecimenData/KADAVERVOET ',footnumber(5:6),'B - tekscan - Talus.stl'];
-    [~, V_Tib] = STL_ReadFile(toLoadTib, 1, 'Select TIBIA stl-file', Inf, 0, 1);
+    [F_Tib, V_Tib] = STL_ReadFile(toLoadTib, 1, 'Select TIBIA stl-file', Inf, 0, 1);
     [~, V_Tal] = STL_ReadFile(toLoadTal, 1, 'Select TALUS stl-file', Inf, 0, 1);
     [~,~,~,screw] = extractLandmarksFromXML([voetPath,'/SpecimenData'],'Tibia','Tekscan');
-    [~,~,~,surfTal] = extractLandmarksFromXML([voetPath,'/SpecimenData'],'Talus','Tekscan');
 
     % Apply rotation on the mesh of the tibia and talus bone so that they
     % go to [0,0,0] position and align their Anatomical coordinate frame
     % with the Global one.
     V_Tal_Home = V_Tal*TransfoMatrixStlBone_Tal.'+repmat(TranslationMatrixStlBone_Tal',size(V_Tal,1),1);
     V_Tib_Home = V_Tib*TransfoMatrixStlBone_Tib'+repmat(TranslationMatrixStlBone_Tib',size(V_Tib,1),1);
+    V_Tal_Neut = V_Tal_Home*transfoMatrix(RefAngles(1:3))'+repmat(RefTrans(1:3),size(V_Tal_Home,1),1);
 
     dist1=zeros(length(rotTal),2);
     dist2=zeros(length(rotTal),2);
 
+    % Defining distance from top of the bone till screw insertion,
+    % to be used for detecting the direction of the bone
+    dist=sqrt(sum((screw(1,:)-screw(3,:)).^2));
+
+    % Cutting the bone on the sagittal plane and finding the two points
+    % coinciding with the location of the central points of the pressure
+    % grid
+    V_Tib_Cut = TRI_IntersectWithPlane(F_Tib, V_Tib, screw);
+    sPoint=screw(1,:);
+    Distance=0;
+    while Distance<=threshold(2)
+        [sIndex, sDist] = dsearchn(V_Tib_Cut,sPoint);
+        sPoint = V_Tib_Cut(sIndex,:);
+        V_Tib_Cut(sIndex,:)=[];
+        if (sqrt(sum((sPoint-screw(3,:)).^2))>dist||Distance>5)
+            Distance=Distance+sDist;
+        else
+            sPoint=screw(1,:);
+        end
+        if (Distance>=threshold(1)&&~exist('POI_Tib','var'))
+            POI_Tib(1,:)=sPoint;
+        end
+    end
+    POI_Tib(2,:)=sPoint;
+
     % Find the indeces of the Tibial and Talus verteces closer to the landmarks.
-    IndTib=dsearchn(V_Tib,screw(1:2,:));
-    IndTal=dsearchn(V_Tal,surfTal);
+    IndTib=dsearchn(V_Tib,POI_Tib);
+    IndTal=dsearchn(V_Tal_Neut,V_Tib_Home(IndTib,:));
 
     % Open Video file and prepare axis for its frames.
 %     videoObj = VideoWriter([voetPath,'/Tekscan/BoneKinematics.mp4'],'MPEG-4');
