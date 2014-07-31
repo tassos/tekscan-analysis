@@ -172,6 +172,9 @@ function measurementsComparison
             RdataT.Foot = name{1};
             RdataT.Variables = pressureAreaHeader;
 
+            if static
+                name{1}=['Static_',name{1}];
+            end
             save([measPathName '../../Voet 99/Results/Tekscan_Data_' name{1} '.mat'],'Rdata','RdataT');
         end
     end

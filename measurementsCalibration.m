@@ -58,17 +58,17 @@ for z=1:size(directories,2)
         static = 0;
         switch footcase
             case 'static2'
-                footcase = 'tekscan';
+                footcase = 'Tekscan';
                 static = 1;
             case 'static3'
-                footcase = 'tap';
+                footcase = 'TAP';
                 static = 1;
             case 'static4'
-                footcase = 'ta';
+                footcase = 'TA';
                 static = 1;
         end
-        sensorFileName=[OSDetection, '/Calibration matrices/',sensor.(footcase){:},'.mat'];
-        calibrationFolder=[OSDetection '/Calibration measurements/',sensor.(footcase){:}];
+        sensorFileName=[OSDetection, '/Calibration matrices/',sensor.(lower(footcase)){:},'.mat'];
+        calibrationFolder=[OSDetection '/Calibration measurements/',sensor.(lower(footcase)){:}];
         
         %Check to see if calibration with this sensor is already made. If
         %calibration file doesn't exists, go on with calculating the fitting
@@ -95,7 +95,7 @@ for z=1:size(directories,2)
         end       
         
         calibratedData(calibratedData < 0) =0;
-        if xor(strcmp(foottype,'RIGHT'),upsideUp.(footcase))
+        if xor(strcmp(foottype,'RIGHT'),upsideUp.(lower(footcase)))
             for k=1:size(calibratedData,1)
                 calibratedData(k,:,:)=fliplr(squeeze(calibratedData(k,:,:)));
             end
@@ -104,10 +104,11 @@ for z=1:size(directories,2)
         fileNameRt = strtrim(measFileName{i}(1:end-4));
         fileName = [lower(footnumber) '_' fileNameRt];
         if static
+            fileName = regexprep(fileName,'Static*\d',footcase); %Replacing Static# with the foot case
             [calibratedData, forceLevels] =...
                 staticProtocolAnalysis(calibratedData,measPathName,fileNameRt,foottype,footnumber,'pres'); %#ok<NASGU> Variables are saved below
             if length(calibratedData)~=1
-                save([measPathName 'StaticProtocol/Organised_' lower(footnumber) '_' footcase '.mat'],'forceLevels','calibratedData','spacing','fileName');
+                save([measPathName 'StaticProtocol/Organised_' fileName '.mat'],'forceLevels','calibratedData','spacing','fileName');
             end
         else
             save([measPathName 'Calibrated_' fileName '.mat'],'calibratedData','spacing','fileName');
