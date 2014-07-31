@@ -10,11 +10,15 @@ function measurementsComparison
     clc
     addToPath;
     
-    [cases, directories, toPlot, saveToFile] = Questions;
+    [cases, directories, toPlot, saveToFile, static] = Questions;
     
     for z=1:size(directories,2)
         %% Loading measurement files
-        measPathName = [directories{z},'/Tekscan/'];
+        if static
+            measPathName = [directories{z}, '/Tekscan/StaticProtocol/'];
+        else
+            measPathName = [directories{z},'/Tekscan/'];
+        end
         measFileName = dir([measPathName,'*.mat']);
         
         % Last variable defines how many measurements from each foot and case should be
@@ -25,8 +29,6 @@ function measurementsComparison
         if isempty(measFileName)
             continue
         end
-
-        static = regexp(measFileName{1},'Organised');
 
         % Calculate the size of the array data.
         % First dimension is for different measurements, the rest
@@ -44,7 +46,7 @@ function measurementsComparison
         % Load calibrated data from measurement files
         for i=1:size(measFileName,2)
             if static
-                load([measPathName measFileName{i}],'forceLevels');
+                fLevels{i} = load([measPathName measFileName{i}],'forceLevels');
             end
             load([measPathName measFileName{i}],'calibratedData','spacing','fileName');
             data(1,:,length(data)+1:length(calibratedData),:,:)=NaN;
@@ -62,7 +64,7 @@ function measurementsComparison
         data(:,:,:,[1:trim,end-trim+1:end],:)=0;
         data(:,:,:,:,[1:trim,end-trim+1:end])=0;
         
-        if isempty(static)
+        if ~static
             for i=1:size(data,2)
                 data(1,i,:,:,:) = smooth3(squeeze(data(1,i,:,:,:)));
             end
@@ -146,7 +148,10 @@ function measurementsComparison
             if static
                 headersStatic = {'Peronei','Tib Ant','Tib Post','Flex Dig','Gastroc','Flex Hal','GRF','Hor pos','Sag rot'};
                 headers = [headers, headersStatic]; %#ok<AGROW> Not true
-                dataToSave = [dataToSave,repmat(forceLevels,[1 1 size(dataToSave,3)])]; %#ok<AGROW> Not true
+                for i=1:size(dataToSave,3)
+                    fLevels{i}.forceLevels(end+1:size(dataToSave,1),:)=NaN;
+                    dataToSave(:,size(headers,2)-size(headersStatic,2)+1:size(headers,2),i) = fLevels{i}.forceLevels;
+                end
             end
             
             casesSpace = strrep(cases,'_',' ');
@@ -175,12 +180,12 @@ function measurementsComparison
             if static
                 name{1}=['Static_',name{1}];
             end
-            save([measPathName '../../Voet 99/Results/Tekscan_Data_' name{1} '.mat'],'Rdata','RdataT');
+            save([directories{z} '/../Voet 99/Results/Tekscan_Data_' name{1} '.mat'],'Rdata','RdataT');
         end
     end
 end
 
-function [cases, directories, toPlot, saveToFile] = Questions
+function [cases, directories, toPlot, saveToFile, static] = Questions
     directories = uipickfiles('FilterSpec',OSDetection);
     
     cases = {'Tekscan_','TAP_','TA_'};
@@ -198,13 +203,14 @@ function [cases, directories, toPlot, saveToFile] = Questions
     else
         saveToFile= 'Yes';
     end
+    static = strcmp(questdlg('Do you want to analyse static protocol measurements?','Static Protocol?','Yes','No','No'),'Yes');
 end
 
 function newFileNames = filesCleanUp(cases,fileNames,m,n)
 
     newFileNames={};
     for i=1:length(cases)
-        tempFileNames = fileNames(not(cellfun('isempty',strfind(fileNames,cases{i}))));
+        tempFileNames = fileNames(not(cellfun('isempty',strfind(lower(fileNames),lower(cases{i})))));
         %Finding the correct order of the measurements by adding a 0 in
         %front of one digit numbers
         [~,order] = sort(regexprep(tempFileNames,'(?<=_)\d{1,1}(?=.mat)','0$0'));
