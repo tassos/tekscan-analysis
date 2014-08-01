@@ -104,7 +104,7 @@ if ("PeakPressure" %in% group) {
 	pp$Trial<-factor(pp$Trial)
 	pp$Foot<-factor(pp$Foot)
 	
-	save('pp',file=paste(outdir,'peakPressure.RData',sep=''))
+	save('pp',file=paste(outdir,'peakPressure',type,'.RData',sep=''))
 	save('ppArea',file=paste(outdir,'ppArea',type,'.RData',sep=''))
 }
 

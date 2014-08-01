@@ -35,6 +35,7 @@ function measurementsComparison
         % are following the same convention as all the Tekscan related files.
         load([measPathName measFileName{1}],'calibratedData');
         data=nan([size(measFileName),size(calibratedData)]);
+        fLevels=nan([size(measFileName,2),size(calibratedData,1),9]);
 
         % Remove files that are not really measurements
         faulty= ~cellfun('isempty',strfind(measFileName,'calibration.mat'));
@@ -46,7 +47,9 @@ function measurementsComparison
         % Load calibrated data from measurement files
         for i=1:size(measFileName,2)
             if static
-                fLevels{i} = load([measPathName measFileName{i}],'forceLevels');
+                load([measPathName measFileName{i}],'forceLevels');
+                fLevels(:,length(fLevels)+1:length(forceLevels),:)=NaN;
+                fLevels(i,1:size(forceLevels,1),:) = forceLevels;
             end
             load([measPathName measFileName{i}],'calibratedData','spacing','fileName');
             data(1,:,length(data)+1:length(calibratedData),:,:)=NaN;
@@ -139,20 +142,17 @@ function measurementsComparison
         if strcmp(saveToFile,'Yes')
             % Project areas control points on the talus and return the
             % peak pressure over stance phase for each area.
-            pressureAreaTalus = peakAreaTalus (data, rows, cols, directories{z}, legendNames, threshold, rowSpacing, colSpacing);
+            if ~static
+                pressureAreaTalus = peakAreaTalus (data, rows, cols, directories{z}, legendNames, threshold, rowSpacing, colSpacing);
+            else
+                pressureAreaTalus = NaN(size(data,2),size(data,3),length(rows)*length(cols));
+            end
             
             headers = [forceAreaHeader, contactAreaHeader, pressureAreaHeader,...
                 {'PeakPressure','PeakLocation A/P','PeakLocation M/L','CoP A/P','CoP M/L','forceTotal'}];
             dataToSave = permute(cat(3,forceArea,contactArea,pressureArea,...
                 peakPressure(:,:,2),peakLocation,CoP,forceTotal(:,:,2)),[2 3 1]);
-            if static
-                headersStatic = {'Peronei','Tib Ant','Tib Post','Flex Dig','Gastroc','Flex Hal','GRF','Hor pos','Sag rot'};
-                headers = [headers, headersStatic]; %#ok<AGROW> Not true
-                for i=1:size(dataToSave,3)
-                    fLevels{i}.forceLevels(end+1:size(dataToSave,1),:)=NaN;
-                    dataToSave(:,size(headers,2)-size(headersStatic,2)+1:size(headers,2),i) = fLevels{i}.forceLevels;
-                end
-            end
+            headersStatic = {'Peronei','Tib Ant','Tib Post','Flex Dig','Gastroc','Flex Hal','GRF','Hor pos','Sag rot'};
             
             casesSpace = strrep(cases,'_',' ');
             clear Rdata RdataT
@@ -163,6 +163,9 @@ function measurementsComparison
                         k=k+1;
                         Rdata.(casesSpace{j}(1:end-1)).data(k,:,:) = dataToSave(:,:,i);
                         Rdata.(casesSpace{j}(1:end-1)).names{k} = ['Trial ' sprintf('%02d',k)];
+                        if static
+                            Rdata.(casesSpace{j}(1:end-1)).fLevels(k,:,:) = fLevels(k,:,:);
+                        end
                     end
                 end
             end
@@ -174,8 +177,10 @@ function measurementsComparison
             name = strsplit(legendNames{1},' ');
             Rdata.Foot = name{1};
             Rdata.Variables = headers;
+            Rdata.Muscles = headersStatic;
             RdataT.Foot = name{1};
             RdataT.Variables = pressureAreaHeader;
+            RdataT.Muscles = headersStatic;
 
             if static
                 name{1}=['Static_',name{1}];
