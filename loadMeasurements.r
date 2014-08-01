@@ -19,7 +19,7 @@ if ("StaticProtocol" %in% group) {
 }
 
 myFile<-list()
-for (i in 1:10) {
+for (i in 1:4) {
 	myFile[i]  <-paste(indir,"Tekscan_Data",type,"_foot", 36+i ,".mat",sep='')
 }
 data<-data.frame()
@@ -48,9 +48,12 @@ for (j in 1:length(myFile)) {
 			dataTemp[[i]]$Foot<-as.factor(foot)
 			if (type == '_Static') {
 				dimnames(myData$Rdata[[i]][[3]])[[1]]<-myData$Rdata[[i]][[2]]
-				dimnames(myData$Rdata[[i]][[3]])[[2]]<-1:ncol(myData$Rdata[[i]][[1]])
-				dimnames(myData$Rdata[[i]][[3]])[[3]]<-myData$Rdata[[groups+nonCounted]]
+				dimnames(myData$Rdata[[i]][[3]])[[2]]<-1:ncol(myData$Rdata[[i]][[3]])
+				dimnames(myData$Rdata[[i]][[3]])[[3]]<-myData$Rdata[[groups+nonCounted]][1:6]
+				dimnames(myData$Rdata[[i]][[4]])[[1]]<-myData$Rdata[[i]][[2]]
+				dimnames(myData$Rdata[[i]][[4]])[[2]]<-1:ncol(myData$Rdata[[i]][[3]])
 				fLevelsTemp[[i]] <- as.data.frame(as.table(myData$Rdata[[i]][[3]]))
+				fLevelsTemp[[i]]$Phase <- as.factor(as.data.frame(as.table(myData$Rdata[[i]][[4]]))$Freq)
 				fLevelsTemp[[i]]$Case<-as.factor(case)
 				fLevelsTemp[[i]]$Foot<-as.factor(foot)
 			}
@@ -80,7 +83,9 @@ for (j in 1:length(myFile)) {
 }
 rm(myData)
 
-colnames(fLevels) <- c("Trial","Percentage","Muscle","Activation","Case","Foot")
+fLevels<-fLevels[complete.cases(fLevels),]
+data<-data[complete.cases(data),]
+colnames(fLevels) <- c("Trial","Percentage","Muscle","Activation","Phase","Case","Foot")
 colnames(data) <- c("Trial","Percentage","Variable","Value","Case","Foot")
 colnames(ppTArea) <- c("Trial","Percentage","Variable","Value","Case","Foot")
 data$Variable<-factor(data$Variable)

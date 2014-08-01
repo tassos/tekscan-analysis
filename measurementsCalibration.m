@@ -45,7 +45,7 @@ for z=1:size(directories,2)
 
     for i=1:size(measFileName,2)
         label = strrep(measFileName{i}(1:end-4),'_',' ');
-        waitbar((i/size(measFileName,2)),h,['Calibrating ' label ' measurement of ' footnumber]);
+        waitbar((i/size(measFileName,2)),h,['Calibrating ' label ' measurement of ' lower(footnumber)]);
         [data,sensit,spacing] = readTekscan([measPathName measFileName{i}]);...
             %#ok<NASGU> The variable is actually used in the save function few lines below.
         

@@ -35,7 +35,7 @@ function measurementsComparison
         % are following the same convention as all the Tekscan related files.
         load([measPathName measFileName{1}],'calibratedData');
         data=nan([size(measFileName),size(calibratedData)]);
-        fLevels=nan([size(measFileName,2),size(calibratedData,1),9]);
+        fLevels=nan([size(measFileName,2),size(calibratedData,1),7]);
 
         % Remove files that are not really measurements
         faulty= ~cellfun('isempty',strfind(measFileName,'calibration.mat'));
@@ -152,7 +152,7 @@ function measurementsComparison
                 {'PeakPressure','PeakLocation A/P','PeakLocation M/L','CoP A/P','CoP M/L','forceTotal'}];
             dataToSave = permute(cat(3,forceArea,contactArea,pressureArea,...
                 peakPressure(:,:,2),peakLocation,CoP,forceTotal(:,:,2)),[2 3 1]);
-            headersStatic = {'Peronei','Tib Ant','Tib Post','Flex Dig','Gastroc','Flex Hal','GRF','Hor pos','Sag rot'};
+            headersStatic = {'Peronei','Tib Ant','Tib Post','Flex Dig','Gastroc','Flex Hal','Phase'};
             
             casesSpace = strrep(cases,'_',' ');
             clear Rdata RdataT
@@ -164,7 +164,8 @@ function measurementsComparison
                         Rdata.(casesSpace{j}(1:end-1)).data(k,:,:) = dataToSave(:,:,i);
                         Rdata.(casesSpace{j}(1:end-1)).names{k} = ['Trial ' sprintf('%02d',k)];
                         if static
-                            Rdata.(casesSpace{j}(1:end-1)).fLevels(k,:,:) = fLevels(k,:,:);
+                            Rdata.(casesSpace{j}(1:end-1)).fLevels(k,:,:) = fLevels(k,:,1:end-1);
+                            Rdata.(casesSpace{j}(1:end-1)).posLevels(k,:) = fLevels(k,:,end);
                         end
                     end
                 end
