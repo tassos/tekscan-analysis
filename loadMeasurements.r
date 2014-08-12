@@ -6,20 +6,20 @@ rm(list=ls())
 options("max.print"=300)
 
 source('directory.r')
+source("common.r")
 
-choices<-c("PeakPressure","force","peakLocation","PeakPressure Talus","StaticProtocol")
+choices<-c("PeakPressure","force","CoP","peakLocation","PeakPressure Talus","StaticProtocol")
 group<-select.list(choices, preselect = NULL, multiple = TRUE, title = "Select which measurements to recreate", graphics = getOption("menu.graphics"))
 
 if ("StaticProtocol" %in% group) {
 	type = "_Static"
-	nonCounted = 3
 } else {
 	type = ""
-	nonCounted = 2
 }
+nonCounted = 3
 
 myFile<-list()
-for (i in 1:4) {
+for (i in 1:10) {
 	myFile[i]  <-paste(indir,"Tekscan_Data",type,"_foot", 36+i ,".mat",sep='')
 }
 data<-data.frame()
@@ -83,31 +83,27 @@ for (j in 1:length(myFile)) {
 }
 rm(myData)
 
-fLevels<-fLevels[complete.cases(fLevels),]
-data<-data[complete.cases(data),]
-colnames(fLevels) <- c("Trial","Percentage","Muscle","Activation","Phase","Case","Foot")
 colnames(data) <- c("Trial","Percentage","Variable","Value","Case","Foot")
 colnames(ppTArea) <- c("Trial","Percentage","Variable","Value","Case","Foot")
-data$Variable<-factor(data$Variable)
-ppTArea$Variable<-factor(ppTArea$Variable)
+data<-factorise(data)
+ppTArea<-factorise(ppTArea)
 if (type == "_Static") {
+	fLevels<-fLevels[complete.cases(fLevels),]
+	colnames(fLevels) <- c("Trial","Percentage","Muscle","Activation","Phase","Case","Foot")
 	data<-merge(data, fLevels, by=c("Trial","Percentage","Case","Foot"))
 }
+data<-data[complete.cases(data),]
 
 if ("PeakPressure" %in% group) {
 	ppArea<-data[grep("(PeakPressure).",data$Variable),]
 	ppArea$Rows<-regmatches(ppArea$Variable,regexpr("(?<=rows: ).*(?=cols:)",ppArea$Variable, perl=TRUE))
 	ppArea$Cols<-regmatches(ppArea$Variable,regexpr("(?<=cols: ).*",ppArea$Variable, perl=TRUE))
-	ppArea$Rows<-factor(ppArea$Rows)
-	ppArea$Cols<-factor(ppArea$Cols)
-	ppArea$Variable<-factor(ppArea$Variable)
+	ppArea<-factorise(ppArea)
 	
 	#Cleaning up of bad or non used measurements
 	pp<-data[grep("(PeakPressure)",data$Variable),]
 	pp<-pp[grep("(PeakPressure).",pp$Variable, invert=T),]
-	pp$Variable<-factor(pp$Variable)
-	pp$Trial<-factor(pp$Trial)
-	pp$Foot<-factor(pp$Foot)
+	pp<-factorise(pp)
 	
 	save('pp',file=paste(outdir,'peakPressure',type,'.RData',sep=''))
 	save('ppArea',file=paste(outdir,'ppArea',type,'.RData',sep=''))
@@ -118,35 +114,30 @@ if ("force" %in% group) {
 	force$Variable<-factor(force$Variable)
 
 	#Cleaning up of bad or non used measurements
-	force$Variable<-factor(force$Variable)
-	force$Trial<-factor(force$Trial)
-	force$Foot<-factor(force$Foot)
+	force<-factorise(force)
 	
 	save('force',file=paste(outdir,'force',type,'.RData',sep=''))
 }
 
 if ("peakLocation" %in% group) {
 	peakL<-data[grep("(PeakLocation).",data$Variable),]
-	peakL$Variable<-factor(peakL$Variable)
-
-	#Cleaning up of bad or non used measurements
-	peakL$Variable<-factor(peakL$Variable)
-	peakL$Trial<-factor(peakL$Trial)
-	peakL$Foot<-factor(peakL$Foot)
+	peakL<-factorise(peakL)
 	
 	save('peakL',file=paste(outdir,'peakL',type,'.RData',sep=''))
 }
 
-if ("PeakPressure Talus" %in% group) {
+if ("CoP" %in% group) {
+	CoP<-data[grep("(CoP).",data$Variable),]
+	CoP<-factorise(CoP)
+	
+	save('CoP',file=paste(outdir,'CoP',type,'.RData',sep=''))
+}
+
+
+if ("PeakPressure Talus" %in% group & type != "_Static") {
 	ppTArea$Rows<-regmatches(ppTArea$Variable,regexpr("(?<=rows: ).*(?=cols:)",ppTArea$Variable, perl=TRUE))
 	ppTArea$Cols<-regmatches(ppTArea$Variable,regexpr("(?<=cols: ).*",ppTArea$Variable, perl=TRUE))
-	ppTArea$Rows<-factor(ppTArea$Rows)
-	ppTArea$Cols<-factor(ppTArea$Cols)
-	
-	#Cleaning up of bad or non used measurements
-	ppTArea$Variable<-factor(ppTArea$Variable)
-	ppTArea$Trial<-factor(ppTArea$Trial)
-	ppTArea$Foot<-factor(ppTArea$Foot)
+	ppTArea<-factorise(ppTArea)
 	
 	save('ppTArea',file=paste(outdir,'ppTArea.RData',sep=''))
 }
