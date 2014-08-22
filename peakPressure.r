@@ -30,15 +30,14 @@ ppArea$Case<-mapvalues(ppArea$Case,from=c("Tekscan","Tekscan Talus","TAP"), to=c
 
 # Spliting the peak pressure in phases of stance phase
 ppArea<-splitToPhases(ppArea,phases)
-ppArea<-factorize(ppArea)
+ppArea<-factorise(ppArea)
 
 # Calculating the maximum peak pressure for each Foot, Case, Trial, Area and Phase
 mppArea<-ddply(ppArea,.(Foot,Case,Trial,Rows,Cols,Phase),function(x) data.frame(Value=max(x$Value/1E6)))
 mmppArea<-ddply(mppArea,.(Foot,Case,Rows,Cols,Phase),function(x) data.frame(Value=mean(x$Value)))
 
-# Statistics for detecting significant differences
-wexp<-ddply(mmppArea,.(Case,Rows,Cols,Phase), function(x) safewilTest(x,"Value","Case","Native Tibia","TAP Tibia")$p.value)
-
+# Statistics for detecting significant differences between Native and TAP
+wexp<-ddply(mmppArea,.(Rows,Cols,Phase), function(x) data.frame(p=safewilTest(x,"Value","Case","Native Tibia","TAP Tibia")$p.value))
 
 # svg(paste(outdir,"Area_Time_Talus.svg",sep=''))
 p<-ggplot(mmppArea, aes(Phase, Value, fill=Case))+geom_boxplot()
