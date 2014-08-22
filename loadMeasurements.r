@@ -93,6 +93,7 @@ if (type == "_Static") {
 	data<-merge(data, fLevels, by=c("Trial","Percentage","Case","Foot"))
 }
 data<-data[complete.cases(data),]
+ppTArea<-ppTArea[complete.cases(ppTArea),]
 
 if ("PeakPressure" %in% group) {
 	ppArea<-data[grep("(PeakPressure).",data$Variable),]
