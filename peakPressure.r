@@ -4,45 +4,49 @@ require(grid)
 
 rm(list=ls())
 options("max.print"=300)
+pLevel=0.05
+phases<-c(0,20,40,60,80,100)
 
 source("directory.r")
-source("statistics.r")
+source("common.r")
 
-load(paste(outdir,'peakPressure.RData',sep=''))
 load(paste(outdir,'ppArea.RData',sep=''))
 load(paste(outdir,'ppTArea.RData',sep=''))
 outdir<-paste(outdir,"Graphs_dPress/",sep='')
 
-pLevel=0.05
-phases<-c()
+# Combining the data frames of the Tibia and Talus pressures and cleaning the bad data points
+ppTArea$Case<-"Tekscan Talus"
+ppArea<-rbind(ppTArea,ppArea)
+ppArea<-ppArea[complete.cases(ppArea),]
 
-# ppArea<-ppArea[grep('(Trial 01)|(Trial 02)|(Trial 03)|(Trial 04)',ppArea$Trial),]
-# ppArea<-ppArea[grep('(foot37)|(foot38)',ppArea$Foot, invert=T),]
-ppArea<-ppArea[grep('(Tekscan)|(TAP)',ppArea$Case),]
+# Retaining only the first five measurements for each case and removing the TA measurements
+ppArea<-ppArea[grep('(Trial 01)|(Trial 02)|(Trial 03)|(Trial 04)|(Trial 05)',ppArea$Trial),]
+ppArea<-ppArea[grep('(TAP)|(Tekscan)', ppArea$Case),]
 
+# Adding proper names for the Rows, Columns and Cases
+ppArea$Rows<-mapvalues(ppArea$Rows,from=c("-22 to -7","-6 to 9","10 to 25"), to=c("Anterior","Central","Posterior"))
+ppArea$Cols<-mapvalues(ppArea$Cols,from=c("-15 to 0","1 to 16"), to=c("Medial","Lateral"))
+ppArea$Case<-mapvalues(ppArea$Case,from=c("Tekscan","Tekscan Talus","TAP"), to=c("Native Tibia","Native Talus","TAP Tibia"))
+
+# Spliting the peak pressure in phases of stance phase
 ppArea<-splitToPhases(ppArea,phases)
-ppTArea<-splitToPhases(ppTArea,phases)
 
-mpp<-ddply(ppArea,.(Foot,Case,Trial,Phase),function(x) data.frame(Value=max(x$Value/1E6)))
-mppT<-ddply(ppTArea,.(Foot,Case,Trial,Phase),function(x) data.frame(Value=max(x$Value/1E6)))
-mppArea<-ddply(ppArea,.(Foot,Case,Trial,Variable,Phase),function(x) data.frame(Value=max(x$Value/1E6), Rows=x$Rows, Cols=x$Cols))
-mppTArea<-ddply(ppTArea,.(Foot,Case,Trial,Variable,Phase),function(x) data.frame(Value=max(x$Value/1E6), Rows=x$Rows, Cols=x$Cols))
+# Calculating the maximum peak pressure for each Foot, Case, Trial, Area and Phase
+mppArea<-ddply(ppArea,.(Foot,Case,Trial,Rows,Cols,Phase),function(x) data.frame(Value=max(x$Value/1E6), Rows=x$Rows, Cols=x$Cols))
+mmppArea<-ddply(mppArea,.(Foot,Case,Rows,Cols,Phase),function(x) data.frame(Value=mean(x$Value), Rows=x$Rows, Cols=x$Cols))
 
 # svg(paste(outdir,"Area_Time_Talus.svg",sep=''))
-# p<-ggplot(mppTArea, aes(Phase, Value, fill=Case))+geom_boxplot()
-# p<-p+facet_grid(Rows ~ Cols)
-# print(p)
-# dev.off()
-
-p<-ggplot(mppArea, aes(Foot, Value, fill=Case))+geom_boxplot()
-p<-p+scale_y_continuous(name="Peak Pressure (MPa)", breaks=seq(0,15,2.5))
+p<-ggplot(mmppArea, aes(Phase, Value, fill=Case))+geom_boxplot()
+p<-p+scale_y_continuous(name="Peak Pressure (MPa)")+scale_x_discrete(name="Stance phase percentage (%)")
 p<-p+facet_grid(Rows ~ Cols)
 print(p)
+# dev.off()
 
 # dev.new()
-# p<-ggplot(ppArea, aes(Percentage, Value, group=Case, col=Case))
-# p<-p+stat_summary(fun.data="mean_cl_normal", geom = "smooth", size=1, alpha=0.2, aes(fill=Case))
-# p<-p+scale_fill_manual(values=c("black","blue","red","green3"))+scale_color_manual(values=c("black","blue","red","green3"))
-# p<-p+scale_x_discrete(name="Stance Phase (%)", breaks=seq(0,100,10))
-# p<-p+facet_grid(Rows ~ Cols)
-# print(p)
+p<-ggplot(ppArea, aes(Percentage, Value, group=Case, col=Case))
+p<-p+stat_summary(fun.data="mean_cl_normal", geom = "smooth", size=1, alpha=0.2, aes(fill=Case))
+p<-p+scale_fill_manual(values=c("black","blue","red"))+scale_color_manual(values=c("black","blue","red"))
+p<-p+scale_x_discrete(name="Stance Phase (%)", breaks=seq(0,100,10))+scale_y_continuous(name="Peak Pressure (MPa)")
+p<-p+facet_grid(Rows ~ Cols)
+print(p)
+# dev.off()

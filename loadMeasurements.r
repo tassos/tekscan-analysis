@@ -98,11 +98,13 @@ if ("PeakPressure" %in% group) {
 	ppArea<-data[grep("(PeakPressure).",data$Variable),]
 	ppArea$Rows<-regmatches(ppArea$Variable,regexpr("(?<=rows: ).*(?=cols:)",ppArea$Variable, perl=TRUE))
 	ppArea$Cols<-regmatches(ppArea$Variable,regexpr("(?<=cols: ).*",ppArea$Variable, perl=TRUE))
+	ppArea$Variable<-NULL
 	ppArea<-factorise(ppArea)
 	
 	#Cleaning up of bad or non used measurements
 	pp<-data[grep("(PeakPressure)",data$Variable),]
 	pp<-pp[grep("(PeakPressure).",pp$Variable, invert=T),]
+	pp$Variable<-NULL
 	pp<-factorise(pp)
 	
 	save('pp',file=paste(outdir,'peakPressure',type,'.RData',sep=''))
@@ -137,6 +139,7 @@ if ("CoP" %in% group) {
 if ("PeakPressure Talus" %in% group & type != "_Static") {
 	ppTArea$Rows<-regmatches(ppTArea$Variable,regexpr("(?<=rows: ).*(?=cols:)",ppTArea$Variable, perl=TRUE))
 	ppTArea$Cols<-regmatches(ppTArea$Variable,regexpr("(?<=cols: ).*",ppTArea$Variable, perl=TRUE))
+	ppTArea$Variable<-NULL
 	ppTArea<-factorise(ppTArea)
 	
 	save('ppTArea',file=paste(outdir,'ppTArea.RData',sep=''))
