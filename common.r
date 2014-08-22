@@ -5,6 +5,9 @@ factorise <- function(x) {
 		if (dfClass[i] == 'factor') {
 			x[[i]]<-factor(x[[i]])
 		}
+		if (dfClass[i] == 'character') {
+			x[[i]]<-as.factor(x[[i]])
+		}
 	}
 	return(x)
 }
