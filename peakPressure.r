@@ -16,7 +16,7 @@ outdir<-paste(outdir,"Graphs_dPress/",sep='')
 
 # Combining the data frames of the Tibia and Talus pressures and cleaning the bad data points
 ppTArea$Case<-"Tekscan Talus"
-ppArea<-rbind(ppTArea,ppArea)
+# ppArea<-rbind(ppTArea,ppArea)
 ppArea<-ppArea[complete.cases(ppArea),]
 
 # Retaining only the first five measurements for each case and removing the TA measurements
@@ -36,21 +36,17 @@ ppArea<-factorise(ppArea)
 mppArea<-ddply(ppArea,.(Foot,Case,Trial,Rows,Cols,Phase),function(x) data.frame(Value=max(x$Value/1E6)))
 mmppArea<-ddply(mppArea,.(Foot,Case,Rows,Cols,Phase),function(x) data.frame(Value=mean(x$Value)))
 
+mmppArea$Variable<-paste(mmppArea$Rows,mmppArea$Cols,sep='-')
+summmppArea<-summarySE(mmppArea,measurevar="Value", groupvars=c("Case","Rows","Cols","Phase"))
+
 # Statistics for detecting significant differences between Native and TAP
-wexp<-ddply(mmppArea,.(Rows,Cols,Phase), function(x) data.frame(p=safewilTest(x,"Value","Case","Native Tibia","TAP Tibia")$p.value))
+wp<-ddply(mmppArea,.(Rows,Cols,Phase), function(x) data.frame(p.value=safewilTest(x,"Value","Case","Native Tibia","TAP Tibia")$p.value))
+wp$p.star<-ifelse(wp$p.value <=pLevel,"*"," ")
 
 # svg(paste(outdir,"Area_Time_Talus.svg",sep=''))
-p<-ggplot(mmppArea, aes(Phase, Value, fill=Case))+geom_boxplot()
+p<-ggplot(summmppArea, aes(Phase, Value, fill=Case))+geom_bar(stat="identity", position="dodge")
+p<-p+geom_errorbar(aes(ymin=Value-se,ymax=Value+se),width=.2,position=position_dodge(.9))
 p<-p+scale_y_continuous(name="Peak Pressure (MPa)")+scale_x_discrete(name="Stance phase percentage (%)")
-p<-p+facet_grid(Rows ~ Cols)
-print(p)
-# dev.off()
-
-# dev.new()
-p<-ggplot(ppArea, aes(Percentage, Value, group=Case, col=Case))
-p<-p+stat_summary(fun.data="mean_cl_normal", geom = "smooth", size=1, alpha=0.2, aes(fill=Case))
-p<-p+scale_fill_manual(values=c("black","blue","red"))+scale_color_manual(values=c("black","blue","red"))
-p<-p+scale_x_discrete(name="Stance Phase (%)", breaks=seq(0,100,10))+scale_y_continuous(name="Peak Pressure (MPa)")
 p<-p+facet_grid(Rows ~ Cols)
 print(p)
 # dev.off()
