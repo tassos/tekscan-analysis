@@ -1,2 +1,2 @@
-outdir='~/PhD/Foot-ankle Project/Measurements/Results Html/'
-indir='C:/Users/u0074517/Documents/PhD/Foot-ankle project/Measurements/Voet 99/Results/'
+outdir='~/Documents/PhD/Foot-ankle/RData/'
+indir='~/Foot-ankle/Measurements/Voet 99/Results/'

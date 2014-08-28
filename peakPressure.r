@@ -21,6 +21,7 @@ ppArea<-ppArea[complete.cases(ppArea),]
 
 # Retaining only the first five measurements for each case and removing the TA measurements
 ppArea<-ppArea[grep('(Trial 01)|(Trial 02)|(Trial 03)|(Trial 04)|(Trial 05)',ppArea$Trial),]
+ppArea<-ppArea[grep('(foot43)|(foot41)',ppArea$Foot, invert=T),]
 ppArea<-ppArea[grep('(TAP)|(Tekscan)', ppArea$Case),]
 
 # Adding proper names for the Rows, Columns and Cases
@@ -36,12 +37,14 @@ ppArea<-factorise(ppArea)
 mppArea<-ddply(ppArea,.(Foot,Case,Trial,Rows,Cols,Phase),function(x) data.frame(Value=max(x$Value/1E6)))
 mmppArea<-ddply(mppArea,.(Foot,Case,Rows,Cols,Phase),function(x) data.frame(Value=mean(x$Value)))
 
-mmppArea$Variable<-paste(mmppArea$Rows,mmppArea$Cols,sep='-')
-summmppArea<-summarySE(mmppArea,measurevar="Value", groupvars=c("Case","Rows","Cols","Phase"))
-
 # Statistics for detecting significant differences between Native and TAP
-wp<-ddply(mmppArea,.(Rows,Cols,Phase), function(x) data.frame(p.value=safewilTest(x,"Value","Case","Native Tibia","TAP Tibia")$p.value))
+wp<-ddply(mppArea,.(Rows,Cols,Phase), function(x) data.frame(p.value=safewilTest(x,"Value","Case","Native Tibia","TAP Tibia")$p.value))
 wp$p.star<-ifelse(wp$p.value <=pLevel,"*"," ")
+
+wpf<-ddply(mppArea,.(Foot,Rows,Cols,Phase), function(x) data.frame(p.value=safewilTest(x,"Value","Case","Native Tibia","TAP Tibia")$p.value))
+wpf$p.star<-ifelse(wpf$p.value <=pLevel,"*"," ")
+
+summmppArea<-summarySE(mppArea,measurevar="Value", groupvars=c("Case","Rows","Cols","Phase"))
 
 # svg(paste(outdir,"Area_Time_Talus.svg",sep=''))
 p<-ggplot(summmppArea, aes(Phase, Value, fill=Case))+geom_bar(stat="identity", position="dodge")
