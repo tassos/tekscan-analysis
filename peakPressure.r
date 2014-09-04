@@ -38,11 +38,12 @@ mppArea<-ddply(ppArea,.(Foot,Case,Trial,Rows,Cols,Phase),function(x) data.frame(
 mmppArea<-ddply(mppArea,.(Foot,Case,Rows,Cols,Phase),function(x) data.frame(Value=mean(x$Value)))
 
 # Statistics for detecting significant differences between Native and TAP
-wp<-ddply(mppArea,.(Rows,Cols,Phase), function(x) data.frame(p.value=safewilTest(x,"Value","Case","Native Tibia","TAP Tibia")$p.value))
+wp<-ddply(mppArea,.(Rows,Cols,Phase), function(x) data.frame(p.value=safewilTest(x,"Value","Case","Native Tibia","TAP Tibia")$p.value,estim=safewilTest(x,"Value","Case","Native Tibia","TAP Tibia")$estimate))
 wp$p.star<-ifelse(wp$p.value <=pLevel,"*"," ")
 
-wpf<-ddply(mppArea,.(Foot,Rows,Cols,Phase), function(x) data.frame(p.value=safewilTest(x,"Value","Case","Native Tibia","TAP Tibia")$p.value))
+wpf<-ddply(mppArea,.(Foot,Rows,Cols,Phase), function(x) data.frame(p.value=safewilTest(x,"Value","Case","Native Tibia","TAP Tibia")$p.value,estim=safewilTest(x,"Value","Case","Native Tibia","TAP Tibia")$estimate))
 wpf$p.star<-ifelse(wpf$p.value <=pLevel,"*"," ")
+sumwpf<-ddply(wpf,.(Rows,Cols,Phase), function(x) data.frame(sign.inc=nrow(x[x$estim<0 & x$p.star=='*',]),inc=nrow(x[x$estim<0 & x$p.star!='*',]),sign.dec=nrow(x[x$estim>0 & x$p.star=='*',]),dec=nrow(x[x$estim>0 & x$p.star!='*',])))
 
 summmppArea<-summarySE(mppArea,measurevar="Value", groupvars=c("Case","Rows","Cols","Phase"))
 
