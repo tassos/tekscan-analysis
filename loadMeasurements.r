@@ -113,6 +113,12 @@ if ("PeakPressure" %in% group) {
 }
 
 if ("force" %in% group) {
+	forceArea<-data[grep("(ForceArea).",data$Variable),]
+	forceArea$Rows<-regmatches(forceArea$Variable,regexpr("(?<=rows: ).*(?=cols:)",forceArea$Variable, perl=TRUE))
+	forceArea$Cols<-regmatches(forceArea$Variable,regexpr("(?<=cols: ).*",forceArea$Variable, perl=TRUE))
+	forceArea$Variable<-NULL
+	forceArea<-factorise(forceArea)
+
 	force<-data[grep("(forceTotal)",data$Variable),]
 	force$Variable<-factor(force$Variable)
 
@@ -120,6 +126,7 @@ if ("force" %in% group) {
 	force<-factorise(force)
 	
 	save('force',file=paste(outdir,'force',type,'.RData',sep=''))
+	save('forceArea',file=paste(outdir,'forceArea',type,'.RData',sep=''))
 }
 
 if ("peakLocation" %in% group) {
