@@ -1,6 +1,7 @@
 require(ggplot2)
 require(plyr)
 require(grid)
+require(xtable)
 
 rm(list=ls())
 options("max.print"=300)
@@ -9,9 +10,12 @@ phases<-c(0,20,40,60,80,100)
 
 source("directory.r")
 source("common.r")
+source('LaTeX.r')
 
 load(paste(outdir,'ppArea.RData',sep=''))
 load(paste(outdir,'ppTArea.RData',sep=''))
+load(paste(outdir,'forceArea.RData',sep=''))
+outLaTeX<-paste(outdir,"LaTeX/",sep='')
 outdir<-paste(outdir,"Graphs_dPress/",sep='')
 
 # Combining the data frames of the Tibia and Talus pressures and cleaning the bad data points
@@ -38,19 +42,22 @@ mppArea<-ddply(ppArea,.(Foot,Case,Trial,Rows,Cols,Phase),function(x) data.frame(
 mmppArea<-ddply(mppArea,.(Foot,Case,Rows,Cols,Phase),function(x) data.frame(Value=mean(x$Value)))
 
 # Statistics for detecting significant differences between Native and TAP
-wp<-ddply(mppArea,.(Rows,Cols,Phase), function(x) data.frame(p.value=safewilTest(x,"Value","Case","Native Tibia","TAP Tibia")$p.value,estim=safewilTest(x,"Value","Case","Native Tibia","TAP Tibia")$estimate))
+wp<-ddply(mppArea,.(Rows,Cols,Phase), function(x) data.frame(p.value=safewilTest(x,"Value","Case","Native Tibia","TAP Tibia")$p.value,estimated.difference=safewilTest(x,"Value","Case","Native Tibia","TAP Tibia")$estimate))
 wp$p.star<-ifelse(wp$p.value <=pLevel,"*"," ")
 
 wpf<-ddply(mppArea,.(Foot,Rows,Cols,Phase), function(x) data.frame(p.value=safewilTest(x,"Value","Case","Native Tibia","TAP Tibia")$p.value,estim=safewilTest(x,"Value","Case","Native Tibia","TAP Tibia")$estimate))
 wpf$p.star<-ifelse(wpf$p.value <=pLevel,"*"," ")
-sumwpf<-ddply(wpf,.(Rows,Cols,Phase), function(x) data.frame(sign.inc=nrow(x[x$estim<0 & x$p.star=='*',]),inc=nrow(x[x$estim<0 & x$p.star!='*',]),sign.dec=nrow(x[x$estim>0 & x$p.star=='*',]),dec=nrow(x[x$estim>0 & x$p.star!='*',])))
+sumwpf<-ddply(wpf,.(Rows,Cols,Phase), function(x) data.frame(sign.inc=nrow(x[x$estim<0 & x$p.value<=pLevel,]),inc=nrow(x[x$estim<0 & x$p.value>pLevel,]),dec=nrow(x[x$estim>0 & x$p.value>pLevel,]),sign.dec=nrow(x[x$estim>0 & x$p.value<=pLevel,])))
 
-summmppArea<-summarySE(mppArea,measurevar="Value", groupvars=c("Case","Rows","Cols","Phase"))
+sumwpf<-merge(wp,sumwpf, intersect(c('Rows','Cols','Phase'),c('Rows','Cols','Phase')))
+
+sumTable<-xtable(sumwpf)
+digits(sumTable)<-3
+sumLatex<-print(sumTable,floating.environment='sidewaystable',include.rownames=FALSE)
+write(insert.headers(sumLatex),paste(outLaTeX,"sumLatex.tex",sep=''))
 
 # svg(paste(outdir,"Area_Time_Talus.svg",sep=''))
-p<-ggplot(summmppArea, aes(Phase, Value, fill=Case))+geom_bar(stat="identity", position="dodge")
-p<-p+geom_errorbar(aes(ymin=Value-se,ymax=Value+se),width=.2,position=position_dodge(.9))
+p<-ggplot(mppArea, aes(Phase, Value, fill=Case))+geom_boxplot()
 p<-p+scale_y_continuous(name="Peak Pressure (MPa)")+scale_x_discrete(name="Stance phase percentage (%)")
 p<-p+facet_grid(Rows ~ Cols)
 print(p)
-# dev.off()
