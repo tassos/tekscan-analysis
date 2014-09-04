@@ -63,7 +63,7 @@ function measurementsComparison
         end
         % Trimming the sensor by 2 rows and columns in each side to get rid of
         % high pressure artefacts
-        trim = 8;
+        trim = 2;
         data(:,:,:,[1:trim,end-trim+1:end],:)=0;
         data(:,:,:,:,[1:trim,end-trim+1:end])=0;
         
