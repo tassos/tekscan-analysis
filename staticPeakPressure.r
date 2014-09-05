@@ -6,7 +6,6 @@ rm(list=ls())
 options("max.print"=300)
 
 source("directory.r")
-source("statistics.r")
 source("common.r")
 
 pLevel=0.05
@@ -14,6 +13,7 @@ pLevel=0.05
 load(paste(outdir,'ppArea_Static.RData',sep=''))
 load(paste(outdir,'peakPressure_Static.RData',sep=''))
 load(paste(outdir,'CoP_Static.RData',sep=''))
+outdir<-paste(outdir,"Graphs_dPress/",sep='')
 
 pp<-rbind(pp,CoP)
 
@@ -38,15 +38,33 @@ regression<-ldply(reg,function(x) data.frame(Yintercept = x$coefficients[1], Slo
 
 regSum<-ddply(regression,.(Case,Muscle,Phase,Variable), function(x) data.frame(increase=nrow(x[x$Slope>0 & x$p<pLevel,]), decrease=nrow(x[x$Slope<0 & x$p<pLevel,]), total=nrow(x), slope=mean(x$Slope[x$p<pLevel],na.rm=T)))
 
+svg(paste(outdir,"muscleEffect.svg",sep=''))
 p<-ggplot(npp, aes(Activation, Value, color=Case))+geom_point()#+geom_abline(aes(intercept=Yintercept, slope=Slope, color=Case),data=regression)
 p<-p+geom_smooth(aes(group=Case, fill=Case),method="lm", size=1, alpha=0.2, fullrange=T)
 p<-p+scale_y_continuous(name="Normalised Peak Pressure")
 p<-p+facet_grid(Muscle ~ Phase)
 print(p)
+dev.off()
 
-p<-ggplot(regression[regression$Variable=="PeakPressure",], aes(Slope, fill=Case))+geom_density(alpha=0.2)#+geom_histogram(binwidth=0.05, aes(y=..density..))
-p<-p+facet_grid(Muscle~Phase)+xlim(-1,1)
+svg(paste(outdir,"muscleCoPAP.svg",sep=''))
+p<-ggplot(subset(pp,Variable=="CoP A/P"), aes(Activation, Value, color=Case))+geom_point()#+geom_abline(aes(intercept=Yintercept, slope=Slope, color=Case),data=regression)
+p<-p+geom_smooth(aes(group=Case, fill=Case),method="lm", size=1, alpha=0.2, fullrange=T)
+p<-p+scale_y_continuous(name="CoP A/P")
+p<-p+facet_grid(Muscle ~ Phase)
 print(p)
+dev.off()
+
+svg(paste(outdir,"muscleCoPML.svg",sep=''))
+p<-ggplot(subset(pp,Variable=="CoP M/L"), aes(Activation, Value, color=Case))+geom_point()#+geom_abline(aes(intercept=Yintercept, slope=Slope, color=Case),data=regression)
+p<-p+geom_smooth(aes(group=Case, fill=Case),method="lm", size=1, alpha=0.2, fullrange=T)
+p<-p+scale_y_continuous(name="CoP M/L")
+p<-p+facet_grid(Muscle ~ Phase)
+print(p)
+dev.off()
+
+# p<-ggplot(regression[regression$Variable=="PeakPressure",], aes(Slope, fill=Case))+geom_density(alpha=0.2)#+geom_histogram(binwidth=0.05, aes(y=..density..))
+# p<-p+facet_grid(Muscle~Phase)+xlim(-1,1)
+# print(p)
 
 # p<-ggplot(pp[grep("CoP M/L",pp$Variable),], aes(Activation, Value, color=Case))+geom_point()#+geom_abline(aes(intercept=Yintercept, slope=Slope, color=Case),data=regression)
 # p<-p+geom_smooth(aes(group=Case, fill=Case),method="lm", size=1.5, alpha=0.4)

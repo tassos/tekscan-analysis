@@ -20,7 +20,7 @@ outdir<-paste(outdir,"Graphs_dPress/",sep='')
 
 # Combining the data frames of the Tibia and Talus pressures and cleaning the bad data points
 ppTArea$Case<-"Tekscan Talus"
-# ppArea<-rbind(ppTArea,ppArea)
+ppArea<-rbind(ppTArea,ppArea)
 ppArea<-ppArea[complete.cases(ppArea),]
 
 # Retaining only the first five measurements for each case and removing the TA measurements
@@ -42,22 +42,22 @@ mppArea<-ddply(ppArea,.(Foot,Case,Trial,Rows,Cols,Phase),function(x) data.frame(
 mmppArea<-ddply(mppArea,.(Foot,Case,Rows,Cols,Phase),function(x) data.frame(Value=mean(x$Value)))
 
 # Statistics for detecting significant differences between Native and TAP
-wp<-ddply(mppArea,.(Rows,Cols,Phase), function(x) data.frame(p.value=safewilTest(x,"Value","Case","Native Tibia","TAP Tibia")$p.value,estimated.difference=safewilTest(x,"Value","Case","Native Tibia","TAP Tibia")$estimate))
+wp<-ddply(mppArea,.(Rows,Cols,Phase), function(x) data.frame(p.value=safewilTest(x,"Value","Case","TAP Tibia","Native Tibia")$p.value,estimated.difference=safewilTest(x,"Value","Case","TAP Tibia","Native Tibia")$estimate))
 wp$p.star<-ifelse(wp$p.value <=pLevel,"*"," ")
 
-wpf<-ddply(mppArea,.(Foot,Rows,Cols,Phase), function(x) data.frame(p.value=safewilTest(x,"Value","Case","Native Tibia","TAP Tibia")$p.value,estim=safewilTest(x,"Value","Case","Native Tibia","TAP Tibia")$estimate))
+wpf<-ddply(mppArea,.(Foot,Rows,Cols,Phase), function(x) data.frame(p.value=safewilTest(x,"Value","Case","TAP Tibia","Native Tibia")$p.value,estim=safewilTest(x,"Value","Case","TAP Tibia","Native Tibia")$estimate))
 wpf$p.star<-ifelse(wpf$p.value <=pLevel,"*"," ")
-sumwpf<-ddply(wpf,.(Rows,Cols,Phase), function(x) data.frame(sign.inc=nrow(x[x$estim<0 & x$p.value<=pLevel,]),inc=nrow(x[x$estim<0 & x$p.value>pLevel,]),dec=nrow(x[x$estim>0 & x$p.value>pLevel,]),sign.dec=nrow(x[x$estim>0 & x$p.value<=pLevel,])))
+sumwpf<-ddply(wpf,.(Rows,Cols,Phase), function(x) data.frame(sign.inc=nrow(x[x$estim>0 & x$p.value<=pLevel,]),inc=nrow(x[x$estim>0 & x$p.value>pLevel,]),dec=nrow(x[x$estim<=0 & x$p.value>pLevel,]),sign.dec=nrow(x[x$estim<=0 & x$p.value<=pLevel,])))
 
 sumwpf<-merge(wp,sumwpf, intersect(c('Rows','Cols','Phase'),c('Rows','Cols','Phase')))
 
-sumTable<-xtable(sumwpf)
-digits(sumTable)<-3
-sumLatex<-print(sumTable,floating.environment='sidewaystable',include.rownames=FALSE)
+sumTable<-xtable(sumwpf,caption='Summary of results',digits=4,align="rll|l|lcc|cccc")
+sumLatex<-print(sumTable,floating.environment='sidewaystable',include.rownames=F, print.results=F)
 write(insert.headers(sumLatex),paste(outLaTeX,"sumLatex.tex",sep=''))
 
-# svg(paste(outdir,"Area_Time_Talus.svg",sep=''))
-p<-ggplot(mppArea, aes(Phase, Value, fill=Case))+geom_boxplot()
+svg(paste(outdir,"Area_Time_Talus.svg",sep=''))
+p<-ggplot(subset(mppArea, Case=="Native Talus"), aes(Phase, Value, fill=Case))+geom_boxplot()
 p<-p+scale_y_continuous(name="Peak Pressure (MPa)")+scale_x_discrete(name="Stance phase percentage (%)")
 p<-p+facet_grid(Rows ~ Cols)
 print(p)
+dev.off()
