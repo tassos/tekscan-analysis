@@ -74,7 +74,7 @@ function pressureArea =...
                     for region=1:size(regions,1)
                         points = inpolygon(X,Y,poix(j,regions(region,:)),poiy(j,regions(region,:)));
                         if isempty(max(data(1,i,j,points))); 
-                            pressureArea(k,:,region) = 0;
+                            pressureArea(k,:,region) = NaN;
                         else
                             pressureArea(k,j,region) = max(data(1,i,j,points));
                         end
