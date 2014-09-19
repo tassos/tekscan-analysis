@@ -25,15 +25,18 @@ for (i in 1:10) {
 data<-data.frame()
 fLevels<-data.frame()
 ppTArea<-data.frame()
+ppS<-data.frame()
 
 for (j in 1:length(myFile)) {
 	myData <- readMat(myFile[[j]])
 
 	groups <- dim(myData$Rdata)[1]-nonCounted
 	groupsT <- dim(myData$RdataT)[1]-nonCounted
+	groupsS <- dim(myData$RdataS)[1]-nonCounted
 	foot <- myData$Rdata[[groups+1]][1]
 	dataTemp<-list()
 	dataTempT<-list()
+	dataTempS<-list()
 	fLevelsTemp<-list()
 
 	for (i in 1:groups) {
@@ -78,13 +81,29 @@ for (j in 1:length(myFile)) {
 			dataTempT[[i]]$Foot<-as.factor(foot)
 		}
 	}
+	
+	for (i in 1:groupsS) {
+		case<-dimnames(myData$RdataS)[[1]][[i]]
+		
+		if (case != 'empty') {
+			dimnames(myData$RdataS[[i]][[1]])[[1]]<-myData$RdataS[[i]][[2]]
+			dimnames(myData$RdataS[[i]][[1]])[[2]]<-1:ncol(myData$RdataS[[i]][[1]])
+			dimnames(myData$RdataS[[i]][[1]])[[3]]<-unlist(myData$RdataS[[groupsS+2]])
+			dataTempS[[i]]<-as.data.frame(as.table(myData$RdataS[[i]][[1]]))
+			dataTempS[[i]]$Case<-as.factor(case)
+			dataTempS[[i]]$Foot<-as.factor(foot)
+		}
+	}
 	dataTempT<-ldply(dataTempT, data.frame)
 	ppTArea<-rbind(ppTArea,dataTempT)
+	ppSTemp<-ldply(dataTempS, data.frame)
+	ppS<-rbind(ppS,ppSTemp)
 }
 rm(myData)
 
 colnames(data) <- c("Trial","Percentage","Variable","Value","Case","Foot")
 colnames(ppTArea) <- c("Trial","Percentage","Variable","Value","Case","Foot")
+colnames(ppS) <- c("Trial","Percentage","Variable","Value","Case","Foot")
 data<-factorise(data)
 ppTArea<-factorise(ppTArea)
 if (type == "_Static") {
@@ -108,7 +127,13 @@ if ("PeakPressure" %in% group) {
 	pp$Variable<-NULL
 	pp<-factorise(pp)
 	
+	ppS<-ppS[grep("(PeakPressure)",ppS$Variable),]
+	ppS<-ppS[grep("(PeakPressure).",ppS$Variable, invert=T),]
+	ppS$Variable<-NULL
+	ppS<-factorise(ppS)
+	
 	save('pp',file=paste(outdir,'peakPressure',type,'.RData',sep=''))
+	save('ppS',file=paste(outdir,'peakPressureNeutral',type,'.RData',sep=''))
 	save('ppArea',file=paste(outdir,'ppArea',type,'.RData',sep=''))
 }
 
