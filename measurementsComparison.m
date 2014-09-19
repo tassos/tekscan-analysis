@@ -155,11 +155,12 @@ function measurementsComparison
             headersStatic = {'Peronei','Tib Ant','Tib Post','Flex Dig','Gastroc','Flex Hal','Phase'};
             
             casesSpace = strrep(cases,'_',' ');
-            clear Rdata RdataT
+            clear Rdata RdataT RdataS
             for j=1:length(casesSpace);
                 k=0;
+                p=0;
                 for i=1:size(dataToSave,3)
-                    if ~isempty(strfind(legendNames{i},casesSpace{j}))
+                    if ~isempty(strfind(measFileName{i},cases{j})) && isempty(strfind(measFileName{i},'static'))
                         k=k+1;
                         Rdata.(casesSpace{j}(1:end-1)).data(k,:,:) = dataToSave(:,:,i);
                         Rdata.(casesSpace{j}(1:end-1)).names{k} = ['Trial ' sprintf('%02d',k)];
@@ -167,12 +168,18 @@ function measurementsComparison
                             Rdata.(casesSpace{j}(1:end-1)).fLevels(k,:,:) = fLevels(k,:,1:end-1);
                             Rdata.(casesSpace{j}(1:end-1)).posLevels(k,:) = fLevels(k,:,end);
                         end
+                    elseif ~isempty(strfind(measFileName{i},cases{j})) && ~isempty(strfind(measFileName{i},'static'))
+                        p=p+1;
+                        RdataS.(casesSpace{j}(1:end-1)).data(p,:,:) = dataToSave(:,:,i);
+                        RdataS.(casesSpace{j}(1:end-1)).names{p} = ['Trial ' sprintf('%02d',p)];
                     end
                 end
             end
             for i=1:size(pressureAreaTalus,1)
-                RdataT.('Tekscan').data(i,:,:) = pressureAreaTalus(i,:,:);
-                RdataT.('Tekscan').names{i} = ['Trial ' sprintf('%02d',i)];
+                if isempty(strfind(measFileName{i},'static'))
+                    RdataT.('Tekscan').data(i,:,:) = pressureAreaTalus(i,:,:);
+                    RdataT.('Tekscan').names{i} = ['Trial ' sprintf('%02d',i)];
+                end
             end
             
             name = strsplit(legendNames{1},' ');
@@ -182,11 +189,14 @@ function measurementsComparison
             RdataT.Foot = name{1};
             RdataT.Variables = pressureAreaHeader;
             RdataT.Muscles = headersStatic;
+            RdataS.Foot = name{1};
+            RdataS.Variables = headers;
+            RdataS.Muscles = headersStatic;
 
             if static
                 name{1}=['Static_',name{1}];
             end
-            save([directories{z} '/../Voet 99/Results/Tekscan_Data_' name{1} '.mat'],'Rdata','RdataT');
+            save([directories{z} '/../Voet 99/Results/Tekscan_Data_' name{1} '.mat'],'Rdata','RdataT','RdataS');
         end
     end
 end
@@ -226,10 +236,10 @@ function newFileNames = filesCleanUp(cases,fileNames,m,n)
         
         %Keeping only a specific amount of measurements, defined by n
         if ~n
-            n=length(tempFileNames);
+            p=length(tempFileNames);
         end
         if m<=length(tempFileNames)
-            newFileNames = [newFileNames, tempFileNames(m:min(length(tempFileNames),m+n-1))]; %#ok<AGROW> Nothing I can do about it
+            newFileNames = [newFileNames, tempFileNames(m:min(length(tempFileNames),m+p-1))]; %#ok<AGROW> Nothing I can do about it
         end
         if ~exist('newFileNames','var')
             newFileNames=cell(0);
