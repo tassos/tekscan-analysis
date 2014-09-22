@@ -23,6 +23,10 @@ pp<-pp[pp$Case!="TA",]
 pp<-factorise(pp)
 pp<-pp[complete.cases(pp),]
 
+threshold<-c(-10,-5,0,5,10)
+threshold<-pi*threshold/180
+labels<-c('Very (-)','Slightly (-)','Poorly (-)','Poorly (+)','Slightly (+)','Very P(+)')
+
 #Removing the values for a muscle when it's not active
 pp$Activation<-round(pp$Activation,1)
 pp<-pp[pp$Activation<10 & (pp$Activation<0.9 | pp$Activation>1.1),]
@@ -36,7 +40,7 @@ npp<-npp[complete.cases(npp),]
 reg<-dlply(rbind(npp,pp[grep("CoP",pp$Variable),]),.(Foot,Case,Trial,Muscle,Phase,Variable), function(x) summary(lm(x$Value ~ x$Activation)))
 regression<-ldply(reg,function(x) data.frame(Yintercept = x$coefficients[1], Slope=x$coefficients[2], r2=x$r.squared, p=x$coefficients[2,4]))
 
-regSum<-ddply(regression,.(Case,Muscle,Phase,Variable), function(x) data.frame(increase=nrow(x[x$Slope>0 & x$p<pLevel,]), decrease=nrow(x[x$Slope<0 & x$p<pLevel,]), total=nrow(x), slope=mean(x$Slope[x$p<pLevel],na.rm=T)))
+regSum<-ddply(regression,.(Case,Muscle,Phase,Variable), function(x) classify(x$Slope,tan(threshold),labels))
 
 svg(paste(outdir,"muscleEffect.svg",sep=''))
 p<-ggplot(npp, aes(Activation, Value, color=Case))+geom_point()#+geom_abline(aes(intercept=Yintercept, slope=Slope, color=Case),data=regression)

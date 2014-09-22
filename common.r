@@ -78,3 +78,20 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
 
     return(datac)
 }
+
+classify <- function(x,dividers,labels) {
+	dividers<-c(-Inf,dividers,+Inf)
+	p<-array()
+	for (j in 1:length(x)) {
+		for (i in 1:(length(dividers)-1)){
+			if (x[j] >= dividers[i] & x[j] < dividers[i+1]){
+				p[j] = labels[i]
+			}
+		}
+	}
+	y <- as.data.frame(matrix(ncol=length(labels), dimnames=list(NULL,labels)))
+	for (k in 1:length(labels)){
+		y[[labels[k]]]<-sum(p == labels[k])
+	}
+	return(y)
+}
