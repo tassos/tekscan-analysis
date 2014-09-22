@@ -90,7 +90,7 @@ function [dist1, dist2] = projectKinematics (voetPath, ~)
         % Project the Tibia landmarks on the Talus and find the coordinates
         % of the projection. Then define the distances between the landmarks
         % and the projections
-        Proj_Tal = V_Tal_New(dsearchn(V_Tal_New,V_Tib_Home(IndTib,:)));
+        Proj_Tal = V_Tal_New(dsearchn(V_Tal_New,V_Tib_Home(IndTib,:)),:);
         [dist1(i,:), dist2(i,:)] = DistanceFromVertexToVertex(V_Tal_New(IndTal,:),Proj_Tal,screwTib(3,:));
 
         % Draw the new joint configuration on the figure and write a frame
