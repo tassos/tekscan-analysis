@@ -7,12 +7,14 @@ options("max.print"=300)
 
 source("directory.r")
 source("common.r")
+source("LaTeX.r")
 
 pLevel=0.05
 
 load(paste(outdir,'ppArea_Static.RData',sep=''))
 load(paste(outdir,'peakPressure_Static.RData',sep=''))
 load(paste(outdir,'CoP_Static.RData',sep=''))
+outLaTeX<-paste(outdir,"LaTeX/",sep='')
 outdir<-paste(outdir,"Graphs_dPress/",sep='')
 
 pp<-rbind(pp,CoP)
@@ -41,6 +43,10 @@ reg<-dlply(rbind(npp,pp[grep("CoP",pp$Variable),]),.(Foot,Case,Trial,Muscle,Phas
 regression<-ldply(reg,function(x) data.frame(Yintercept = x$coefficients[1], Slope=x$coefficients[2], r2=x$r.squared, p=x$coefficients[2,4]))
 
 regSum<-ddply(regression,.(Case,Muscle,Phase,Variable), function(x) classify(x$Slope,tan(threshold),labels))
+
+sumTable<-xtable(subset(regSum,Variable=="PeakPressure"),caption='Summary of results',digits=4)#,align="rll|l|lcc|cccc")
+sumLatex<-print(sumTable,include.rownames=F, print.results=F)
+write(insert.headers(sumLatex),paste(outLaTeX,"sumStaticLatex.tex",sep=''))
 
 svg(paste(outdir,"muscleEffect.svg",sep=''))
 p<-ggplot(npp, aes(Activation, Value, color=Case))+geom_point()#+geom_abline(aes(intercept=Yintercept, slope=Slope, color=Case),data=regression)
