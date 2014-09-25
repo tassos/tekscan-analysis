@@ -1,6 +1,8 @@
 require(ggplot2)
 require(plyr)
 require(grid)
+require(xtable)
+require(nlme)
 
 rm(list=ls())
 options("max.print"=300)
