@@ -2,6 +2,7 @@ require(ggplot2)
 require(plyr)
 require(grid)
 require(xtable)
+require(pwr)
 
 rm(list=ls())
 options("max.print"=300)
@@ -41,9 +42,13 @@ ppArea<-factorise(ppArea)
 
 # Calculating the maximum peak pressure for each Foot, Case, Trial, Area and Phase
 mppArea<-ddply(ppArea,.(Foot,Case,Trial,Rows,Cols,Phase),function(x) data.frame(Value=max(x$Value/1E6)))
+# mppArea<-ddply(mppArea,.(Foot,Case,Rows,Cols,Phase),function(x) data.frame(Value=mean(x$Value)))
 mmppArea<-ddply(mppArea,.(Case,Rows,Cols,Phase),function(x) data.frame(Value=median(x$Value)))
 maxmmppArea<-ddply(mmppArea,.(Case,Phase), function(x) data.frame(Value=max(x$Value), Rows=x[x$Value==max(x$Value),]$Rows, Cols=x[x$Value==max(x$Value),]$Cols))
 maxmmppArea
+
+power.analysis<-ddply(mppArea,.(Rows,Cols,Phase), function(x) data.frame(size=cohens_d(x[x$Case=="Native Tibia",]$Value,x[x$Case=="TAA Tibia",]$Value)))
+power.analysis$power<-ddply(power.analysis,.(Rows,Cols,Phase), function(x) pwr.2p.test(n=8,h=x$size)$power)$V1
 
 # Calculating the maximum peak pressure for each Foot, Case, Trial for the neutral position measurements
 mppS <-ddply(subset(ppS,Case!='TA'),.(Foot,Case,Trial), function(x) data.frame(Value=mean(x$Value/1E6)))
@@ -63,7 +68,7 @@ sumLatex<-print(sumTable,include.rownames=F, print.results=F)
 write(insert.headers(sumLatex),paste(outLaTeX,"sumLatex.tex",sep=''))
 
 svg(paste(outdir,"Area_Time_Talus.svg",sep=''))
-p<-ggplot(subset(mppArea, Case=="Native Talus"), aes(Phase, Value, fill=Case))+geom_boxplot()
+p<-ggplot(subset(mppArea, Case!="Native Talus"), aes(Phase, Value, fill=Case))+geom_boxplot()
 p<-p+scale_y_continuous(name="Peak Pressure (MPa)")+scale_x_discrete(name="Stance phase percentage (%)")
 p<-p+facet_grid(Rows ~ Cols)
 print(p)
