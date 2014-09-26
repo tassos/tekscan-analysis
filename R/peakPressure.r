@@ -17,7 +17,7 @@ load(paste(outdir,'ppTArea.RData',sep=''))
 load(paste(outdir,'peakPressureNeutral.RData',sep=''))
 load(paste(outdir,'forceArea.RData',sep=''))
 outLaTeX<-paste(outdir,"LaTeX/",sep='')
-outdir<-paste(outdir,"Graphs_dPress/",sep='')
+outdir<-paste("~/PhD/Submissions/Journals/Clinical Orthopaedics and Related Research/Figures/",sep='')
 
 # Combining the data frames of the Tibia and Talus pressures and cleaning the bad data points
 ppTArea$Case<-"Tekscan Talus"
@@ -41,15 +41,13 @@ ppArea<-factorise(ppArea)
 
 # Calculating the maximum peak pressure for each Foot, Case, Trial, Area and Phase
 mppArea<-ddply(ppArea,.(Foot,Case,Trial,Rows,Cols,Phase),function(x) data.frame(Value=max(x$Value/1E6)))
-mmppArea<-ddply(mppArea,.(Case,Rows,Cols,Phase),function(x) data.frame(Value=median(x$Value)))
-maxmmppArea<-ddply(mmppArea,.(Case,Phase), function(x) data.frame(Value=max(x$Value), Rows=x[x$Value==max(x$Value),]$Rows, Cols=x[x$Value==max(x$Value),]$Cols))
-maxmmppArea
+mmppArea<-ddply(mppArea,.(Foot,Case,Rows,Cols,Phase),function(x) data.frame(Value=mean(x$Value)))
 
 # Calculating the maximum peak pressure for each Foot, Case, Trial for the neutral position measurements
 mppS <-ddply(subset(ppS,Case!='TA'),.(Foot,Case,Trial), function(x) data.frame(Value=mean(x$Value/1E6)))
 
 # Statistics for detecting significant differences between Native and TAP
-wp<-ddply(mppArea,.(Rows,Cols,Phase), function(x) data.frame(p.value=safewilTest(x,"Value","Case","TAA Tibia","Native Tibia")$p.value,estimated.difference=safewilTest(x,"Value","Case","TAA Tibia","Native Tibia")$estimate))
+wp<-ddply(mmppArea,.(Rows,Cols,Phase), function(x) data.frame(p.value=safewilTest(x,"Value","Case","TAA Tibia","Native Tibia")$p.value,estimated.difference=safewilTest(x,"Value","Case","TAA Tibia","Native Tibia")$estimate))
 wp$p.star<-ifelse(wp$p.value <=pLevel,"*"," ")
 
 wpf<-ddply(mppArea,.(Foot,Rows,Cols,Phase), function(x) data.frame(p.value=safewilTest(x,"Value","Case","TAA Tibia","Native Tibia")$p.value,estim=safewilTest(x,"Value","Case","TAA Tibia","Native Tibia")$estimate))
@@ -62,16 +60,30 @@ sumTable<-xtable(sumwpf,caption='Summary of results',digits=4)#,align="rll|l|lcc
 sumLatex<-print(sumTable,include.rownames=F, print.results=F)
 write(insert.headers(sumLatex),paste(outLaTeX,"sumLatex.tex",sep=''))
 
-svg(paste(outdir,"Area_Time_Talus.svg",sep=''))
-p<-ggplot(subset(mppArea, Case=="Native Talus"), aes(Phase, Value, fill=Case))+geom_boxplot()
-p<-p+scale_y_continuous(name="Peak Pressure (MPa)")+scale_x_discrete(name="Stance phase percentage (%)")
-p<-p+facet_grid(Rows ~ Cols)
+filename<-paste(outdir,"Area_Time_Talus")
+svg(paste(filename,".svg",sep=''))
+p<-ggplot(subset(mmppArea, Case=="Native Talus"), aes(Phase, Value, fill=Case))+geom_boxplot(outlier.shape=NA)+
+	scale_y_continuous(name="Peak Pressure (MPa)")+scale_x_discrete(name="Stance phase percentage (%)")+
+	theme(axis.title=element_text(size=20),axis.text=element_text(colour='black', size=12),strip.text=element_text(size=12))+
+	theme(legend.position = "none")+
+	facet_grid(Rows ~ Cols)
 print(p)
 dev.off()
 
-mppS$Case<-mapvalues(mppS$Case,from=c("Tekscan","Tekscan Talus","TAP"), to=c("Native Tibia","Native Talus","TAA Tibia"))
+shell(paste("inkscape.exe -z -w 2000 -e",filename,".png ",filename,".svg"))
+
+svg(paste(outdir,"Area_Time.svg",sep=''), width=8.4)
+p<-ggplot(subset(mmppArea, Case!="Native Talus"), aes(Phase, Value, fill=Case))+geom_boxplot(outlier.shape=NA)+
+	scale_y_continuous(name="Peak Pressure (MPa)")+scale_x_discrete(name="Stance phase percentage (%)")+
+	theme(axis.title=element_text(size=20),axis.text=element_text(colour='black', size=12),strip.text=element_text(size=12))+
+	facet_grid(Rows ~ Cols)
+print(p)
+dev.off()
+
+mppS$Case<-mapvalues(mppS$Case,from=c("Tekscan","TAP"), to=c("Native Tibia","TAA Tibia"))
 svg(paste(outdir,"Neutral_measurements.svg",sep=''), width=12)
-p<-ggplot(subset(mppS,Foot!="foot38"), aes(Foot, Value, fill=Case))+geom_boxplot()
-p<-p+scale_y_continuous(name="Peak Pressure (MPa)")
+p<-ggplot(subset(mppS,Foot!="foot38" & Foot!="foot43"), aes(Foot, Value, fill=Case))+geom_boxplot()+
+	theme(axis.title=element_text(size=20),axis.text=element_text(colour='black'))+
+	scale_y_continuous(name="Peak Pressure (MPa)")
 print(p)
 dev.off()
