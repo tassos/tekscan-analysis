@@ -17,7 +17,8 @@ load(paste(outdir,'ppArea.RData',sep=''))
 load(paste(outdir,'ppTArea.RData',sep=''))
 load(paste(outdir,'peakPressureNeutral.RData',sep=''))
 load(paste(outdir,'forceArea.RData',sep=''))
-outLaTeX<-paste(outdir,"LaTeX/",sep='')
+load(paste(outdir,'forceArea.RData',sep=''))
+outLaTeX<-paste(outdirg,"LaTeX/",sep='')
 
 # Combining the data frames of the Tibia and Talus pressures and cleaning the bad data points
 ppTArea$Case<-"Tekscan Talus"
@@ -61,10 +62,13 @@ sumwpf<-merge(wp,sumwpf, intersect(c('Rows','Cols','Phase'),c('Rows','Cols','Pha
 sumTable<-xtable(sumwpf,caption='Summary of results',digits=4)#,align="rll|l|lcc|cccc")
 sumLatex<-print(sumTable,include.rownames=F, print.results=F)
 write(insert.headers(sumLatex),paste(outLaTeX,"sumLatex.tex",sep=''))
+write(sumLatex,paste(outLaTeX,"sumExcel.asc",sep=''))
 
+height<-700
+width<-800
 
 filename<-paste(outdirg,"Area_Time_Talus",sep='')
-svg(paste(filename,".svg",sep=''))
+png(paste(filename,".png",sep=''), height=height, width=width, res=100)
 p<-ggplot(subset(mmppArea, Case=="Native Talus"), aes(Phase, Value, fill=Case))+geom_boxplot(outlier.shape=NA)+
 	scale_y_continuous(name="Peak Pressure (MPa)")+scale_x_discrete(name="Stance phase percentage (%)")+
 	theme(axis.title=element_text(size=20),axis.text=element_text(colour='black', size=12),strip.text=element_text(size=12))+
@@ -73,19 +77,26 @@ p<-ggplot(subset(mmppArea, Case=="Native Talus"), aes(Phase, Value, fill=Case))+
 print(p)
 dev.off()
 
-system(paste("inkscape --export-png='",filename,".png ",filename,".svg'",sep=''))
-
-svg(paste(outdirg,"Area_Time.svg",sep=''), width=8.4)
+filename<-paste(outdirg,"Area_Time_Tibia",sep='')
+png(paste(filename,".png",sep=''), height=height, width=width, res=100)
 p<-ggplot(subset(mmppArea, Case!="Native Talus"), aes(Phase, Value, fill=Case))+geom_boxplot(outlier.shape=NA)+
-	scale_y_continuous(name="Peak Pressure (MPa)")+scale_x_discrete(name="Stance phase percentage (%)")+
+	scale_y_continuous(name="Peak Pressure (MPa)", limits=c(0,10))+scale_x_discrete(name="Stance phase percentage (%)")+
 	theme(axis.title=element_text(size=20),axis.text=element_text(colour='black', size=12),strip.text=element_text(size=12))+
 	facet_grid(Rows ~ Cols)
 print(p)
 dev.off()
 
+for (bone in c('Talus','Tibia')) {
+	save_png(height,width,bone,paste(outdirg,'Temporal-Time_',sep=''))
+}
+
 mppS$Case<-mapvalues(mppS$Case,from=c("Tekscan","TAP"), to=c("Native Tibia","TAA Tibia"))
-svg(paste(outdirg,"Neutral_measurements.svg",sep=''), width=12)
-p<-ggplot(subset(mppS,Foot!="foot38" & Foot!="foot43"), aes(Foot, Value, fill=Case))+geom_boxplot()+
+mppS<-ddply(mppS,.(Foot,Case), function(x) data.frame(Value=mean(x$Value)))
+static.sign<-safewilTest(mppS,"Value","Case","TAA Tibia","Native Tibia")
+
+filename<-paste(outdirg,"Neutral_measurements",sep='')
+png(paste(filename,".png",sep=''), res=100, height=400, width=500)
+p<-ggplot(subset(mppS), aes(Case, Value, fill=Case))+geom_boxplot(outlier.shape=NA)+
 	theme(axis.title=element_text(size=20),axis.text=element_text(colour='black'))+
 	scale_y_continuous(name="Peak Pressure (MPa)")
 print(p)
