@@ -96,14 +96,14 @@ for (j in 1:length(myFile)) {
 	}
 	dataTempT<-ldply(dataTempT, data.frame)
 	ppTArea<-rbind(ppTArea,dataTempT)
-	ppSTemp<-ldply(dataTempS, data.frame)
-	ppS<-rbind(ppS,ppSTemp)
+	dataTempS<-ldply(dataTempS, data.frame)
+	dataS<-rbind(dataS,dataTempS)
 }
 rm(myData)
 
 colnames(data) <- c("Trial","Percentage","Variable","Value","Case","Foot")
 colnames(ppTArea) <- c("Trial","Percentage","Variable","Value","Case","Foot")
-colnames(ppS) <- c("Trial","Percentage","Variable","Value","Case","Foot")
+colnames(dataS) <- c("Trial","Percentage","Variable","Value","Case","Foot")
 data<-factorise(data)
 ppTArea<-factorise(ppTArea)
 if (type == "_Static") {
@@ -127,8 +127,8 @@ if ("PeakPressure" %in% group) {
 	pp$Variable<-NULL
 	pp<-factorise(pp)
 	
-	ppS<-ppS[grep("(PeakPressure)",ppS$Variable),]
-	ppS<-ppS[grep("(PeakPressure).",ppS$Variable, invert=T),]
+	ppS<-dataS[grep("(PeakPressure)",dataS$Variable),]
+	ppS<-dataS[grep("(PeakPressure).",dataS$Variable, invert=T),]
 	
 	save('pp',file=paste(outdir,'peakPressure',type,'.RData',sep=''))
 	save('ppS',file=paste(outdir,'peakPressureNeutral',type,'.RData',sep=''))
@@ -143,7 +143,7 @@ if ("force" %in% group) {
 	forceArea<-factorise(forceArea)
 
 	force<-data[grep("(forceTotal)",data$Variable),]
-	forceS<-data[grep("(forceTotal)",ppS$Variable),]
+	forceS<-dataS[grep("(forceTotal)",dataS$Variable),]
 
 	#Cleaning up of bad or non used measurements
 	force<-factorise(force)
