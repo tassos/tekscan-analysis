@@ -18,6 +18,7 @@ load(paste(outdir,'ppTArea.RData',sep=''))
 load(paste(outdir,'peakPressureNeutral.RData',sep=''))
 load(paste(outdir,'forceArea.RData',sep=''))
 load(paste(outdir,'forceArea.RData',sep=''))
+outdirg=paste(outdirg,'Clinical Orthopaedics and Related Research/peakPressure/Figures/',sep='')
 outLaTeX<-paste(outdirg,"LaTeX/",sep='')
 
 # Combining the data frames of the Tibia and Talus pressures and cleaning the bad data points
@@ -42,6 +43,7 @@ ppArea<-factorise(ppArea)
 
 # Calculating the maximum peak pressure for each Foot, Case, Trial, Area and Phase
 mppArea<-ddply(ppArea,.(Foot,Case,Trial,Rows,Cols,Phase),function(x) data.frame(Value=max(x$Value/1E6)))
+medppArea<-ddply(mppArea,.(Case,Rows,Cols,Phase), function(x) data.frame(Value=median(x$Value)))
 mmppArea<-ddply(mppArea,.(Foot,Case,Rows,Cols,Phase),function(x) data.frame(Value=mean(x$Value)))
 
 power.analysis<-ddply(mppArea,.(Rows,Cols,Phase), function(x) data.frame(size=cohens_d(x[x$Case=="Native Tibia",]$Value,x[x$Case=="TAA Tibia",]$Value)))
@@ -70,6 +72,7 @@ width<-800
 filename<-paste(outdirg,"Area_Time_Talus",sep='')
 png(paste(filename,".png",sep=''), height=height, width=width, res=100)
 p<-ggplot(subset(mmppArea, Case=="Native Talus"), aes(Phase, Value, fill=Case))+geom_boxplot(outlier.shape=NA)+
+	scale_fill_manual(values=c("green4"))+
 	scale_y_continuous(name="Peak Pressure (MPa)")+scale_x_discrete(name="Stance phase percentage (%)")+
 	theme(axis.title=element_text(size=20),axis.text=element_text(colour='black', size=12),strip.text=element_text(size=12))+
 	theme(legend.position = "none")+

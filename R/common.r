@@ -116,7 +116,14 @@ x<- paste('<svg version="1.2" width="',width+50,'pt" height="',height-100,'pt" x
 '</svg>',sep='')
 
 write(x,file=paste(filename,bone,'.svg',sep=''))
-magickPath<-'c:/"Program Files"/ImageMagick/6.8.9-Q16/'
+
+OS <- .Platform$OS.type
+if (OS=="windows") {
+	magickPath<-'c:/"Program Files"/ImageMagick/6.8.9-Q16/'
+}
+if (OS=="unix") {
+	magickPath<-''
+}
 
 shell(paste(magickPath,'convert "',filename,bone,'.svg" "',filename,bone,'.png"',sep=''))
 }
