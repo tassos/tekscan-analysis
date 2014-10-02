@@ -16,13 +16,10 @@ source('LaTeX.r')
 load(paste(outdir,'ppArea.RData',sep=''))
 load(paste(outdir,'ppTArea.RData',sep=''))
 load(paste(outdir,'peakPressureNeutral.RData',sep=''))
-load(paste(outdir,'forceArea.RData',sep=''))
-load(paste(outdir,'forceArea.RData',sep=''))
 outdirg=paste(outdirg,'Clinical Orthopaedics and Related Research/peakPressure/Figures/',sep='')
 outLaTeX<-paste(outdirg,"LaTeX/",sep='')
 
 # Combining the data frames of the Tibia and Talus pressures and cleaning the bad data points
-ppTArea$Case<-"Tekscan Talus"
 ppArea<-rbind(ppTArea,ppArea)
 ppArea<-ppArea[complete.cases(ppArea),]
 

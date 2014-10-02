@@ -168,11 +168,11 @@ if ("CoP" %in% group) {
 	save('CoP',file=paste(outdir,'CoP',type,'.RData',sep=''))
 }
 
-
 if ("PeakPressure Talus" %in% group & type != "_Static") {
 	ppTArea$Rows<-regmatches(ppTArea$Variable,regexpr("(?<=rows: ).*(?=cols:)",ppTArea$Variable, perl=TRUE))
 	ppTArea$Cols<-regmatches(ppTArea$Variable,regexpr("(?<=cols: ).*",ppTArea$Variable, perl=TRUE))
 	ppTArea$Variable<-NULL
+	ppTArea$Case<-"Tekscan Talus"
 	ppTArea<-factorise(ppTArea)
 	
 	save('ppTArea',file=paste(outdir,'ppTArea.RData',sep=''))
