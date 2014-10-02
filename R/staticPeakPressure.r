@@ -12,6 +12,8 @@ source("common.r")
 source("LaTeX.r")
 
 pLevel=0.05
+threshold<-c(-.1,-.05,0,.05,.1)
+labels<-c('Very (-)','Slightly (-)','Poorly (-)','Poorly (+)','Slightly (+)','Very (+)')
 
 load(paste(outdir,'ppArea_Static.RData',sep=''))
 load(paste(outdir,'peakPressure_Static.RData',sep=''))
@@ -24,17 +26,18 @@ pp<-rbind(pp,CoP)
 #Removing the two inactive muscles
 pp<-pp[grep('(Flex Hal)|(Flex Dig)',pp$Muscle, invert=T),]
 pp<-pp[pp$Case!="TA",]
-pp<-factorise(pp)
+pp$Case<-mapvalues(pp$Case,from=c("Tekscan","TAP"), to=c("Native Tibia","TAA Tibia"))
 pp<-pp[complete.cases(pp),]
-
-threshold<-c(-.1,-.05,0,.05,.1)
-labels<-c('Very (-)','Slightly (-)','Poorly (-)','Poorly (+)','Slightly (+)','Very (+)')
+pp<-factorise(pp)
 
 #Removing the values for a muscle when it's not active
 pp$Activation<-round(pp$Activation,1)
-pp<-pp[pp$Activation<10 & (pp$Activation<0.9 | pp$Activation>1.1),]
+# pp<-pp[pp$Activation<10 & (pp$Activation<0.9 | pp$Activation>1.1),]
 
 pp[pp$Variable=="PeakPressure",]$Value<-pp[pp$Variable=="PeakPressure",]$Value/1E6
+pp$Activation<-factor(pp$Activation)
+pp<-ddply(pp,.(Foot,Case,Muscle,Phase,Variable,Trial,Activation), function(x) data.frame(Value=mean(x$Value), Percentage=x$Percentage))
+pp$Activation<-as.numeric(pp$Activation)
 npp<-ddply(pp[pp$Variable=="PeakPressure",],.(Foot,Case,Trial,Muscle,Phase,Variable), function(x) data.frame(Value=x$Value/x$Value[x$Percentage == min(as.numeric(levels(factor(x$Percentage))))], Activation=x$Activation, Percentage=x$Percentage))
 
 npp<-npp[npp$Activation!=1 & npp$Value<5,]
@@ -50,7 +53,7 @@ sumLatex<-print(sumTable,include.rownames=F, print.results=F)
 write(insert.headers(sumLatex),paste(outLaTeX,"sumStaticLatex.tex",sep=''))
 
 
-# test<-dlply(npp,.(Muscle,Phase), function(x) lme(Value ~ Activation,x, ~Foot|Case))
+test<-dlply(npp,.(Muscle,Phase,Case), function(x) lme(Value ~ Activation,x, ~1|Foot))
 
 
 svg(paste(outdirg,"muscleEffect.svg",sep=''))
