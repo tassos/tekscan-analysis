@@ -25,6 +25,7 @@ for (i in 1:10) {
 data<-data.frame()
 fLevels<-data.frame()
 ppTArea<-data.frame()
+dataS<-data.frame()
 ppS<-data.frame()
 
 for (j in 1:length(myFile)) {
@@ -82,16 +83,18 @@ for (j in 1:length(myFile)) {
 		}
 	}
 	
-	for (i in 1:groupsS) {
-		case<-dimnames(myData$RdataS)[[1]][[i]]
-		
-		if (case != 'empty') {
-			dimnames(myData$RdataS[[i]][[1]])[[1]]<-myData$RdataS[[i]][[2]]
-			dimnames(myData$RdataS[[i]][[1]])[[2]]<-1:ncol(myData$RdataS[[i]][[1]])
-			dimnames(myData$RdataS[[i]][[1]])[[3]]<-unlist(myData$RdataS[[groupsS+2]])
-			dataTempS[[i]]<-as.data.frame(as.table(myData$RdataS[[i]][[1]]))
-			dataTempS[[i]]$Case<-as.factor(case)
-			dataTempS[[i]]$Foot<-as.factor(foot)
+	if (type != '_Static') {
+		for (i in 1:groupsS) {
+			case<-dimnames(myData$RdataS)[[1]][[i]]
+			
+			if (case != 'empty') {
+				dimnames(myData$RdataS[[i]][[1]])[[1]]<-myData$RdataS[[i]][[2]]
+				dimnames(myData$RdataS[[i]][[1]])[[2]]<-1:ncol(myData$RdataS[[i]][[1]])
+				dimnames(myData$RdataS[[i]][[1]])[[3]]<-unlist(myData$RdataS[[groupsS+2]])
+				dataTempS[[i]]<-as.data.frame(as.table(myData$RdataS[[i]][[1]]))
+				dataTempS[[i]]$Case<-as.factor(case)
+				dataTempS[[i]]$Foot<-as.factor(foot)
+			}
 		}
 	}
 	dataTempT<-ldply(dataTempT, data.frame)
@@ -103,7 +106,6 @@ rm(myData)
 
 colnames(data) <- c("Trial","Percentage","Variable","Value","Case","Foot")
 colnames(ppTArea) <- c("Trial","Percentage","Variable","Value","Case","Foot")
-colnames(dataS) <- c("Trial","Percentage","Variable","Value","Case","Foot")
 data<-factorise(data)
 ppTArea<-factorise(ppTArea)
 if (type == "_Static") {
@@ -127,11 +129,14 @@ if ("PeakPressure" %in% group) {
 	pp$Variable<-NULL
 	pp<-factorise(pp)
 	
-	ppS<-dataS[grep("(PeakPressure)",dataS$Variable),]
-	ppS<-dataS[grep("(PeakPressure).",dataS$Variable, invert=T),]
+	if (type !='_Static') {
+		ppS<-dataS[grep("(PeakPressure)",dataS$Variable),]
+		ppS<-dataS[grep("(PeakPressure).",dataS$Variable, invert=T),]
+		colnames(dataS) <- c("Trial","Percentage","Variable","Value","Case","Foot")
+		save('ppS',file=paste(outdir,'peakPressureNeutral',type,'.RData',sep=''))
+	}
 	
 	save('pp',file=paste(outdir,'peakPressure',type,'.RData',sep=''))
-	save('ppS',file=paste(outdir,'peakPressureNeutral',type,'.RData',sep=''))
 	save('ppArea',file=paste(outdir,'ppArea',type,'.RData',sep=''))
 }
 
