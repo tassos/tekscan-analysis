@@ -36,6 +36,7 @@ function measurementsComparison
         load([measPathName measFileName{1}],'calibratedData');
         data=nan([size(measFileName),size(calibratedData)]);
         fLevels=nan([size(measFileName,2),size(calibratedData,1),7]);
+        origFLevels=nan([size(measFileName,2),size(calibratedData,1),7]);
 
         % Remove files that are not really measurements
         faulty= ~cellfun('isempty',strfind(measFileName,'calibration.mat'));
@@ -47,9 +48,11 @@ function measurementsComparison
         % Load calibrated data from measurement files
         for i=1:size(measFileName,2)
             if static
-                load([measPathName measFileName{i}],'forceLevels');
+                load([measPathName measFileName{i}],'forceLevels','origForceLevels');
                 fLevels(:,length(fLevels)+1:length(forceLevels),:)=NaN;
                 fLevels(i,1:size(forceLevels,1),:) = forceLevels;
+                origFLevels(:,length(origFLevels)+1:length(origForceLevels),:)=NaN;
+                origFLevels(i,1:size(origForceLevels,1),:) = origForceLevels;
             end
             load([measPathName measFileName{i}],'calibratedData','spacing','fileName');
             data(1,:,length(data)+1:length(calibratedData),:,:)=NaN;
@@ -167,6 +170,7 @@ function measurementsComparison
                         if static
                             Rdata.(casesSpace{j}(1:end-1)).fLevels(k,:,:) = fLevels(k,:,1:end-1);
                             Rdata.(casesSpace{j}(1:end-1)).posLevels(k,:) = fLevels(k,:,end);
+                            Rdata.(casesSpace{j}(1:end-1)).origFLevels(k,:,:) = origFLevels(k,:,1:end-1);
                         end
                     elseif ~isempty(strfind(measFileName{i},cases{j})) && ~isempty(strfind(measFileName{i},'static'))
                         p=p+1;
