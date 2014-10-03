@@ -126,7 +126,6 @@ if ("PeakPressure" %in% group) {
 	#Cleaning up of bad or non used measurements
 	pp<-data[grep("(PeakPressure)",data$Variable),]
 	pp<-pp[grep("(PeakPressure).",pp$Variable, invert=T),]
-	pp$Variable<-NULL
 	pp<-factorise(pp)
 	
 	if (type !='_Static') {
@@ -148,14 +147,17 @@ if ("force" %in% group) {
 	forceArea<-factorise(forceArea)
 
 	force<-data[grep("(forceTotal)",data$Variable),]
-	forceS<-dataS[grep("(forceTotal)",dataS$Variable),]
 
 	#Cleaning up of bad or non used measurements
 	force<-factorise(force)
-	forceS<-factorise(forceS)
+	
+	if (type !='_Static') {
+		forceS<-dataS[grep("(forceTotal)",dataS$Variable),]
+		forceS<-factorise(forceS)
+		save('forceS',file=paste(outdir,'forceNeutral',type,'.RData',sep=''))
+	}
 	
 	save('force',file=paste(outdir,'force',type,'.RData',sep=''))
-	save('forceS',file=paste(outdir,'forceNeutral',type,'.RData',sep=''))
 	save('forceArea',file=paste(outdir,'forceArea',type,'.RData',sep=''))
 }
 
