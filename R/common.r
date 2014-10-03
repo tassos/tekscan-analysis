@@ -108,22 +108,23 @@ cohens_d <- function(x, y) {
     cd  <- md/csd                        ## cohen's d
 }
 
+# Function for producing the graphs of the fourth article on peak pressure distribution
+# It takes two png files, merges them in an svg and then exports that to a png. Neat eh?
 save_png <- function(height,width,bone,filename) {
+	x<- paste('<svg version="1.2" width="',width+50,'pt" height="',height-100,'pt" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n',
+	' <image height="',height,'" width="',width,'" x="200" xlink:href="Area_Time_',bone,'.png" y="0"/>',
+	' <image height="200" width="200.0" x="0" xlink:href="',bone,' bottom.png" y="',(height-200)/2,'"/>',
+	'</svg>',sep='')
 
-x<- paste('<svg version="1.2" width="',width+50,'pt" height="',height-100,'pt" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n',
-' <image height="',height,'" width="',width,'" x="200" xlink:href="Area_Time_',bone,'.png" y="0"/>',
-' <image height="200" width="200.0" x="0" xlink:href="',bone,' bottom.png" y="',(height-200)/2,'"/>',
-'</svg>',sep='')
+	write(x,file=paste(filename,bone,'.svg',sep=''))
 
-write(x,file=paste(filename,bone,'.svg',sep=''))
+	OS <- .Platform$OS.type
+	if (OS=="windows") {
+		magickPath<-'c:/"Program Files"/ImageMagick/6.8.9-Q16/'
+	}
+	if (OS=="unix") {
+		magickPath<-''
+	}
 
-OS <- .Platform$OS.type
-if (OS=="windows") {
-	magickPath<-'c:/"Program Files"/ImageMagick/6.8.9-Q16/'
-}
-if (OS=="unix") {
-	magickPath<-''
-}
-
-shell(paste(magickPath,'convert "',filename,bone,'.svg" "',filename,bone,'.png"',sep=''))
+	shell(paste(magickPath,'convert "',filename,bone,'.svg" "',filename,bone,'.png"',sep=''))
 }
