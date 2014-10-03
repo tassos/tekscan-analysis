@@ -2,6 +2,7 @@ require(ggplot2)
 require(plyr)
 require(grid)
 require(xtable)
+library(lattice)
 require(lme4)
 
 rm(list=ls())
@@ -16,7 +17,7 @@ threshold<-c(-.1,-.05,0,.05,.1)
 labels<-c('Very (-)','Slightly (-)','Poorly (-)','Poorly (+)','Slightly (+)','Very (+)')
 
 load(paste(outdir,'ppArea_Static.RData',sep=''))
-load(paste(outdir,'peakPressure_Static_Normalised.RData',sep=''))
+load(paste(outdir,'peakPressure_Static.RData',sep=''))
 load(paste(outdir,'CoP_Static.RData',sep=''))
 outdirg=paste(outdirg,'Clinical Orthopaedics and Related Research/muscleActivation/Figures/',sep='')
 outLaTeX<-paste(outdirg,"LaTeX/",sep='')
@@ -36,35 +37,47 @@ pp<-pp[pp$Activation<10,]
 
 pp$Activation<-factor(pp$Activation)
 #Finding the default value for each muscle, phase, case, foot and trial.
-pp<-ddply(pp,.(Foot,Case,Phase,Variable,Trial), function(x) data.frame(Muscle=x$Muscle, Activation=x$Activation, Value=x$Value, Default=unique(x[x$Percentage == min(as.character(x$Percentage)),]$Value)), .inform=T)
-pp<-ddply(pp,.(Foot,Case,Muscle,Phase,Variable,Trial,Activation), function(x) data.frame(Value=mean(x$Value), Default=mean(x$Default)))
+pp<-ddply(pp,.(Foot,Case,Phase,Variable,Trial), function(x) data.frame(RawActiv=x$RawActiv, Muscle=x$Muscle, Activation=x$Activation, Value=x$Value, Default=unique(x[x$Percentage == min(as.character(x$Percentage)),]$Value)), .inform=T)
+pp<-ddply(pp,.(Foot,Case,Muscle,Phase,Variable,Trial,Activation), function(x) data.frame(RawActiv=mean(x$RawActiv), Value=mean(x$Value), Default=mean(x$Default)))
 pp$Activation<-as.numeric(as.character(pp$Activation))
-npp<-ddply(pp[pp$Variable=="PeakPressure",],.(Foot,Case,Trial,Muscle,Phase,Variable), function(x) data.frame(Value=x$Value/x$Default, Activation=x$Activation))
+pp<-pp[pp$Activation!=1,]
+pp<-pp[complete.cases(pp),]
+pp<-factorise(pp)
 
-npp<-npp[npp$Activation!=1,]
-npp<-npp[complete.cases(npp),]
-npp<-factorise(npp)
+npp<-ddply(pp,.(Foot,Case,Trial,Muscle,Phase,Variable), function(x) data.frame(Value=x$Value/x$Default, Activation=x$Activation))
 
 # reg<-dlply(rbind(npp,pp[grep("CoP",pp$Variable),1:8]),.(Foot,Case,Trial,Muscle,Phase,Variable), function(x) summary(lm(x$Value ~ x$Activation)))
 # regression<-ldply(reg,function(x) data.frame(Yintercept = x$coefficients[1], Slope=x$coefficients[2], r2=x$r.squared, p=x$coefficients[2,4]))
 # regSum<-ddply(regression,.(Case,Muscle,Phase,Variable), function(x) classify(x$Slope,tan(threshold),labels))
 
-# sumTable<-xtable(subset(regSum,Variable=="PeakPressure"),caption='Summary of results',digits=4)#,align="rll|l|lcc|cccc")
-# sumLatex<-print(sumTable,include.rownames=F, print.results=F)
-# write(insert.headers(sumLatex),paste(outLaTeX,"sumStaticLatex.tex",sep=''))
+# fm0<-dlply(pp,.(Variable,Muscle,Phase,Case), function(x) lmer(Value ~ RawActiv +(1| Foot),data = x))
+# fm1<-dlply(pp,.(Variable,Muscle,Phase,Case), function(x) lmer(scale(Value) ~ scale(RawActiv) +(1| Foot),data = x))
+fm2<-dlply(npp,.(Variable,Muscle,Phase,Case), function(x) lmer(Value ~ Activation +(1 | Foot),data = x))
 
-fm1<-dlply(npp,.(Case,Muscle,Phase), function(x) lmer(Value ~ Activation + (1|Foot),data = x))
-fm2<-dlply(subset(pp,Variable!="PeakPressure"),.(Variable,Case,Muscle,Phase), function(x) lmer(Value ~ Activation + (1|Foot),data = x), .inform=T)
+# fm0.coef<-ldply(fm0,function(x) fixef(x))
+# fm1.coef<-ldply(fm1,function(x) fixef(x))
+fm2.coef<-ldply(fm2,function(x) fixef(x))
+
+sumTable<-xtable(subset(fm2.coef,Variable=="PeakPressure"),caption='Summary of results',digits=4)#,align="rll|l|lcc|cccc")
+sumLatex<-print(sumTable,include.rownames=F, print.results=F)
+write(sumLatex,paste(outLaTeX,"sumStaticLatex.tex",sep=''))
+
 
 # svg(paste(outdirg,"muscleEffect.svg",sep=''))
-p<-ggplot(subset(npp,Variable=="PeakPressure"), aes(Activation, Value, color=Case))+geom_point()#+geom_abline(aes(intercept=Yintercept, slope=Slope, color=Case),data=regression)
+p<-ggplot(subset(pp,Variable=="PeakPressure"), aes(scale(RawActiv), scale(Value), color=Case))+geom_point()#+geom_abline(aes(intercept=Yintercept, slope=Slope, color=Case),data=regression)
 p<-p+geom_smooth(aes(group=Case, fill=Case),method="lm", size=1, alpha=0.2, fullrange=T)
 p<-p+scale_y_continuous(name="Normalised Peak Pressure")
 p<-p+facet_grid(Muscle ~ Phase)
 print(p)
 # dev.off()
 
-# xyplot(Value ~ Activation | Foot, test, type = c("g","p","r"), index = function(x,y) coef(lm(y ~ x))[1], xlab = "Days of sleep deprivation", ylab = "Average reaction time (ms)", aspect = "xy")
+p<-ggplot(subset(npp,Variable=="PeakPressure"), aes(Activation, Value, color=Case))+geom_point()#+geom_abline(aes(intercept=Yintercept, slope=Slope, color=Case),data=regression)
+p<-p+geom_smooth(aes(group=Case, fill=Case),method="lm", size=1, alpha=0.2, fullrange=T)
+p<-p+scale_y_continuous(name="Normalised Peak Pressure")
+p<-p+facet_grid(Muscle ~ Phase)
+print(p)
+
+xyplot(Value ~ RawActiv | Foot+Variable, pp, type = c("g","p","r"), index = function(x,y) coef(lm(y ~ x))[1], aspect = "xy")
 
 svg(paste(outdirg,"muscleCoPAP.svg",sep=''))
 p<-ggplot(subset(pp,Variable=="CoP A/P"), aes(Activation, Value, color=Case))+geom_point()#+geom_abline(aes(intercept=Yintercept, slope=Slope, color=Case),data=regression)
