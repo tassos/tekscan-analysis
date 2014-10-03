@@ -58,6 +58,7 @@ for (j in 1:length(myFile)) {
 				dimnames(myData$Rdata[[i]][[4]])[[2]]<-1:ncol(myData$Rdata[[i]][[3]])
 				fLevelsTemp[[i]] <- as.data.frame(as.table(myData$Rdata[[i]][[3]]))
 				fLevelsTemp[[i]]$Phase <- as.factor(as.data.frame(as.table(myData$Rdata[[i]][[4]]))$Freq)
+				fLevelsTemp[[i]]$RawActiv <- as.numeric(as.data.frame(as.table(myData$Rdata[[i]][[5]]))$Freq)
 				fLevelsTemp[[i]]$Case<-as.factor(case)
 				fLevelsTemp[[i]]$Foot<-as.factor(foot)
 			}
@@ -102,7 +103,7 @@ for (j in 1:length(myFile)) {
 	dataTempS<-ldply(dataTempS, data.frame)
 	dataS<-rbind(dataS,dataTempS)
 }
-rm(myData)
+# rm(myData)
 
 colnames(data) <- c("Trial","Percentage","Variable","Value","Case","Foot")
 colnames(ppTArea) <- c("Trial","Percentage","Variable","Value","Case","Foot")
@@ -110,7 +111,7 @@ data<-factorise(data)
 ppTArea<-factorise(ppTArea)
 if (type == "_Static") {
 	fLevels<-fLevels[complete.cases(fLevels),]
-	colnames(fLevels) <- c("Trial","Percentage","Muscle","Activation","Phase","Case","Foot")
+	colnames(fLevels) <- c("Trial","Percentage","Muscle","Activation","Phase","RawActiv","Case","Foot")
 	data<-merge(data, fLevels, by=c("Trial","Percentage","Case","Foot"))
 }
 data<-data[complete.cases(data),]
