@@ -105,10 +105,10 @@ for z=1:size(directories,2)
         fileName = [lower(footnumber) '_' fileNameRt];
         if static
             fileName = regexprep(fileName,'Static*\d',footcase); %Replacing Static# with the foot case
-            [calibratedData, forceLevels] =...
-                staticProtocolAnalysis(calibratedData,measPathName,fileNameRt,foottype,footnumber,'pres'); %#ok<NASGU> Variables are saved below
+            [calibratedData, forceLevels, origForceLevels] =...
+                staticProtocolAnalysis(calibratedData,measPathName,fileNameRt,foottype,footnumber,'pres'); %#ok<*ASGLU,NASGU> Variables are saved below
             if length(calibratedData)~=1
-                save([measPathName 'StaticProtocol/Organised_' fileName '.mat'],'forceLevels','calibratedData','spacing','fileName');
+                save([measPathName 'StaticProtocol/Organised_' fileName '.mat'],'forceLevels','origForceLevels','calibratedData','spacing','fileName');
             end
         else
             save([measPathName 'Calibrated_' fileName '.mat'],'calibratedData','spacing','fileName');
