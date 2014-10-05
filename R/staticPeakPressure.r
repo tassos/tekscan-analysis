@@ -49,19 +49,17 @@ npp<-ddply(pp,.(Foot,Case,Trial,Muscle,Phase,Variable), function(x) data.frame(V
 
 # fm0<-dlply(pp,.(Variable,Muscle,Phase,Case), function(x) lmer(Value ~ RawActiv +(1| Foot),data = x))
 # fm1<-dlply(pp,.(Variable,Muscle,Phase,Case), function(x) lmer(scale(Value) ~ scale(RawActiv) +(1| Foot),data = x))
-fm2<-dlply(subset(npp,Variable=="PeakPressure"),.(Phase,Muscle,Case), function(x) lmer(Value ~ Activation +(1 | Foot),data = x))
+fm2<-dlply(npp,.(Variable,Phase,Muscle,Case), function(x) lmer(Value ~ Activation +(1 | Foot),data = x))
 
 # fm0.coef<-ldply(fm0,function(x) fixef(x))
 # fm1.coef<-ldply(fm1,function(x) fixef(x))
 fm2.coef<-ldply(fm2,function(x) c(fixef(x),coef(summary(x))['Activation',]))
 
 # Rounding off to two digits and changing the column names for nicer printing
-fm2.coef[,c(4,5,6,7,8)]<-round(fm2.coef[,c(4,5,6,7,8)],3)
-dimnames(fm2.coef)[[2]][4]<-'Intercept'
-dimnames(fm2.coef)[[2]][7]<-'Std.error'
-dimnames(fm2.coef)[[2]][8]<-'t.value'
-sumTable<-tabular((Phase*Muscle*Case)~Heading()*(identity)*(Intercept+Estimate + Std.error + t.value), data=fm2.coef)
-suppress<-latex(sumTable,paste(outLaTeX,"sumStaticLatex.tex",sep=''),caption='Summary of results',label='tab:Summary',digits=3)
+fm2.coef[,c(5,6,7,8,9)]<-round(fm2.coef[,c(5,6,7,8,9)],3)
+dimnames(fm2.coef)[[2]][c(5,8,9)]<-c('Intercept','Std.error','t.value')
+sumTable<-tabular((Phase*Case*Muscle)~Heading()*(identity)*(Estimate)*Heading()*Variable, data=fm2.coef)
+suppress<-latex(sumTable,paste(outLaTeX,"peakPressure.tex",sep=''),label='tab:Summary',digits=3)
 
 height<-700
 width<-800
@@ -75,7 +73,7 @@ print(p)
 dev.off()
 
 png(paste(outdirg,"muscleCoPAP.png",sep=''), height=height, width=width, res=100)
-p<-ggplot(subset(pp,Variable=="CoP A/P"), aes(Activation, Value, color=Case))+geom_point()#+geom_abline(aes(intercept=Yintercept, slope=Slope, color=Case),data=regression)
+p<-ggplot(subset(npp,Variable=="CoP A/P"), aes(Activation, Value, color=Case))+geom_point()#+geom_abline(aes(intercept=Yintercept, slope=Slope, color=Case),data=regression)
 p<-p+geom_abline(aes(intercept=Intercept, slope=Estimate, color=Case), data=fm2.coef)
 p<-p+scale_y_continuous(name="CoP A/P")
 p<-p+facet_grid(Muscle ~ Phase)
@@ -83,7 +81,7 @@ print(p)
 dev.off()
 
 png(paste(outdirg,"muscleCoPML.png",sep=''), height=height, width=width, res=100)
-p<-ggplot(subset(pp,Variable=="CoP M/L"), aes(Activation, Value, color=Case))+geom_point()#+geom_abline(aes(intercept=Yintercept, slope=Slope, color=Case),data=regression)
+p<-ggplot(subset(npp,Variable=="CoP M/L"), aes(Activation, Value, color=Case))+geom_point()#+geom_abline(aes(intercept=Yintercept, slope=Slope, color=Case),data=regression)
 p<-p+geom_abline(aes(intercept=Intercept, slope=Estimate, color=Case), data=fm2.coef)
 p<-p+scale_y_continuous(name="CoP M/L")
 p<-p+facet_grid(Muscle ~ Phase)
