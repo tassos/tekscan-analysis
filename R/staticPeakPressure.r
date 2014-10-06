@@ -22,6 +22,7 @@ load(paste(outdir,'peakL_Static.Rdata',sep=''))
 outdirg=paste(outdirg,'Clinical Orthopaedics and Related Research/muscleActivation/Figures/',sep='')
 
 pp<-rbind(pp,CoP,peakL)
+cat(format(Sys.time(), "%H:%M:%S"),' Manipulating input data\n')
 
 #Removing the two inactive muscles
 pp<-pp[grep('(Flex Hal)|(Flex Dig)',pp$Muscle, invert=T),]
@@ -42,6 +43,7 @@ pp<-pp[pp$Activation!=1 & pp$Activation<10,]
 # Normalising the measured variable
 npp<-ddply(subset(pp,Variable=="PeakPressure"),.(Foot,Case,Trial,Muscle,Phase,Variable), function(x) data.frame(Value=x$Value/x$Default, Activation=x$Activation))
 
+cat(format(Sys.time(), "%H:%M:%S"),' Calculating mixed-effects models\n')
 # Constructing linear mixed-effect models for each phase and muscle and case for the peak pressure as a response. The Activation is the fixed effect variable while the Foot is the random one.
 fm0<-factorise(fit_model(npp,"PeakPressure",0))
 fm1<-factorise(fit_model(pp,"CoP",1))
@@ -54,6 +56,8 @@ dimnames(cop)[[2]][c(7:11)]<-c('PP','CoPAP','CoPML','PLAP','PLML')
 # Gathering the model estimates for drawing the predictor arrows
 fm1<-reshape(fm1, idvar=c("Phase","Muscle","Case"), timevar="Variable", direction="wide")
 fm2<-reshape(fm2, idvar=c("Phase","Muscle","Case"), timevar="Variable", direction="wide")
+
+cat(format(Sys.time(), "%H:%M:%S"),' Plotting figures\n')
 
 # Defining height and width for the output figures and plotting
 height<-700
@@ -88,6 +92,8 @@ p<-ggplot(cop, aes(PLML, PLAP, color=Case))+geom_point(aes(alpha=PP))+
 	facet_grid(Muscle ~ Phase)
 print(p)
 dev.off()
+
+cat(format(Sys.time(), "%H:%M:%S"),' Exporting to LaTeX\n')
 
 # Merging the two location models
 names(fm1)[1]<-'Direction'
