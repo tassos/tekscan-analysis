@@ -24,16 +24,18 @@ outdirg=paste(outdirg,'Clinical Orthopaedics and Related Research/muscleActivati
 pp<-rbind(pp,CoP,peakL)
 cat(format(Sys.time(), "%H:%M:%S"),' Manipulating input data\n')
 
-#Removing the two inactive muscles
+# Removing the two inactive muscles
 pp<-pp[grep('(Flex Hal)|(Flex Dig)',pp$Muscle, invert=T),]
 pp$Case<-mapvalues(pp$Case,from=c("Tekscan","TAP","TA"), to=c("Native","TAA","TAA+TA"))
 pp$Phase<-mapvalues(pp$Phase,from=c("1","2","3"), to=c("Foot-flat","Mid-stance","Toe-off"))
+# Inverting so that Anterior is positive and posterior negative
+pp[grep('A/P',pp$Variable),]$Value<--pp[grep('A/P',pp$Variable),]$Value
 pp<-subset(pp,Case!='TAA+TA')
 pp<-pp[complete.cases(pp),]
 pp$Activation<-round(pp$Activation,1)
 pp<-factorise(pp)
 
-#Finding the default value for each muscle, phase, case, foot and trial.
+# Finding the default value for each muscle, phase, case, foot and trial.
 pp$Activation<-factor(pp$Activation)
 pp<-ddply(pp,.(Foot,Case,Phase,Variable,Trial), function(x) data.frame(RawActiv=x$RawActiv, Muscle=x$Muscle, Activation=x$Activation, Value=x$Value, Default=unique(x[x$Percentage == min(as.character(x$Percentage)),]$Value)), .inform=T)
 pp<-ddply(pp,.(Foot,Case,Muscle,Phase,Variable,Trial,Activation), function(x) data.frame(RawActiv=mean(x$RawActiv), Value=mean(x$Value), Default=mean(x$Default)))
@@ -51,7 +53,7 @@ fm0<-factorise(fit_model(npp,"PeakPressure",0))
 fm1<-factorise(fit_model(pp,"CoP",1))
 fm2<-factorise(fit_model(pp,"PeakLocation",1))
 
-#Converting to a wide format, so that I can use the different variables for the aesthetics of the plot
+# Converting to a wide format, so that I can use the different variables for the aesthetics of the plot
 cop<-reshape(pp, idvar=c("Foot","Case","Muscle","Phase","Trial","Activation"), timevar="Variable", varying=list(c('PP','CoPAP','CoPML','PLAP','PLML')), drop=c('Default','RawActiv'), direction="wide")
 cop<-cop[complete.cases(cop),]
 
@@ -69,7 +71,7 @@ res<-150
 png(paste(outdirg,"muscleEffect.png",sep=''), height, width, res=res)
 p<-ggplot(npp, aes(Activation, Value, color=Case))+geom_point()+
 	geom_abline(aes(intercept=Intercept, slope=Activation, color=Case), size=1, data=fm0)+
-	scale_y_continuous(name="Normalised Peak Pressure")+
+	scale_y_continuous(name="Normalised peak pressure")+scale_x_continuous(name="Normalised muscle force")+
 	theme(axis.title=element_text(size=20),axis.text=element_text(colour='black', size=12),strip.text=element_text(size=12))+
 	theme(legend.title=element_text(size=20), legend.text=element_text(size=12))+
 	facet_grid(Muscle ~ Phase)
@@ -81,7 +83,7 @@ p<-ggplot(cop, aes(CoPML, CoPAP, color=Case))+geom_point(aes(alpha=PP))+
 	scale_alpha_continuous(guide = guide_legend(title = "Peak Pressure"))+
 	geom_segment(aes(x=Intercept.ML, y=Intercept.AP, xend=Intercept.ML+Activation.ML*10,
 	yend=Intercept.AP+Activation.AP*10), color=c("red",'blue'), size=1, data=fm1r, arrow = arrow(length=unit(0.3,'cm')))+
-	scale_x_continuous(name="CoP medial-lateral",limits=c(-16,16))+scale_y_continuous(name="CoP anterior-posterior", limits=c(-23,23))+
+	scale_x_continuous(name="CoP medial(-)/lateral(+) (mm)",limits=c(-16,16))+scale_y_continuous(name="CoP posterior(-)/anterior(+) (mm)", limits=c(-23,23))+
 	theme(axis.title=element_text(size=20),axis.text=element_text(colour='black', size=12),strip.text=element_text(size=12))+
 	theme(legend.title=element_text(size=20), legend.text=element_text(size=12))+
 	facet_grid(Muscle ~ Phase)
@@ -93,7 +95,7 @@ p<-ggplot(cop, aes(PLML, PLAP, color=Case))+geom_point(aes(alpha=PP))+
 	scale_alpha_continuous(guide = guide_legend(title = "Peak Pressure"))+
 	geom_segment(aes(x=Intercept.ML, y=Intercept.AP, xend=Intercept.ML+Activation.ML*10,
 	yend=Intercept.AP+Activation.AP*10), color=c("red",'blue'), size=1, data=fm2r, arrow = arrow(length=unit(0.3,'cm')))+
-	scale_x_continuous(name="Peak Pressure medial-lateral",limits=c(-16,16))+scale_y_continuous(name="Peak Pressure anterior-posterior", limits=c(-23,23))+
+	scale_x_continuous(name="Peak Pressure medial(-)/lateral(+) (mm)",limits=c(-16,16))+scale_y_continuous(name="Peak Pressure posterior(-)/anterior(+) (mm)", limits=c(-23,23))+
 	theme(axis.title=element_text(size=20),axis.text=element_text(colour='black', size=12),strip.text=element_text(size=12))+
 	theme(legend.title=element_text(size=20), legend.text=element_text(size=12))+
 	facet_grid(Muscle ~ Phase)
