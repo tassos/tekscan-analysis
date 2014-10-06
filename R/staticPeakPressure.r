@@ -47,27 +47,13 @@ fm0<-factorise(fit_model(npp,"PeakPressure",0))
 fm1<-factorise(fit_model(pp,"CoP",1))
 fm2<-factorise(fit_model(pp,"PeakLocation",1))
 
-# Merging the two location models
-names(fm1)[1]<-'Direction'
-fm1$Variable<-factor("Center of Pressure")
-names(fm2)[1]<-'Direction'
-fm2$Variable<-factor("Peak Location")
-fm12<-rbind(fm1,fm2)
-
-# Rounding off to two digits and changing the column names for nicer printing
-sumTablePP<-tabular(Phase*Case*Muscle~Heading()*identity*Activation*Heading()*Variable, data=fm0)
-suppress<-latex(sumTablePP,paste(outdirg,"LaTeX/peakPressure.tex",sep=''))
-
-sumTableCoP<-tabular(Phase*Case*Muscle~Variable*Direction*Heading()*identity*(Intercept+Activation), data=fm12)
-suppress<-latex(sumTableCoP,paste(outdirg,"LaTeX/Location.tex",sep=''))
-
 #Converting to a wide format, so that I can use the different variables for the aesthetics of the plot
 cop<-reshape(pp, idvar=c("Foot","Case","Trial","Phase","Muscle","Activation"), timevar="Variable", drop=c('Default','RawActiv'), direction="wide")
 dimnames(cop)[[2]][c(7:11)]<-c('PP','CoPAP','CoPML','PLAP','PLML')
 
 # Gathering the model estimates for drawing the predictor arrows
 fm1<-reshape(fm1, idvar=c("Phase","Muscle","Case"), timevar="Variable", direction="wide")
-fm2<-reshape(fm2., idvar=c("Phase","Muscle","Case"), timevar="Variable", direction="wide")
+fm2<-reshape(fm2, idvar=c("Phase","Muscle","Case"), timevar="Variable", direction="wide")
 
 # Defining height and width for the output figures and plotting
 height<-700
@@ -92,3 +78,27 @@ p<-ggplot(cop, aes(CoPML, CoPAP, color=Case))+geom_point(aes(alpha=PP))+
 	facet_grid(Muscle ~ Phase)
 print(p)
 dev.off()
+
+png(paste(outdirg,"musclePP.png",sep=''), height, width, res=100)
+p<-ggplot(cop, aes(PLML, PLAP, color=Case))+geom_point(aes(alpha=PP))+
+	geom_segment(aes(x=Intercept.ML, y=Intercept.AP, xend=Intercept.ML+Activation.ML*10,
+	yend=Intercept.AP+Activation.AP*10), color=c("red",'blue'), size=1, data=fm2, arrow = arrow(length=unit(0.3,'cm')))+
+	scale_x_continuous(name="Peak Pressure medial-lateral",limits=c(-16,16))+scale_y_continuous(name="Peak Pressure anterior-posterior", limits=c(-23,23))+
+	theme(axis.title=element_text(size=20),axis.text=element_text(colour='black', size=12),strip.text=element_text(size=12))+
+	facet_grid(Muscle ~ Phase)
+print(p)
+dev.off()
+
+# Merging the two location models
+names(fm1)[1]<-'Direction'
+fm1$Variable<-factor("Center of Pressure")
+names(fm2)[1]<-'Direction'
+fm2$Variable<-factor("Peak Location")
+fm12<-rbind(fm1,fm2)
+
+# Rounding off to two digits and changing the column names for nicer printing
+sumTablePP<-tabular(Phase*Case*Muscle~Heading()*identity*Activation*Heading()*Variable, data=fm0)
+suppress<-latex(sumTablePP,paste(outdirg,"LaTeX/peakPressure.tex",sep=''))
+
+sumTableCoP<-tabular(Phase*Case*Muscle~Variable*Direction*Heading()*identity*(Intercept+Activation), data=fm12)
+suppress<-latex(sumTableCoP,paste(outdirg,"LaTeX/Location.tex",sep=''))
