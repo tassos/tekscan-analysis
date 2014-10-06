@@ -1,10 +1,10 @@
-function CoP = plotCenterPressure (pos, x, y, data, toPlot)
+function CoP = plotCenterPressure (pos, x, y, data, toPlot, rowSpacing, colSpacing)
     CoP=zeros(size(data,2),size(data,3),2);
     for k=1:size(data,2)
         for l=1:size(data,3)
             dataTemp = squeeze(data(1,k,l,:,:));
-            CoP(k,l,1)=sum(sum(x.*dataTemp))/sum(dataTemp(:));
-            CoP(k,l,2)=sum(sum(y.*dataTemp))/sum(dataTemp(:));
+            CoP(k,l,1)=sum(sum(x.*dataTemp))/sum(dataTemp(:))*rowSpacing*1000;
+            CoP(k,l,2)=sum(sum(y.*dataTemp))/sum(dataTemp(:))*colSpacing*1000;
         end
     end
     if strcmp(toPlot,'Yes')

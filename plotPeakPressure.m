@@ -1,4 +1,4 @@
-function [peakPressure, peakLocation] = plotPeakPressure(pos, h, x, y, data, legendNames, toPlot)
+function [peakPressure, peakLocation] = plotPeakPressure(pos, h, x, y, data, legendNames, toPlot, rowSpacing, colSpacing)
     
     coleurMeas=hsv(size(data,2));
     coleurStat={[0.9,0.9,1],'b'};
@@ -13,8 +13,8 @@ function [peakPressure, peakLocation] = plotPeakPressure(pos, h, x, y, data, leg
                 r=NaN;
                 c=NaN;
             end
-            peakLocation(k,l,1)=mean(r)-max(x(:));
-            peakLocation(k,l,2)=mean(c)-max(y(:));
+            peakLocation(k,l,1)=(mean(r)-max(x(:)))*rowSpacing*1000;
+            peakLocation(k,l,2)=(mean(c)-max(y(:)))*colSpacing*1000;
         end
     end
     

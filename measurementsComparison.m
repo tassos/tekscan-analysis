@@ -123,14 +123,14 @@ function measurementsComparison
             plotForceArea (pos2, pos3, data, rows, cols, rowsPlot, colsPlot, senselArea, toPlot);
 
         % Plot peak pressure over stance phase
-        [peakPressure, peakLocation] = plotPeakPressure (pos6, h, x, y, data, legendNames, toPlot);
+        [peakPressure, peakLocation] = plotPeakPressure (pos6, h, x, y, data, legendNames, toPlot, rowSpacing, colSpacing);
 
         % Plot peak pressure for the different sub-areas
         [pressureArea, pressureAreaHeader] = plotPeakArea (pos6, data, rows, cols, rowsPlot, colsPlot, toPlot);
 
         % Plot location of center of pressure in two directions over stance
         % phase
-        CoP = plotCenterPressure (pos4, x, y, data, toPlot);
+        CoP = plotCenterPressure (pos4, x, y, data, toPlot, rowSpacing, colSpacing);
 
         % Plot total force through the joint over stance phase
         forceTotal = plotForceTotal (pos5, h, data, senselArea, legendNames, toPlot);
