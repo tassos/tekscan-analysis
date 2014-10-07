@@ -78,6 +78,8 @@ p<-ggplot(npp, aes(Activation, Value, color=Case))+geom_point()+
 print(p)
 dev.off()
 
+cop2<-cop[cop$PP<2e7,]
+
 png(paste(outdirg,"muscleCoP.png",sep=''), height, width, res=res)
 p<-ggplot(cop, aes(CoPML, CoPAP, color=Case))+geom_point(aes(alpha=PP))+
 	scale_alpha_continuous(guide = guide_legend(title = "Peak Pressure"))+
@@ -115,5 +117,5 @@ fm12<-rbind(fm1,fm2)
 sumTablePP<-tabular(Phase*Case*Muscle~Heading()*identity*Variable*(Intercept+Activation), data=fm0)
 suppress<-latex(sumTablePP,paste(outdirg,"LaTeX/peakPressure.tex",sep=''))
 
-sumTableCoP<-tabular(Phase*Case*Muscle~Heading()*Variable*Heading()*Direction*Heading()*identity*(Intercept+Activation), data=fm12)
-suppress<-latex(sumTableCoP,paste(outdirg,"LaTeX/Location.tex",sep=''))
+sumTableCoP<-tabular(Phase*Case*Muscle~Heading()*Variable*Heading()*Direction*Heading()*identity*(Intercept+Activation), data=fm1)
+suppress<-latex(sumTableCoP,paste(outdirg,"LaTeX/Location.tex",sep=''), options=list(titlerule = '\\cline' ))
