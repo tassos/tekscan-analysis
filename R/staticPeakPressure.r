@@ -50,17 +50,19 @@ npp<-npp[complete.cases(npp),]
 
 cat(format(Sys.time(), "%H:%M:%S"),' Calculating mixed-effects models\n')
 # Constructing linear mixed-effect models for each phase and muscle and case for the peak pressure as a response. The Activation is the fixed effect variable while the Foot is the random one.
-fm0<-factorise(fit_model(npp,"PeakPressure",0))
-fm1<-factorise(fit_model(pp,"CoP",1))
-fm2<-factorise(fit_model(pp,"PeakLocation",1))
+fm0<-factorise(fit_model(npp,"PeakPressure",0,pLevel))
+fm1<-factorise(fit_model(pp,"CoP",1,pLevel))
+fm2<-factorise(fit_model(pp,"PeakLocation",1,pLevel))
 
 # Converting to a wide format, so that I can use the different variables for the aesthetics of the plot
 cop<-reshape(pp, idvar=c("Foot","Case","Muscle","Phase","Activation"), timevar="Variable", varying=list(c('PP','CoPAP','CoPML','PLAP','PLML')), drop=c('Default','RawActiv'), direction="wide")
 cop<-cop[complete.cases(cop),]
 
 # Gathering the model estimates for drawing the predictor arrows
-fm1r<-reshape(fm1, idvar=c("Phase","Muscle","Case"), timevar="Variable", direction="wide")
-fm2r<-reshape(fm2, idvar=c("Phase","Muscle","Case"), timevar="Variable", direction="wide")
+fm1r<-reshape(fm1, idvar=c("Phase","Muscle","Case","maxActiv"), timevar="Variable", direction="wide")
+fm2r<-reshape(fm2, idvar=c("Phase","Muscle","Case","maxActiv"), timevar="Variable", direction="wide")
+fm1r$p.star<-ifelse((fm1r$p.star.AP=="*"&fm1r$p.star.ML=="*"),"*"," ")
+fm2r$p.star<-ifelse((fm2r$p.star.AP=="*"&fm2r$p.star.ML=="*"),"*"," ")
 
 cat(format(Sys.time(), "%H:%M:%S"),' Plotting figures\n')
 
@@ -71,6 +73,7 @@ res<-150
 
 png(paste(outdirg,"muscleEffect.png",sep=''), height, width, res=res)
 p<-ggplot(npp, aes(Activation, Value, color=Case))+geom_point(alpha=0.8)+
+	geom_text(data=fm0, aes(x=15, y=3*as.numeric(Case), label=p.star), color=c("firebrick","darkblue"), size=8)+
 	geom_segment(aes(x=0, y=Intercept, xend=maxActiv+1,
 	yend=Intercept+Activation*(maxActiv+1)), color=c("red",'darkblue'), size=1, data=fm0)+
 	scale_y_continuous(name="Normalised peak pressure")+scale_x_continuous(name="Normalised muscle force")+
@@ -85,6 +88,7 @@ cop2<-cop[cop$PP<2e7,]
 png(paste(outdirg,"muscleCoP.png",sep=''), height, width, res=res)
 p<-ggplot(cop, aes(CoPML, CoPAP, color=Case))+geom_point(aes(alpha=PP))+
 	scale_alpha_continuous(guide = guide_legend(title = "Peak Pressure"))+
+	geom_text(data=fm1r, aes(x=15, y=4*as.numeric(Case), label=p.star), color=c("firebrick","darkblue"), size=8)+
 	geom_segment(aes(x=Intercept.ML, y=Intercept.AP, xend=Intercept.ML+Activation.ML*10,
 	yend=Intercept.AP+Activation.AP*10), color=c("firebrick",'darkblue'), size=1, data=fm1r, arrow = arrow(length=unit(0.3,'cm')))+
 	scale_x_continuous(name="CoP medial(-)/lateral(+) (mm)",limits=c(-16,16))+scale_y_continuous(name="CoP posterior(-)/anterior(+) (mm)", limits=c(-23,23))+
@@ -97,6 +101,7 @@ dev.off()
 png(paste(outdirg,"musclePP.png",sep=''), height, width, res=res)
 p<-ggplot(cop, aes(PLML, PLAP, color=Case))+geom_point(aes(alpha=PP))+
 	scale_alpha_continuous(guide = guide_legend(title = "Peak Pressure"))+
+	geom_text(data=fm2r, aes(x=15, y=4*as.numeric(Case), label=p.star), color=c("firebrick","darkblue"), size=8)+
 	geom_segment(aes(x=Intercept.ML, y=Intercept.AP, xend=Intercept.ML+Activation.ML*10,
 	yend=Intercept.AP+Activation.AP*10), color=c("red",'darkblue'), size=1, data=fm2r, arrow = arrow(length=unit(0.3,'cm')))+
 	scale_x_continuous(name="Peak Pressure medial(-)/lateral(+) (mm)",limits=c(-16,16))+scale_y_continuous(name="Peak Pressure posterior(-)/anterior(+) (mm)", limits=c(-23,23))+

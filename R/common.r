@@ -129,7 +129,7 @@ save_png <- function(height,width,bone,filename) {
 	shell(paste(magickPath,'convert "',filename,bone,'.svg" "',filename,bone,'.png"',sep=''))
 }
 
-fit_model <- function(data, var_string, location) {
+fit_model <- function(data, var_string, location,pLevel) {
 	if (location==1) {
 		var_string<-c(paste(var_string,"A/P"),paste(var_string,"M/L"))
 	}
@@ -141,5 +141,6 @@ fit_model <- function(data, var_string, location) {
 	}
 	fm.coef[,c(5,6,7,8)]<-round(fm.coef[,c(5,6,7,8)],3)
 	dimnames(fm.coef)[[2]][c(5,7,8,9)]<-c('Intercept','t.value','p.value','maxActiv')
+	fm.coef$p.star<-ifelse(fm.coef$p.value <=pLevel,"*"," ")
 	return(fm.coef)
 }
