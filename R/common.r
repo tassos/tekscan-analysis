@@ -135,12 +135,12 @@ fit_model <- function(data, var_string, location,pLevel) {
 	}
 	data<-subset(data,Variable %in% var_string)
 	fm<-dlply(data,.(Variable,Phase,Muscle,Case), function(x) lme(Value ~ Activation,data = x,~1 | Foot))
-	fm.coef<-ldply(fm,function(x) c(fixef(x),summary(x)$tTable['Activation',c('t-value','p-value')],max(x$data$Activation)))
+	fm.coef<-ldply(fm,function(x) c(fixef(x),summary(x)$tTable['Activation','p-value'],max(x$data$Activation),sqrt(mean(x$residuals[,1]^2))))
 	if (location==1) {
 		fm.coef$Variable<-mapvalues(fm.coef$Variable,from=var_string, to=c("AP","ML"))
 	}
 	fm.coef[,c(5,6,7,8)]<-round(fm.coef[,c(5,6,7,8)],3)
-	dimnames(fm.coef)[[2]][c(5,7,8,9)]<-c('Intercept','t.value','p.value','maxActiv')
+	dimnames(fm.coef)[[2]][c(5,7,8,9)]<-c('Intercept','p.value','maxActiv','r^2')
 	fm.coef$p.star<-ifelse(fm.coef$p.value <=pLevel,"*"," ")
 	return(fm.coef)
 }

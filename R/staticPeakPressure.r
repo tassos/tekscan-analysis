@@ -70,6 +70,7 @@ cat(format(Sys.time(), "%H:%M:%S"),' Plotting figures\n')
 height<-1400
 width<-1600
 res<-150
+dev.off()
 
 png(paste(outdirg,"muscleEffect.png",sep=''), height, width, res=res)
 p<-ggplot(npp, aes(Activation, Value, color=Case))+geom_point(alpha=0.8)+
@@ -121,8 +122,8 @@ fm2$Variable<-factor("Peak Location")
 fm12<-rbind(fm1,fm2)
 
 # Rounding off to two digits and changing the column names for nicer printing
-sumTablePP<-tabular(Phase*Case*Muscle~Heading()*identity*Variable*(Intercept+Activation+t.value+p.value), data=fm0)
+sumTablePP<-tabular(Phase*Case*Muscle~Heading()*identity*Variable*(Intercept+Activation+p.value), data=fm0)
 suppress<-latex(sumTablePP,paste(outdirg,"LaTeX/peakPressure.tex",sep=''))
 
-sumTableCoP<-tabular(Phase*Case*Muscle~Heading()*Variable*Heading()*Direction*Heading()*identity*(Intercept+Activation+t.value+p.value), data=fm1)
+sumTableCoP<-tabular(Phase*Case*Muscle~Heading()*Variable*Heading()*Direction*Heading()*identity*(Intercept+Activation+p.value), data=fm1)
 suppress<-latex(sumTableCoP,paste(outdirg,"LaTeX/Location.tex",sep=''), options=list(titlerule = '\\cline' ))
