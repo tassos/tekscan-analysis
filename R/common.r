@@ -129,17 +129,18 @@ save_png <- function(height,width,bone,filename) {
 	shell(paste(magickPath,'convert "',filename,bone,'.svg" "',filename,bone,'.png"',sep=''))
 }
 
-fit_model <- function(data, var_string, location) {
+fit_model <- function(data, var_string, location,pLevel) {
 	if (location==1) {
 		var_string<-c(paste(var_string,"A/P"),paste(var_string,"M/L"))
 	}
 	data<-subset(data,Variable %in% var_string)
-	fm<-dlply(data,.(Variable,Phase,Muscle,Case), function(x) lmer(Value ~ Activation +(1 | Foot),data = x))
-	fm.coef<-ldply(fm,function(x) c(fixef(x),coef(summary(x))['Activation',c(2,3)]))
+	fm<-dlply(data,.(Variable,Phase,Muscle,Case), function(x) lme(Value ~ Activation,data = x,~1 | Foot))
+	fm.coef<-ldply(fm,function(x) c(fixef(x),summary(x)$tTable['Activation','p-value'],max(x$data$Activation),sqrt(mean(x$residuals[,1]^2))))
 	if (location==1) {
 		fm.coef$Variable<-mapvalues(fm.coef$Variable,from=var_string, to=c("AP","ML"))
 	}
 	fm.coef[,c(5,6,7,8)]<-round(fm.coef[,c(5,6,7,8)],3)
-	dimnames(fm.coef)[[2]][c(5,7,8)]<-c('Intercept','Std.error','t.value')
+	dimnames(fm.coef)[[2]][c(5,7,8,9)]<-c('Intercept','p.value','maxActiv','r^2')
+	fm.coef$p.star<-ifelse(fm.coef$p.value <=pLevel,"*"," ")
 	return(fm.coef)
 }

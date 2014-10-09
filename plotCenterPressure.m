@@ -1,5 +1,6 @@
 function CoP = plotCenterPressure (pos, x, y, data, toPlot, rowSpacing, colSpacing)
     CoP=zeros(size(data,2),size(data,3),2);
+    data(:)=data(:).*(data(:)>1e5);
     for k=1:size(data,2)
         for l=1:size(data,3)
             dataTemp = squeeze(data(1,k,l,:,:));
