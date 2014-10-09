@@ -1,7 +1,7 @@
 require(ggplot2)
 require(plyr)
 require(grid)
-require(xtable)
+require(tables)
 require(pwr)
 
 rm(list=ls())
@@ -58,10 +58,8 @@ wpf$p.star<-ifelse(wpf$p.value <=pLevel,"(*)"," ")
 sumwpf<-ddply(wpf,.(Rows,Cols,Phase), function(x) data.frame(sign.inc=nrow(x[x$estim>0 & x$p.value<=pLevel,]),inc=nrow(x[x$estim>0 & x$p.value>pLevel,]),dec=nrow(x[x$estim<=0 & x$p.value>pLevel,]),sign.dec=nrow(x[x$estim<=0 & x$p.value<=pLevel,])))
 sumwpf<-merge(wp,sumwpf, intersect(c('Rows','Cols','Phase'),c('Rows','Cols','Phase')))
 
-sumTable<-xtable(sumwpf,caption='Summary of results',digits=4)#,align="rll|l|lcc|cccc")
-sumLatex<-print(sumTable,include.rownames=F, print.results=F)
-write(insert.headers(sumLatex),paste(outLaTeX,"sumLatex.tex",sep=''))
-write(sumLatex,paste(outLaTeX,"sumExcel.asc",sep=''))
+sumTable<-tabular(Rows*Cols*Phase~Heading()*identity*(estimated.difference+p.value+sign.inc+inc+dec+sign.dec), data=sumwpf)
+suppress<-latex(sumTable,paste(outdirg,"LaTeX/summaryPP.tex",sep=''), digits=2)
 
 height<-700
 width<-800
