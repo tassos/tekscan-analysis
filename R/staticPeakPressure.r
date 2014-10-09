@@ -18,7 +18,7 @@ labels<-c('Very (-)','Slightly (-)','Poorly (-)','Poorly (+)','Slightly (+)','Ve
 load(paste(outdir,'ppArea_Static.RData',sep=''))
 load(paste(outdir,'peakPressure_Static.RData',sep=''))
 load(paste(outdir,'CoP_Static.RData',sep=''))
-load(paste(outdir,'peakL_Static.Rdata',sep=''))
+load(paste(outdir,'peakL_Static.RData',sep=''))
 outdirg=paste(outdirg,'Clinical Orthopaedics and Related Research/muscleActivation/Figures/',sep='')
 
 pp<-rbind(pp,CoP,peakL)
