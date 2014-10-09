@@ -39,14 +39,17 @@ pp<-factorise(pp)
 # Finding the default value for each muscle, phase, case, foot and trial.
 pp$Activation<-factor(pp$Activation)
 pp<-ddply(pp,.(Foot,Case,Phase,Variable,Trial), function(x) data.frame(RawActiv=x$RawActiv, Muscle=x$Muscle, Activation=x$Activation, Value=x$Value, Default=unique(x[x$Percentage == min(as.character(x$Percentage)),]$Value)), .inform=T)
-pp<-ddply(pp,.(Foot,Case,Muscle,Phase,Variable,Activation), function(x) data.frame(RawActiv=mean(x$RawActiv), Value=mean(x$Value), Default=mean(x$Default)))
-pp$Activation<-as.numeric(as.character(pp$Activation))
-pp<-pp[pp$Activation!=1 & pp$Activation<10,]
+pp<-pp[as.numeric(as.character(pp$Activation))!=1 & as.numeric(as.character(pp$Activation))<10,]
 
 cat(format(Sys.time(), "%H:%M:%S"),' Normalising peak pressure values\n')
 # Normalising the measured variable
-npp<-ddply(subset(pp,Variable=="PeakPressure"),.(Foot,Case,Muscle,Phase,Variable), function(x) data.frame(Value=x$Value/x$Default, Activation=x$Activation))
+npp<-ddply(subset(pp,Variable=="PeakPressure"),.(Foot,Case,Muscle,Phase,Variable,Trial), function(x) data.frame(Value=x$Value/x$Default, Activation=x$Activation))
+npp<-ddply(npp,.(Foot,Case,Muscle,Phase,Variable,Activation), function(x) data.frame(Value=mean(x$Value)))
+npp$Activation<-as.numeric(as.character(npp$Activation))
 npp<-npp[complete.cases(npp),]
+
+pp<-ddply(pp,.(Foot,Case,Muscle,Phase,Variable,Activation), function(x) data.frame(RawActiv=mean(x$RawActiv), Value=mean(x$Value), Default=mean(x$Default)))
+pp$Activation<-as.numeric(as.character(pp$Activation))
 
 cat(format(Sys.time(), "%H:%M:%S"),' Calculating mixed-effects models\n')
 # Constructing linear mixed-effect models for each phase and muscle and case for the peak pressure as a response. The Activation is the fixed effect variable while the Foot is the random one.
@@ -70,7 +73,6 @@ cat(format(Sys.time(), "%H:%M:%S"),' Plotting figures\n')
 height<-1400
 width<-1600
 res<-150
-dev.off()
 
 png(paste(outdirg,"muscleEffect.png",sep=''), height, width, res=res)
 p<-ggplot(npp, aes(Activation, Value, color=Case))+geom_point(alpha=0.8)+
