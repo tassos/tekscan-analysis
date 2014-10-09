@@ -86,10 +86,8 @@ p<-ggplot(npp, aes(Activation, Value, color=Case))+geom_point(alpha=0.8)+
 print(p)
 dev.off()
 
-cop2<-cop[cop$PP<2e7,]
-
 png(paste(outdirg,"muscleCoP.png",sep=''), height, width, res=res)
-p<-ggplot(cop, aes(CoPML, CoPAP, color=Case))+geom_point(aes(alpha=PP))+
+q<-ggplot(cop, aes(CoPML, CoPAP, color=Case))+geom_point(aes(alpha=PP))+
 	scale_alpha_continuous(guide = guide_legend(title = "Peak Pressure"))+
 	geom_text(data=fm1r, aes(x=15, y=4*as.numeric(Case), label=p.star), color=c("firebrick","darkblue"), size=8)+
 	geom_segment(aes(x=Intercept.ML, y=Intercept.AP, xend=Intercept.ML+Activation.ML*10,
@@ -98,11 +96,11 @@ p<-ggplot(cop, aes(CoPML, CoPAP, color=Case))+geom_point(aes(alpha=PP))+
 	theme(axis.title=element_text(size=20),axis.text=element_text(colour='black', size=12),strip.text=element_text(size=12))+
 	theme(legend.title=element_text(size=20), legend.text=element_text(size=12))+
 	facet_grid(Muscle ~ Phase)
-print(p)
+print(q)
 dev.off()
 
 png(paste(outdirg,"musclePP.png",sep=''), height, width, res=res)
-p<-ggplot(cop, aes(PLML, PLAP, color=Case))+geom_point(aes(alpha=PP))+
+r<-ggplot(cop, aes(PLML, PLAP, color=Case))+geom_point(aes(alpha=PP))+
 	scale_alpha_continuous(guide = guide_legend(title = "Peak Pressure"))+
 	geom_text(data=fm2r, aes(x=15, y=4*as.numeric(Case), label=p.star), color=c("firebrick","darkblue"), size=8)+
 	geom_segment(aes(x=Intercept.ML, y=Intercept.AP, xend=Intercept.ML+Activation.ML*10,
@@ -111,7 +109,7 @@ p<-ggplot(cop, aes(PLML, PLAP, color=Case))+geom_point(aes(alpha=PP))+
 	theme(axis.title=element_text(size=20),axis.text=element_text(colour='black', size=12),strip.text=element_text(size=12))+
 	theme(legend.title=element_text(size=20), legend.text=element_text(size=12))+
 	facet_grid(Muscle ~ Phase)
-print(p)
+print(r)
 dev.off()
 
 cat(format(Sys.time(), "%H:%M:%S"),' Exporting to LaTeX\n')
