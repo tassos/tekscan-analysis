@@ -140,7 +140,7 @@ fit_model <- function(data, var_string, location,pLevel) {
 		fm.coef$Variable<-mapvalues(fm.coef$Variable,from=var_string, to=c("AP","ML"))
 	}
 	fm.coef[,c(5,6,7,8)]<-round(fm.coef[,c(5,6,7,8)],3)
-	dimnames(fm.coef)[[2]][c(5,7,8,9)]<-c('Intercept','p.value','maxActiv','r^2')
+	dimnames(fm.coef)[[2]][c(5,7,8,9)]<-c('Intercept','p.value','maxActiv','rmse')
 	fm.coef$p.star<-ifelse(fm.coef$p.value <=pLevel,"*"," ")
 	return(fm.coef)
 }
