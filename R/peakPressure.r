@@ -16,8 +16,7 @@ source('LaTeX.r')
 load(paste(outdir,'ppArea.RData',sep=''))
 load(paste(outdir,'ppTArea.RData',sep=''))
 load(paste(outdir,'peakPressureNeutral.RData',sep=''))
-outdirg=paste(outdirg,'Clinical Orthopaedics and Related Research/peakPressure/Figures/',sep='')
-outLaTeX<-paste(outdirg,"LaTeX/",sep='')
+outdirg=paste(outdirg,'Clinical Orthopaedics and Related Research/peakPressure/',sep='')
 
 # Combining the data frames of the Tibia and Talus pressures and cleaning the bad data points
 ppArea<-rbind(ppTArea,ppArea)
@@ -40,16 +39,19 @@ ppArea<-factorise(ppArea)
 
 # Calculating the maximum peak pressure for each Foot, Case, Trial, Area and Phase
 mppArea<-ddply(ppArea,.(Foot,Case,Trial,Rows,Cols,Phase),function(x) data.frame(Value=max(x$Value/1E6)))
-medppArea<-ddply(mppArea,.(Case,Rows,Cols,Phase), function(x) data.frame(Value=median(x$Value)))
 mmppArea<-ddply(mppArea,.(Foot,Case,Rows,Cols,Phase),function(x) data.frame(Value=mean(x$Value)))
+medppArea<-ddply(mmppArea,.(Case,Rows,Cols,Phase), function(x) data.frame(Value=median(x$Value)))
 
-power.analysis<-ddply(mppArea,.(Rows,Cols,Phase), function(x) data.frame(size=cohens_d(x[x$Case=="Native Tibia",]$Value,x[x$Case=="TAA Tibia",]$Value)))
-power.analysis$power<-ddply(power.analysis,.(Rows,Cols,Phase), function(x) pwr.2p.test(n=8,h=x$size)$power)$V1
+# Calculating the location of the maximum and minumum median peak pressure
+medmax<-ddply(medppArea,.(Case,Phase), function(x) x[x$Value==max(x$Value),])
+medmin<-ddply(medppArea,.(Case,Phase), function(x) x[x$Value==min(x$Value),])
 
 # Calculating the maximum peak pressure for each Foot, Case, Trial for the neutral position measurements
-mppS <-ddply(subset(ppS,Case!='TA'),.(Foot,Case,Trial), function(x) data.frame(Value=mean(x$Value/1E6)))
+mppS <-ddply(subset(ppS,Case!='TA'),.(Foot,Case,Trial), function(x) data.frame(Value=max(x$Value/1E6)))
+mppS <-ddply(mppS,.(Foot,Case), function(x) data.frame(Value=mean(x$Value)))
+mppS$Case<-mapvalues(mppS$Case,from=c("Tekscan","TAP"), to=c("Native Tibia","TAA Tibia"))
 
-# Statistics for detecting significant differences between Native and TAP
+# Statistics for detecting significant differences between Native and TAP (dynamic)
 wp<-ddply(mmppArea,.(Rows,Cols,Phase), function(x) data.frame(estimated.difference=safewilTest(x,"Value","Case","TAA Tibia","Native Tibia")$estimate,p.value=safewilTest(x,"Value","Case","TAA Tibia","Native Tibia")$p.value))
 wp$p.value<-ifelse(wp$p.value <=pLevel,paste(round(wp$p.value,3),"(*)"),round(wp$p.value,3))
 
@@ -58,14 +60,19 @@ wpf$p.star<-ifelse(wpf$p.value <=pLevel,"(*)"," ")
 sumwpf<-ddply(wpf,.(Rows,Cols,Phase), function(x) data.frame(sign.inc=nrow(x[x$estim>0 & x$p.value<=pLevel,]),inc=nrow(x[x$estim>0 & x$p.value>pLevel,]),dec=nrow(x[x$estim<=0 & x$p.value>pLevel,]),sign.dec=nrow(x[x$estim<=0 & x$p.value<=pLevel,])))
 sumwpf<-merge(wp,sumwpf, intersect(c('Rows','Cols','Phase'),c('Rows','Cols','Phase')))
 
+# Statistics for detecting significant differences between Native and TAP (neutral)
+static.sign<-safewilTest(mppS,"Value","Case","TAA Tibia","Native Tibia")
+se<-ddply(mppS,.(Case), function(x) sqrt(var(x$Value)/length(x$Value)))
+
 sumTable<-tabular(Rows*Cols*Phase~Heading()*identity*(estimated.difference+p.value+sign.inc+inc+dec+sign.dec), data=sumwpf)
 suppress<-latex(sumTable,paste(outdirg,"LaTeX/summaryPP.tex",sep=''), digits=2)
 
 height<-700
 width<-800
+res=100
 
-filename<-paste(outdirg,"Area_Time_Talus",sep='')
-png(paste(filename,".png",sep=''), height=height, width=width, res=100)
+filename<-paste(outdirg,"Figures/Area_Time_Talus",sep='')
+png(paste(filename,".png",sep=''), height=height, width=width, res=res)
 p<-ggplot(subset(mmppArea, Case=="Native Talus"), aes(Phase, Value, fill=Case))+geom_boxplot(outlier.shape=NA)+
 	scale_fill_manual(values=c("green4"))+
 	scale_y_continuous(name="Peak Pressure (MPa)")+scale_x_discrete(name="Stance phase percentage (%)")+
@@ -75,27 +82,23 @@ p<-ggplot(subset(mmppArea, Case=="Native Talus"), aes(Phase, Value, fill=Case))+
 print(p)
 dev.off()
 
-filename<-paste(outdirg,"Area_Time_Tibia",sep='')
-png(paste(filename,".png",sep=''), height=height, width=width, res=100)
-p<-ggplot(subset(mmppArea, Case!="Native Talus"), aes(Phase, Value, fill=Case))+geom_boxplot(outlier.shape=NA)+
+filename<-paste(outdirg,"Figures/Area_Time_Tibia",sep='')
+png(paste(filename,".png",sep=''), height=height, width=width, res=res)
+q<-ggplot(subset(mmppArea, Case!="Native Talus"), aes(Phase, Value, fill=Case))+geom_boxplot(outlier.shape=NA)+
 	scale_y_continuous(name="Peak Pressure (MPa)", limits=c(0,10))+scale_x_discrete(name="Stance phase percentage (%)")+
 	theme(axis.title=element_text(size=20),axis.text=element_text(colour='black', size=12),strip.text=element_text(size=12))+
 	facet_grid(Rows ~ Cols)
-print(p)
+print(q)
 dev.off()
 
 for (bone in c('Talus','Tibia')) {
-	save_png(height,width,bone,paste(outdirg,'Temporal-Time_',sep=''))
+	save_png(height,width,bone,paste(outdirg,'Figures/Temporal-Time_',sep=''))
 }
 
-mppS$Case<-mapvalues(mppS$Case,from=c("Tekscan","TAP"), to=c("Native Tibia","TAA Tibia"))
-mppS<-ddply(mppS,.(Foot,Case), function(x) data.frame(Value=mean(x$Value)))
-static.sign<-safewilTest(mppS,"Value","Case","TAA Tibia","Native Tibia")
-
-filename<-paste(outdirg,"Neutral_measurements",sep='')
-png(paste(filename,".png",sep=''), res=100, height=400, width=500)
-p<-ggplot(subset(mppS), aes(Case, Value, fill=Case))+geom_boxplot(outlier.shape=NA)+
+filename<-paste(outdirg,"Figures/Neutral_measurements",sep='')
+png(paste(filename,".png",sep=''), res=res, height=400, width=500)
+w<-ggplot(subset(mppS), aes(Case, Value, fill=Case))+geom_boxplot(outlier.shape=NA)+
 	theme(axis.title=element_text(size=20),axis.text=element_text(colour='black'))+
 	scale_y_continuous(name="Peak Pressure (MPa)")
-print(p)
+print(w)
 dev.off()

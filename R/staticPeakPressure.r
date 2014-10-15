@@ -19,7 +19,7 @@ load(paste(outdir,'ppArea_Static.RData',sep=''))
 load(paste(outdir,'peakPressure_Static.RData',sep=''))
 load(paste(outdir,'CoP_Static.RData',sep=''))
 load(paste(outdir,'peakL_Static.RData',sep=''))
-outdirg=paste(outdirg,'Clinical Orthopaedics and Related Research/muscleActivation/Figures/',sep='')
+outdirg=paste(outdirg,'Clinical Orthopaedics and Related Research/muscleActivation/',sep='')
 
 pp<-rbind(pp,CoP,peakL)
 cat(format(Sys.time(), "%H:%M:%S"),' Manipulating input data\n')
@@ -74,7 +74,7 @@ height<-1400
 width<-1600
 res<-150
 
-png(paste(outdirg,"muscleEffect.png",sep=''), height, width, res=res)
+png(paste(outdirg,"Figures/muscleEffect.png",sep=''), height, width, res=res)
 p<-ggplot(npp, aes(Activation, Value, color=Case))+geom_point(alpha=0.8)+
 	geom_text(data=fm0, aes(x=15, y=3*as.numeric(Case), label=p.star), color=c("firebrick","darkblue"), size=8)+
 	geom_segment(aes(x=0, y=Intercept, xend=maxActiv+1,
@@ -86,7 +86,7 @@ p<-ggplot(npp, aes(Activation, Value, color=Case))+geom_point(alpha=0.8)+
 print(p)
 dev.off()
 
-png(paste(outdirg,"muscleCoP.png",sep=''), height, width, res=res)
+png(paste(outdirg,"Figures/muscleCoP.png",sep=''), height, width, res=res)
 q<-ggplot(cop, aes(CoPML, CoPAP, color=Case))+geom_point(aes(alpha=PP))+
 	scale_alpha_continuous(guide = guide_legend(title = "Peak Pressure"))+
 	geom_text(data=fm1r, aes(x=15, y=4*as.numeric(Case), label=p.star), color=c("firebrick","darkblue"), size=8)+
@@ -99,7 +99,7 @@ q<-ggplot(cop, aes(CoPML, CoPAP, color=Case))+geom_point(aes(alpha=PP))+
 print(q)
 dev.off()
 
-png(paste(outdirg,"musclePP.png",sep=''), height, width, res=res)
+png(paste(outdirg,"Figures/musclePP.png",sep=''), height, width, res=res)
 r<-ggplot(cop, aes(PLML, PLAP, color=Case))+geom_point(aes(alpha=PP))+
 	scale_alpha_continuous(guide = guide_legend(title = "Peak Pressure"))+
 	geom_text(data=fm2r, aes(x=15, y=4*as.numeric(Case), label=p.star), color=c("firebrick","darkblue"), size=8)+

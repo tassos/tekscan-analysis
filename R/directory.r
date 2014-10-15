@@ -1,7 +1,7 @@
 OS <- .Platform$OS.type
 
 if (OS == "windows") {
-	outdir='~/PhD/Foot-ankle project/Measurements/Results Html/'
+	outdir='~/PhD/Foot-ankle project/Measurements/Rdata/'
 	outdirg='c:/Users/u0074517/Documents/PhD/Submissions/Journals/'
 	indir='~/PhD/Foot-ankle project/Measurements/Voet 99/Results/'
 }
