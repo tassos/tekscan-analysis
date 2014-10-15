@@ -26,6 +26,7 @@ cat(format(Sys.time(), "%H:%M:%S"),' Manipulating input data\n')
 pp<-pp[grep('(Flex Hal)|(Flex Dig)',pp$Muscle, invert=T),]
 pp$Case<-mapvalues(pp$Case,from=c("Tekscan","TAP","TA"), to=c("Native","TAA","TAA+TA"))
 pp$Phase<-mapvalues(pp$Phase,from=c("1","2","3"), to=c("Foot-flat","Mid-stance","Toe-off"))
+pp$Muscle<-mapvalues(pp$Muscle,from=c("Gastroc"), to=c("Tr surae"))
 # Inverting so that Anterior is positive and posterior negative
 pp[grep('A/P',pp$Variable),]$Value<--pp[grep('A/P',pp$Variable),]$Value
 pp<-subset(pp,Case!='TAA+TA')
@@ -85,10 +86,10 @@ print(p)
 dev.off()
 
 png(paste(outdirg,"Figures/muscleCoP.png",sep=''), height, width, res=res)
-q<-ggplot(cop, aes(CoPML, CoPAP, color=Case))+geom_point(aes(alpha=PP-0.2))+
-	scale_alpha_continuous(guide = guide_legend(title = "Peak Pressure"))+
+q<-ggplot(cop, aes(CoPML, CoPAP, color=Case))+geom_point(aes(alpha=Activation))+
+	scale_alpha_continuous(guide = guide_legend(title = "Activation"))+
 	geom_text(data=fm1r, aes(x=7+3*as.numeric(Case), y=20, label=p.star), color=c("firebrick","darkblue"), size=8)+
-	geom_segment(aes(x=Intercept.ML, y=Intercept.AP, xend=Intercept.ML+Activation.ML*maxActiv,
+	geom_segment(aes(x=Intercept.ML*ifelse(p.star=="*",1,NaN), y=Intercept.AP, xend=Intercept.ML+Activation.ML*maxActiv,
 	yend=Intercept.AP+Activation.AP*maxActiv), color=c("red",'darkblue'), size=1, data=fm1r, arrow = arrow(length=unit(0.3,'cm')))+
 	scale_x_continuous(name="CoP medial(-)/lateral(+) (mm)",limits=c(-16,16))+scale_y_continuous(name="CoP posterior(-)/anterior(+) (mm)", limits=c(-23,23))+
 	theme(axis.title=element_text(size=20),axis.text=element_text(colour='black', size=12),strip.text=element_text(size=12))+
@@ -98,10 +99,10 @@ print(q)
 dev.off()
 
 png(paste(outdirg,"Figures/musclePP.png",sep=''), height, width, res=res)
-r<-ggplot(cop, aes(PLML, PLAP, color=Case))+geom_point(aes(alpha=PP))+
-	scale_alpha_continuous(guide = guide_legend(title = "Peak Pressure"))+
+r<-ggplot(cop, aes(PLML, PLAP, color=Case))+geom_point(aes(alpha=Activation))+
+	scale_alpha_continuous(guide = guide_legend(title = "Activation"))+
 	geom_text(data=fm2r, aes(x=7+3*as.numeric(Case), y=20, label=p.star), color=c("firebrick","darkblue"), size=8)+
-	geom_segment(aes(x=Intercept.ML, y=Intercept.AP, xend=Intercept.ML+Activation.ML*10,
+	geom_segment(aes(x=Intercept.ML*ifelse(p.star=="*",1,NaN), y=Intercept.AP, xend=Intercept.ML+Activation.ML*10,
 	yend=Intercept.AP+Activation.AP*10), color=c("red",'darkblue'), size=1, data=fm2r, arrow = arrow(length=unit(0.3,'cm')))+
 	scale_x_continuous(name="Peak Pressure medial(-)/lateral(+) (mm)",limits=c(-16,16))+scale_y_continuous(name="Peak Pressure posterior(-)/anterior(+) (mm)", limits=c(-23,23))+
 	theme(axis.title=element_text(size=20),axis.text=element_text(colour='black', size=12),strip.text=element_text(size=12))+
@@ -122,8 +123,8 @@ fm0$p.value<-paste(fm0$p.value,fm0$p.star)
 fm1$p.value<-paste(fm1$p.value,fm1$p.star)
 
 # Rounding off to two digits and changing the column names for nicer printing
-sumTablePP<-tabular(Phase*Case*Muscle~Heading()*identity*Variable*(Intercept+Activation+p.value), data=fm0)
+sumTablePP<-tabular(Case*Muscle*Phase~Heading()*identity*Variable*(Intercept+Activation+p.value), data=fm0)
 suppress<-latex(sumTablePP,paste(outdirg,"LaTeX/peakPressure.tex",sep=''))
 
-sumTableCoP<-tabular(Phase*Case*Muscle~Heading()*Variable*Heading()*Direction*Heading()*identity*(Intercept+Activation+p.value), data=fm1)
+sumTableCoP<-tabular(Case*Muscle*Phase~Heading()*Variable*Heading()*Direction*Heading()*identity*(Intercept+Activation+p.value), data=fm1)
 suppress<-latex(sumTableCoP,paste(outdirg,"LaTeX/Location.tex",sep=''), options=list(titlerule = '\\cline' ))

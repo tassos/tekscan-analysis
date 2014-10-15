@@ -70,11 +70,11 @@ function measurementsComparison
         data(:,:,:,[1:trim,end-trim+1:end],:)=0;
         data(:,:,:,:,[1:trim,end-trim+1:end])=0;
         
-        if ~static
+%         if ~static
             for i=1:size(data,2)
                 data(1,i,:,:,:) = smooth3(squeeze(data(1,i,:,:,:)));
             end
-        end
+%         end
 
 
         %% Statistics
