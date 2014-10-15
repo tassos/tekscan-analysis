@@ -12,8 +12,6 @@ source("common.r")
 source("LaTeX.r")
 
 pLevel=0.05
-threshold<-c(-.1,-.05,0,.05,.1)
-labels<-c('Very (-)','Slightly (-)','Poorly (-)','Poorly (+)','Slightly (+)','Very (+)')
 
 load(paste(outdir,'ppArea_Static.RData',sep=''))
 load(paste(outdir,'peakPressure_Static.RData',sep=''))
@@ -31,14 +29,14 @@ pp$Phase<-mapvalues(pp$Phase,from=c("1","2","3"), to=c("Foot-flat","Mid-stance",
 # Inverting so that Anterior is positive and posterior negative
 pp[grep('A/P',pp$Variable),]$Value<--pp[grep('A/P',pp$Variable),]$Value
 pp<-subset(pp,Case!='TAA+TA')
-pp<-subset(pp,Foot!='foot45')
+pp<-pp[pp$Foot!='foot46',]
 pp<-pp[complete.cases(pp),]
 pp$Activation<-round(pp$Activation,1)
 pp<-factorise(pp)
 
 # Finding the default value for each muscle, phase, case, foot and trial.
 pp$Activation<-factor(pp$Activation)
-pp<-ddply(pp,.(Foot,Case,Phase,Variable,Trial), function(x) data.frame(RawActiv=x$RawActiv, Muscle=x$Muscle, Activation=x$Activation, Value=x$Value, Default=unique(x[x$Percentage == min(as.character(x$Percentage)),]$Value)), .inform=T)
+pp<-ddply(pp,.(Foot,Case,Phase,Variable,Trial), function(x) data.frame(RawActiv=x$RawActiv, Muscle=x$Muscle, Activation=x$Activation, Value=x$Value, Default=mean(x[x$Percentage == min(as.numeric(as.character(x$Percentage))),]$Value)), .inform=T)
 pp<-pp[as.numeric(as.character(pp$Activation))!=1 & as.numeric(as.character(pp$Activation))<10,]
 
 cat(format(Sys.time(), "%H:%M:%S"),' Normalising peak pressure values\n')
@@ -75,8 +73,8 @@ width<-1600
 res<-150
 
 png(paste(outdirg,"Figures/muscleEffect.png",sep=''), height, width, res=res)
-p<-ggplot(npp, aes(Activation, Value, color=Case))+geom_point(alpha=0.8)+
-	geom_text(data=fm0, aes(x=15, y=3*as.numeric(Case), label=p.star), color=c("firebrick","darkblue"), size=8)+
+p<-ggplot(npp, aes(Activation, Value, color=Case))+geom_point()+
+	geom_text(data=fm0, aes(x=8+as.numeric(Case), y=8, label=p.star), color=c("firebrick","darkblue"), size=8)+
 	geom_segment(aes(x=0, y=Intercept, xend=maxActiv+1,
 	yend=Intercept+Activation*(maxActiv+1)), color=c("red",'darkblue'), size=1, data=fm0)+
 	scale_y_continuous(name="Normalised peak pressure")+scale_x_continuous(name="Normalised muscle force")+
@@ -87,11 +85,11 @@ print(p)
 dev.off()
 
 png(paste(outdirg,"Figures/muscleCoP.png",sep=''), height, width, res=res)
-q<-ggplot(cop, aes(CoPML, CoPAP, color=Case))+geom_point(aes(alpha=PP))+
+q<-ggplot(cop, aes(CoPML, CoPAP, color=Case))+geom_point(aes(alpha=PP-0.2))+
 	scale_alpha_continuous(guide = guide_legend(title = "Peak Pressure"))+
-	geom_text(data=fm1r, aes(x=15, y=4*as.numeric(Case), label=p.star), color=c("firebrick","darkblue"), size=8)+
-	geom_segment(aes(x=Intercept.ML, y=Intercept.AP, xend=Intercept.ML+Activation.ML*10,
-	yend=Intercept.AP+Activation.AP*10), color=c("firebrick",'darkblue'), size=1, data=fm1r, arrow = arrow(length=unit(0.3,'cm')))+
+	geom_text(data=fm1r, aes(x=7+3*as.numeric(Case), y=20, label=p.star), color=c("firebrick","darkblue"), size=8)+
+	geom_segment(aes(x=Intercept.ML, y=Intercept.AP, xend=Intercept.ML+Activation.ML*maxActiv,
+	yend=Intercept.AP+Activation.AP*maxActiv), color=c("red",'darkblue'), size=1, data=fm1r, arrow = arrow(length=unit(0.3,'cm')))+
 	scale_x_continuous(name="CoP medial(-)/lateral(+) (mm)",limits=c(-16,16))+scale_y_continuous(name="CoP posterior(-)/anterior(+) (mm)", limits=c(-23,23))+
 	theme(axis.title=element_text(size=20),axis.text=element_text(colour='black', size=12),strip.text=element_text(size=12))+
 	theme(legend.title=element_text(size=20), legend.text=element_text(size=12))+
@@ -102,7 +100,7 @@ dev.off()
 png(paste(outdirg,"Figures/musclePP.png",sep=''), height, width, res=res)
 r<-ggplot(cop, aes(PLML, PLAP, color=Case))+geom_point(aes(alpha=PP))+
 	scale_alpha_continuous(guide = guide_legend(title = "Peak Pressure"))+
-	geom_text(data=fm2r, aes(x=15, y=4*as.numeric(Case), label=p.star), color=c("firebrick","darkblue"), size=8)+
+	geom_text(data=fm2r, aes(x=7+3*as.numeric(Case), y=20, label=p.star), color=c("firebrick","darkblue"), size=8)+
 	geom_segment(aes(x=Intercept.ML, y=Intercept.AP, xend=Intercept.ML+Activation.ML*10,
 	yend=Intercept.AP+Activation.AP*10), color=c("red",'darkblue'), size=1, data=fm2r, arrow = arrow(length=unit(0.3,'cm')))+
 	scale_x_continuous(name="Peak Pressure medial(-)/lateral(+) (mm)",limits=c(-16,16))+scale_y_continuous(name="Peak Pressure posterior(-)/anterior(+) (mm)", limits=c(-23,23))+
@@ -120,6 +118,8 @@ fm1$Variable<-factor("Center of Pressure")
 names(fm2)[1]<-'Direction'
 fm2$Variable<-factor("Peak Location")
 fm12<-rbind(fm1,fm2)
+fm0$p.value<-paste(fm0$p.value,fm0$p.star)
+fm1$p.value<-paste(fm1$p.value,fm1$p.star)
 
 # Rounding off to two digits and changing the column names for nicer printing
 sumTablePP<-tabular(Phase*Case*Muscle~Heading()*identity*Variable*(Intercept+Activation+p.value), data=fm0)
