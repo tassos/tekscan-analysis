@@ -17,7 +17,7 @@ load(paste(outdir,'ppArea_Static.RData',sep=''))
 load(paste(outdir,'peakPressure_Static.RData',sep=''))
 load(paste(outdir,'CoP_Static.RData',sep=''))
 load(paste(outdir,'peakL_Static.RData',sep=''))
-outdirg=paste(outdirg,'Clinical Orthopaedics and Related Research/muscleActivation/',sep='')
+outdirg=paste(outdirg,'Muscles/',sep='')
 
 pp<-rbind(pp,CoP,peakL)
 cat(format(Sys.time(), "%H:%M:%S"),' Manipulating input data\n')

@@ -7,6 +7,6 @@ if (OS == "windows") {
 }
 if (OS =="unix") {
 	outdir='~/Documents/PhD/Foot-ankle/RData/'
-	outdirg='~/Documents/PhD/Foot-ankle/Journals/'
+	outdirg='~/Documents/PhD/Journals/'
 	indir='~/Foot-ankle/Measurements/Voet 99/Results/'
 }
