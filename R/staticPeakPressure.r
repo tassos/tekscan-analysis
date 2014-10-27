@@ -17,7 +17,7 @@ load(paste(outdir,'ppArea_Static.RData',sep=''))
 load(paste(outdir,'peakPressure_Static.RData',sep=''))
 load(paste(outdir,'CoP_Static.RData',sep=''))
 load(paste(outdir,'peakL_Static.RData',sep=''))
-outdirg=paste(outdirg,'Muscles/',sep='')
+outdirg=paste(outdirg,'Clinical Orthopaedics and Related Research/muscleActivation/',sep='')
 
 pp<-rbind(pp,CoP,peakL)
 cat(format(Sys.time(), "%H:%M:%S"),' Manipulating input data\n')
@@ -34,6 +34,9 @@ pp<-pp[pp$Foot!='foot46',]
 pp<-pp[complete.cases(pp),]
 pp$Activation<-round(pp$Activation,1)
 pp<-factorise(pp)
+
+# Creating a summary table with the forces that were applied to the specimens
+forces<-ddply(subset(pp,Variable=="PeakPressure"),.(Foot,Phase,Muscle), function(x) data.frame(Max=max(x$RawActiv),Default=mean(x[x$Percentage == min(as.numeric(as.character(x$Percentage))),]$RawActiv)))
 
 # Finding the default value for each muscle, phase, case, foot and trial.
 pp$Activation<-factor(pp$Activation)
@@ -128,3 +131,6 @@ suppress<-latex(sumTablePP,paste(outdirg,"LaTeX/peakPressure.tex",sep=''))
 
 sumTableCoP<-tabular(Case*Muscle*Phase~Heading()*Variable*Heading()*Direction*Heading()*identity*(Intercept+Activation+p.value), data=fm1)
 suppress<-latex(sumTableCoP,paste(outdirg,"LaTeX/Location.tex",sep=''), options=list(titlerule = '\\cline' ))
+
+sumTableForces<-tabular(Muscle*Phase~(Max+Default)*PlusMinus(mean,sd), data=forces)
+suppress<-latex(sumTableForces,paste(outdirg,"LaTeX/Forces.tex",sep=''), options=list(titlerule = '\\cline' ),digit=0)
