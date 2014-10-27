@@ -106,8 +106,10 @@ for (j in 1:length(myFile)) {
 rm(myData)
 
 colnames(data) <- c("Trial","Percentage","Variable","Value","Case","Foot")
+colnames(dataS) <- c("Trial","Percentage","Variable","Value","Case","Foot")
 colnames(ppTArea) <- c("Trial","Percentage","Variable","Value","Case","Foot")
 data<-factorise(data)
+dataS<-factorise(dataS)
 ppTArea<-factorise(ppTArea)
 if (type == "_Static") {
 	fLevels<-fLevels[complete.cases(fLevels),]
@@ -115,6 +117,7 @@ if (type == "_Static") {
 	data<-merge(data, fLevels, by=c("Trial","Percentage","Case","Foot"))
 }
 data<-data[complete.cases(data),]
+dataS<-dataS[complete.cases(dataS),]
 ppTArea<-ppTArea[complete.cases(ppTArea),]
 
 if ("PeakPressure" %in% group) {
