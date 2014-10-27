@@ -37,7 +37,7 @@ pp<-factorise(pp)
 
 # Finding the default value for each muscle, phase, case, foot and trial.
 pp$Activation<-factor(pp$Activation)
-pp<-ddply(pp,.(Foot,Case,Phase,Variable,Trial), function(x) data.frame(RawActiv=x$RawActiv, Muscle=x$Muscle, Activation=x$Activation, Value=x$Value, Default=mean(x[x$Percentage == min(as.numeric(as.character(x$Percentage))),]$Value)), .inform=T)
+pp<-ddply(pp,.(Foot,Case,Phase,Variable,Trial), function(x) data.frame(RawActiv=x$RawActiv, Muscle=x$Muscle, Activation=x$Activation, Value=x$Value, Default=mean(x[x$Percentage == min(as.numeric(as.character(x$Percentage))),]$Value),DefaultAct=mean(x[x$Percentage == min(as.numeric(as.character(x$Percentage))),]$RawActiv)), .inform=T)
 pp<-pp[as.numeric(as.character(pp$Activation))!=1 & as.numeric(as.character(pp$Activation))<10,]
 
 cat(format(Sys.time(), "%H:%M:%S"),' Normalising peak pressure values\n')
