@@ -13,6 +13,8 @@ source("directory.r")
 source("common.r")
 source('LaTeX.r')
 
+cat(format(Sys.time(), "%H:%M:%S"),'Loading data\n')
+
 load(paste(outdir,'ppArea.RData',sep=''))
 load(paste(outdir,'ppTArea.RData',sep=''))
 load(paste(outdir,'peakPressureNeutral.RData',sep=''))
@@ -21,6 +23,8 @@ outdirg=paste(outdirg,'Clinical Orthopaedics and Related Research/peakPressure/'
 # Combining the data frames of the Tibia and Talus pressures and cleaning the bad data points
 ppArea<-rbind(ppTArea,ppArea)
 ppArea<-ppArea[complete.cases(ppArea),]
+
+cat(format(Sys.time(), "%H:%M:%S"),'Manipulating input data\n')
 
 # Retaining only the first five measurements for each case and removing the TA measurements
 ppS<-ppS[grep('(Trial 01)|(Trial 02)',ppS$Trial),]
@@ -37,6 +41,8 @@ ppArea$Case<-mapvalues(ppArea$Case,from=c("Tekscan","Tekscan Talus","TAP"), to=c
 ppArea<-splitToPhases(ppArea,phases)
 ppArea<-factorise(ppArea)
 
+cat(format(Sys.time(), "%H:%M:%S"),'Calculating peak pressure measures\n')
+
 # Calculating the maximum peak pressure for each Foot, Case, Trial, Area and Phase
 mppArea<-ddply(ppArea,.(Foot,Case,Trial,Rows,Cols,Phase),function(x) data.frame(Value=max(x$Value/1E6)))
 mmppArea<-ddply(mppArea,.(Foot,Case,Rows,Cols,Phase),function(x) data.frame(Value=mean(x$Value)))
@@ -50,6 +56,8 @@ medmin<-ddply(medppArea,.(Case,Phase), function(x) x[x$Value==min(x$Value),])
 mppS <-ddply(subset(ppS,Case!='TA'),.(Foot,Case,Trial), function(x) data.frame(Value=max(x$Value/1E6)))
 mppS <-ddply(mppS,.(Foot,Case), function(x) data.frame(Value=mean(x$Value)))
 mppS$Case<-mapvalues(mppS$Case,from=c("Tekscan","TAP"), to=c("Native Tibia","TAA Tibia"))
+
+cat(format(Sys.time(), "%H:%M:%S"),'Calculating statistics\n')
 
 # Statistics for detecting significant differences between Native and TAP (dynamic)
 wp<-ddply(mmppArea,.(Rows,Cols,Phase), function(x) data.frame(estimated.difference=safewilTest(x,"Value","Case","TAA Tibia","Native Tibia")$estimate,p.value=safewilTest(x,"Value","Case","TAA Tibia","Native Tibia")$p.value))
@@ -71,11 +79,13 @@ height<-700
 width<-800
 res=100
 
+cat(format(Sys.time(), "%H:%M:%S"),'Plotting\n')
+
 filename<-paste(outdirg,"Figures/Area_Time_Talus",sep='')
 png(paste(filename,".png",sep=''), height=height, width=width, res=res)
 p<-ggplot(subset(mmppArea, Case=="Native Talus"), aes(Phase, Value, fill=Case))+geom_boxplot(outlier.shape=NA)+
 	scale_fill_manual(values=c("green4"))+
-	scale_y_continuous(name="Peak Pressure (MPa)")+scale_x_discrete(name="Stance phase percentage (%)")+
+	scale_y_continuous(name="Peak Pressure (MPa)")+scale_x_discrete(name="Stance phase (%)")+
 	theme(axis.title=element_text(size=20),axis.text=element_text(colour='black', size=12),strip.text=element_text(size=12))+
 	theme(legend.position = "none")+
 	facet_grid(Rows ~ Cols)
@@ -85,7 +95,7 @@ dev.off()
 filename<-paste(outdirg,"Figures/Area_Time_Tibia",sep='')
 png(paste(filename,".png",sep=''), height=height, width=width, res=res)
 q<-ggplot(subset(mmppArea, Case!="Native Talus"), aes(Phase, Value, fill=Case))+geom_boxplot(outlier.shape=NA)+
-	scale_y_continuous(name="Peak Pressure (MPa)", limits=c(0,10))+scale_x_discrete(name="Stance phase percentage (%)")+
+	scale_y_continuous(name="Peak Pressure (MPa)", limits=c(0,10))+scale_x_discrete(name="Stance phase (%)")+
 	theme(axis.title=element_text(size=20),axis.text=element_text(colour='black', size=12),strip.text=element_text(size=12))+
 	facet_grid(Rows ~ Cols)
 print(q)
