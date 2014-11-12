@@ -134,8 +134,8 @@ fit_model <- function(data, var_string, location,pLevel) {
 		var_string<-c(paste(var_string,"A/P"),paste(var_string,"M/L"))
 	}
 	data<-subset(data,Variable %in% var_string)
-	fm<-dlply(data,.(Variable,Phase,Muscle,Case), function(x) lme(Value ~ Activation,data = x,~1 | Foot))
-	fm.coef<-ldply(fm,function(x) c(fixef(x),summary(x)$tTable['Activation','p-value'],max(x$data$Activation),sqrt(mean(x$residuals[,1]^2))))
+	fm<-dlply(data,.(Variable,Phase,Muscle,Case), function(x) lme(Value ~ Actuation,data = x,~1 | Foot))
+	fm.coef<-ldply(fm,function(x) c(fixef(x),summary(x)$tTable['Actuation','p-value'],max(x$data$Actuation),sqrt(mean(x$residuals[,1]^2))))
 	if (location==1) {
 		fm.coef$Variable<-mapvalues(fm.coef$Variable,from=var_string, to=c("AP","ML"))
 	}
