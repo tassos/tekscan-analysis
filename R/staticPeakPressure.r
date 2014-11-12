@@ -73,11 +73,10 @@ fm2r$p.star<-ifelse((fm2r$p.star.AP=="*"&fm2r$p.star.ML=="*"),"*"," ")
 cat(format(Sys.time(), "%H:%M:%S"),' Plotting figures\n')
 
 # Defining height and width for the output figures and plotting
-height<-1400
-width<-1600
-res<-150
+height<-10
+width<-8
 
-png(paste(outdirg,"Figures/muscleEffect.png",sep=''), height, width, res=res)
+pdf(paste(outdirg,"Figures/muscleEffect.pdf",sep=''))
 p<-ggplot(npp, aes(Actuation, Value, color=Case))+geom_point()+
 	geom_text(data=fm0, aes(x=8+as.numeric(Case), y=8, label=p.star), color=c("firebrick","darkblue"), size=8)+
 	geom_segment(aes(x=0, y=Intercept, xend=maxActiv+1,
@@ -89,7 +88,7 @@ p<-ggplot(npp, aes(Actuation, Value, color=Case))+geom_point()+
 print(p)
 dev.off()
 
-png(paste(outdirg,"Figures/muscleCoP.png",sep=''), height, width, res=res)
+pdf(paste(outdirg,"Figures/muscleCoP.pdf",sep=''))
 q<-ggplot(cop, aes(CoPML, CoPAP, color=Case))+geom_point(aes(alpha=Actuation))+
 	scale_alpha_continuous(guide = guide_legend(title = "Actuation"))+
 	theme_bw()+
@@ -106,7 +105,7 @@ q<-ggplot(cop, aes(CoPML, CoPAP, color=Case))+geom_point(aes(alpha=Actuation))+
 print(q)
 dev.off()
 
-png(paste(outdirg,"Figures/musclePP.png",sep=''), height, width, res=res)
+pdf(paste(outdirg,"Figures/musclePP.pdf",sep=''))
 r<-ggplot(cop, aes(PLML, PLAP, color=Case))+geom_point(aes(alpha=Actuation))+
 	scale_alpha_continuous(guide = guide_legend(title = "Actuation"))+
 	geom_text(data=fm2r, aes(x=7+3*as.numeric(Case), y=20, label=p.star), color=c("firebrick","darkblue"), size=8)+
