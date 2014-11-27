@@ -9,6 +9,8 @@ options("max.print"=300)
 pLevel=0.05
 phases<-c(0,20,40,60,80,100)
 
+print<-F
+
 source("directory.r")
 source("common.r")
 source('LaTeX.r')
@@ -60,7 +62,7 @@ mppS$Case<-mapvalues(mppS$Case,from=c("Tekscan","TAP"), to=c("Native Tibia","TAA
 cat(format(Sys.time(), "%H:%M:%S"),'Calculating statistics\n')
 
 # Statistics for detecting significant differences between Native and TAP (dynamic)
-wp<-ddply(mmppArea,.(Rows,Cols,Phase), function(x) data.frame(estimated.difference=safewilTest(x,"Value","Case","TAA Tibia","Native Tibia")$estimate,p.value=safewilTest(x,"Value","Case","TAA Tibia","Native Tibia")$p.value))
+wp<-ddply(mmppArea,.(Rows,Cols,Phase), function(x) data.frame(estimated.difference=round(safewilTest(x,"Value","Case","TAA Tibia","Native Tibia")$estimate,3),p.value=safewilTest(x,"Value","Case","TAA Tibia","Native Tibia")$p.value))
 wp$p.value<-ifelse(wp$p.value <=pLevel,paste(round(wp$p.value,3),"(*)"),round(wp$p.value,3))
 
 wpf<-ddply(mppArea,.(Foot,Rows,Cols,Phase), function(x) data.frame(estim=safewilTest(x,"Value","Case","TAA Tibia","Native Tibia")$estimate,p.value=safewilTest(x,"Value","Case","TAA Tibia","Native Tibia")$p.value))
@@ -72,43 +74,41 @@ sumwpf<-merge(wp,sumwpf, intersect(c('Rows','Cols','Phase'),c('Rows','Cols','Pha
 static.sign<-safewilTest(mppS,"Value","Case","TAA Tibia","Native Tibia")
 se<-ddply(mppS,.(Case), function(x) sqrt(var(x$Value)/length(x$Value)))
 
-sumTable<-tabular(Rows*Cols*Phase~Heading()*identity*(estimated.difference+p.value+sign.inc+inc+dec+sign.dec), data=sumwpf)
-suppress<-latex(sumTable,paste(outdirg,"LaTeX/summaryPP.tex",sep=''), digits=2)
+if (print){
+	sumTable<-tabular(Rows*Cols*Phase~Heading()*identity*(estimated.difference+p.value+sign.inc+inc+dec+sign.dec), data=sumwpf)
+	suppress<-latex(sumTable,paste(outdirg,"LaTeX/summaryPP.tex",sep=''), digits=2)
 
-height<-700
-width<-800
-res=100
+	cat(format(Sys.time(), "%H:%M:%S"),'Plotting\n')
 
-cat(format(Sys.time(), "%H:%M:%S"),'Plotting\n')
+	filename<-paste(outdirg,"Figures/Area_Time_Talus",sep='')
+	png(paste(filename,".png",sep=''), height=height, width=width, res=res)
+	p<-ggplot(subset(mmppArea, Case=="Native Talus"), aes(Phase, Value, fill=Case))+geom_boxplot(outlier.shape=NA)+
+		scale_fill_manual(values=c("green4"))+
+		scale_y_continuous(name="Peak Pressure (MPa)")+scale_x_discrete(name="Stance phase (%)")+
+		theme(axis.title=element_text(size=20),axis.text=element_text(colour='black', size=12),strip.text=element_text(size=12))+
+		theme(legend.position = "none")+
+		facet_grid(Rows ~ Cols)
+	print(p)
+	dev.off()
 
-filename<-paste(outdirg,"Figures/Area_Time_Talus",sep='')
-png(paste(filename,".png",sep=''), height=height, width=width, res=res)
-p<-ggplot(subset(mmppArea, Case=="Native Talus"), aes(Phase, Value, fill=Case))+geom_boxplot(outlier.shape=NA)+
-	scale_fill_manual(values=c("green4"))+
-	scale_y_continuous(name="Peak Pressure (MPa)")+scale_x_discrete(name="Stance phase (%)")+
-	theme(axis.title=element_text(size=20),axis.text=element_text(colour='black', size=12),strip.text=element_text(size=12))+
-	theme(legend.position = "none")+
-	facet_grid(Rows ~ Cols)
-print(p)
-dev.off()
+	filename<-paste(outdirg,"Figures/Area_Time_Tibia",sep='')
+	png(paste(filename,".png",sep=''), height=height, width=width, res=res)
+	q<-ggplot(subset(mmppArea, Case!="Native Talus"), aes(Phase, Value, fill=Case))+geom_boxplot(outlier.shape=NA)+
+		scale_y_continuous(name="Peak Pressure (MPa)", limits=c(0,10))+scale_x_discrete(name="Stance phase (%)")+
+		theme(axis.title=element_text(size=20),axis.text=element_text(colour='black', size=12),strip.text=element_text(size=12))+
+		facet_grid(Rows ~ Cols)
+	print(q)
+	dev.off()
 
-filename<-paste(outdirg,"Figures/Area_Time_Tibia",sep='')
-png(paste(filename,".png",sep=''), height=height, width=width, res=res)
-q<-ggplot(subset(mmppArea, Case!="Native Talus"), aes(Phase, Value, fill=Case))+geom_boxplot(outlier.shape=NA)+
-	scale_y_continuous(name="Peak Pressure (MPa)", limits=c(0,10))+scale_x_discrete(name="Stance phase (%)")+
-	theme(axis.title=element_text(size=20),axis.text=element_text(colour='black', size=12),strip.text=element_text(size=12))+
-	facet_grid(Rows ~ Cols)
-print(q)
-dev.off()
+	for (bone in c('Talus','Tibia')) {
+		save_png(height,width,bone,paste(outdirg,'Figures/Temporal-Time_',sep=''))
+	}
 
-for (bone in c('Talus','Tibia')) {
-	save_png(height,width,bone,paste(outdirg,'Figures/Temporal-Time_',sep=''))
+	filename<-paste(outdirg,"Figures/Neutral_measurements",sep='')
+	png(paste(filename,".png",sep=''), res=res, height=400, width=500)
+	w<-ggplot(subset(mppS), aes(Case, Value, fill=Case))+geom_boxplot(outlier.shape=NA)+
+		theme(axis.title=element_text(size=20),axis.text=element_text(colour='black'))+
+		scale_y_continuous(name="Peak Pressure (MPa)")
+	print(w)
+	dev.off()
 }
-
-filename<-paste(outdirg,"Figures/Neutral_measurements",sep='')
-png(paste(filename,".png",sep=''), res=res, height=400, width=500)
-w<-ggplot(subset(mppS), aes(Case, Value, fill=Case))+geom_boxplot(outlier.shape=NA)+
-	theme(axis.title=element_text(size=20),axis.text=element_text(colour='black'))+
-	scale_y_continuous(name="Peak Pressure (MPa)")
-print(w)
-dev.off()
