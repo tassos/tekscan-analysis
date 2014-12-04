@@ -34,9 +34,12 @@ pp$Muscle<-mapvalues(pp$Muscle,from=c("Gastroc"), to=c("Tr surae"))
 pp[grep('A/P',pp$Variable),]$Value<--pp[grep('A/P',pp$Variable),]$Value
 pp<-subset(pp,Case!='TAA+TA')
 pp<-pp[pp$Foot!='foot46',]
-pp<-pp[complete.cases(pp),]
 pp$Actuation<-round(pp$Actuation,1)
 pp<-factorise(pp)
+pp<-pp[complete.cases(pp),]
+
+pp$Foot<-mapvalues(pp$Foot,from=c("foot37","foot38","foot39","foot40","foot41","foot42","foot43","foot44","foot45"),
+	to=c("Specimen1","Specimen2","Specimen3","Specimen4","Specimen5","Specimen6","Specimen7","Specimen8","Specimen9"))
 
 # Creating a summary table with the forces that were applied to the specimens
 forces<-ddply(subset(pp,Variable=="PeakPressure"),.(Foot,Phase,Muscle), function(x) data.frame(Max=max(x$RawActiv),Initial=mean(x[x$Percentage == min(as.numeric(as.character(x$Percentage))),]$RawActiv)))
@@ -45,12 +48,14 @@ forces<-ddply(subset(pp,Variable=="PeakPressure"),.(Foot,Phase,Muscle), function
 pp$Actuation<-factor(pp$Actuation)
 pp<-ddply(pp,.(Foot,Case,Phase,Variable,Trial), function(x) data.frame(RawActiv=x$RawActiv, Muscle=x$Muscle, Actuation=x$Actuation, Value=x$Value, Default=mean(x[x$Percentage == min(as.numeric(as.character(x$Percentage))),]$Value),DefaultAct=mean(x[x$Percentage == min(as.numeric(as.character(x$Percentage))),]$RawActiv)), .inform=T)
 pp<-pp[as.numeric(as.character(pp$Actuation))!=1 & as.numeric(as.character(pp$Actuation))<10,]
+pp<-pp[complete.cases(pp),]
 
 cat(format(Sys.time(), "%H:%M:%S"),' Normalising peak pressure values\n')
 # Normalising the measured variable
 npp<-ddply(subset(pp,Variable=="PeakPressure"),.(Foot,Case,Muscle,Phase,Variable,Trial), function(x) data.frame(Value=x$Value/x$Default, Actuation=x$Actuation))
 npp<-ddply(npp,.(Foot,Case,Muscle,Phase,Variable,Actuation), function(x) data.frame(Value=mean(x$Value)))
 npp$Actuation<-as.numeric(as.character(npp$Actuation))
+npp<-factorise(npp)
 npp<-npp[complete.cases(npp),]
 
 pp<-ddply(pp,.(Foot,Case,Muscle,Phase,Variable,Actuation), function(x) data.frame(RawActiv=mean(x$RawActiv), Value=mean(x$Value), Default=mean(x$Default)))
@@ -65,6 +70,12 @@ fm2<-factorise(fit_model(pp,"PeakLocation",1,pLevel))
 # Converting to a wide format, so that I can use the different variables for the aesthetics of the plot
 cop<-reshape(pp, idvar=c("Foot","Case","Muscle","Phase","Actuation"), timevar="Variable", varying=list(c('PP','CoPAP','CoPML','PLAP','PLML')), drop=c('Default','RawActiv'), direction="wide")
 cop<-cop[complete.cases(cop),]
+
+pressureDistribution<-merge(cop,npp,by=c('Foot','Case','Muscle','Phase','Actuation'))
+pressureDistribution<-pressureDistribution[,c(seq(1,10),12)]
+dimnames(pressureDistribution)[[2]][11]<-'PPnorm'
+pressureDistribution<-pressureDistribution[,c(seq(1,6),11,seq(7,10))]
+save('pressureDistribution',file=paste(outdirg,'pressureDistribution.RData',sep=''))
 
 # Gathering the model estimates for drawing the predictor arrows
 fm1r<-reshape(fm1, idvar=c("Phase","Muscle","Case","maxActiv"), timevar="Variable", direction="wide")

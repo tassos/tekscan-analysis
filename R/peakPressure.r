@@ -42,6 +42,12 @@ ppArea$Case<-mapvalues(ppArea$Case,from=c("Tekscan","Tekscan Talus","TAP"), to=c
 # Spliting the peak pressure in phases of stance phase
 ppArea<-splitToPhases(ppArea,phases)
 ppArea<-factorise(ppArea)
+ppArea$Foot<-mapvalues(ppArea$Foot,from=c("foot37","foot38","foot39","foot40","foot42","foot44","foot45","foot46"),
+	to=c("Specimen1","Specimen2","Specimen3","Specimen4","Specimen5","Specimen6","Specimen7","Specimen8"))
+
+# Saving the data.frame for the submitting with the article
+peakPressure<-ppArea
+save('peakPressure',file=paste(outdirg,'peakPressure.RData',sep=''))
 
 cat(format(Sys.time(), "%H:%M:%S"),'Calculating peak pressure measures\n')
 
