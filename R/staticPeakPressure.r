@@ -72,9 +72,9 @@ cop<-reshape(pp, idvar=c("Foot","Case","Muscle","Phase","Actuation"), timevar="V
 cop<-cop[complete.cases(cop),]
 
 pressureDistribution<-merge(cop,npp,by=c('Foot','Case','Muscle','Phase','Actuation'))
-pressureDistribution<-pressureDistribution[,c(seq(1,10),12)]
-dimnames(pressureDistribution)[[2]][11]<-'PPnorm'
-pressureDistribution<-pressureDistribution[,c(seq(1,6),11,seq(7,10))]
+pressureDistribution<-pressureDistribution[,c(seq(1,8),12)]
+dimnames(pressureDistribution)[[2]][9]<-'PPnorm'
+pressureDistribution<-pressureDistribution[,c(seq(1,6),9,seq(7,8))]
 save('pressureDistribution',file=paste(outdirg,'pressureDistribution.RData',sep=''))
 
 # Gathering the model estimates for drawing the predictor arrows
