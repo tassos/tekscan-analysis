@@ -1,4 +1,4 @@
-function [dist1, dist2] = projectKinematics (voetPath, ~)
+function [dist1, dist2] = projectKinematics (voetPath, data, rows, cols, rowSpacing, colSpacing, ~)
 
     % Using different foot measurements for the ones that don't have good
     % talus measurements
@@ -91,13 +91,14 @@ function [dist1, dist2] = projectKinematics (voetPath, ~)
         % of the projection. Then define the distances between the landmarks
         % and the projections
         Proj_Tal = V_Tal_New(dsearchn(V_Tal_New,V_Tib_Home(IndTib,:)),:);
+        tal_color = plotPressureGradient(Proj_Tal,V_Tib_Home(IndTib,:),V_Tal_New,data(1,1,i,:,:),rows,cols, rowSpacing, colSpacing);
         [dist1(i,:), dist2(i,:)] = DistanceFromVertexToVertex(V_Tal_New(IndTal,:),Proj_Tal,screwTib(3,:));
 
         % Draw the new joint configuration on the figure and write a frame
         % in the video file.
-%         cla; GUI_PlotShells(gca,F_Tib,V_Tib_Home,'red'); GUI_PlotShells(gca,F_Tal,V_Tal_New,'yellow');
-%         view(0,90);
-%         text(max(xlim)-5,max(ylim)-10,max(zlim)+5,num2str(i),'FontWeight','bold','BackgroundColor',[.7 .9 .7])
+        cla; GUI_PlotShells(gca,F_Tal,V_Tal_New,tal_color);
+        view(0,180);
+        text(max(xlim)-5,max(ylim)-10,max(zlim)+5,num2str(i),'FontWeight','bold','BackgroundColor',[.7 .9 .7])
 %         frame = getframe(gca,[0,0,600,800]);
 %         writeVideo(videoObj,frame);
     end
