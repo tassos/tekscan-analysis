@@ -14,10 +14,10 @@ function plotCover
     end
     
     [~,~,~,screwTal] = extractLandmarksFromXML([voetPath,'/SpecimenData'],'Talus','Tekscan');
-    [~,~,~,corTal] = extractLandmarksFromXML([voetPath,'/SpecimenData'],'Talus','cor');
+    [~,~,~,screwTib] = extractLandmarksFromXML([voetPath,'/SpecimenData'],'Tibia','Tekscan');    
 
-    Proj_Tib=V{1}(dsearchn(V{1},screwTal),:);
-    Proj_Tal=V{2}(dsearchn(V{2},Proj_Tib),:);
+    Proj_Tib=V{1}(dsearchn(V{1},screwTib),:);
+    Proj_Tal=V{2}(dsearchn(V{2},screwTal),:);
     
     load([voetPath,'Tekscan\Calibrated_foot45_Tekscan_3.mat'],'calibratedData','spacing','fileName');
 
@@ -25,7 +25,7 @@ function plotCover
     rowSpacing=spacing{2}/1e3;
     data(:,:,:) = smooth3(squeeze(calibratedData(:,:,:))); %#ok<NODEF> The variable is loaded four lines above
           
-    col{2} = plotPressureGradient(Proj_Tal, Proj_Tib, corTal, V{2}, data(70,:,:), rowSpacing, colSpacing);
+    col{2} = plotPressureGradient(Proj_Tal, Proj_Tib, V{2}, squeeze(data(70,:,:)), rowSpacing, colSpacing);
     
     GUI_PlotShells(gca,F(2:end),V(2:end),col(2:end));
     
