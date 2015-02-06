@@ -4,7 +4,7 @@ function pressureArea =...
     k=0;
     % Calculate distance between Tibia and Talus grid points.
     pressureArea=NaN(size(data,2),size(data,3),length(rows)*length(cols));
-    [point1, point2] = projectKinematics (measPathName, data, rows, cols, rowSpacing, colSpacing, threshold);
+    [point1, point2] = projectKinematics (measPathName, data, rowSpacing, colSpacing, threshold);
 
     if (~(size(point1,1)==1||size(point2,1)==1) && ~any(isnan([point1(:);point2(:)])))
         [X,Y] = meshgrid(1:max(cols{end}),1:max(rows{end}));

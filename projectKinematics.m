@@ -1,4 +1,4 @@
-function [dist1, dist2] = projectKinematics (voetPath, data, rows, cols, rowSpacing, colSpacing, ~)
+function [dist1, dist2] = projectKinematics (voetPath, data, rowSpacing, colSpacing, ~)
 
     % Using different foot measurements for the ones that don't have good
     % talus measurements
@@ -9,6 +9,9 @@ function [dist1, dist2] = projectKinematics (voetPath, data, rows, cols, rowSpac
     if strcmp(footnumber,'FOOT39')||strcmp(footnumber,'FOOT44')||strcmp(footnumber,'FOOT46')
         voetPath=[voetPath,'/../Voet 42'];
         footnumber='FOOT42';
+    end
+    if ~exist([voetPath,'/Tekscan/Animation'],'dir')
+        mkdir([voetPath,'/Tekscan'],'Animation');
     end
     
     load([voetPath '/RefPosition - tekscan.mat']);
@@ -30,8 +33,8 @@ function [dist1, dist2] = projectKinematics (voetPath, data, rows, cols, rowSpac
     end
 
     % Load the STL files and the landmarks of the two bones
-    toLoadTib = [voetPath,'/SpecimenData/KADAVERVOET ',footnumber(5:6),'B - tekscan - Tibia.stl'];
-    toLoadTal = [voetPath,'/SpecimenData/KADAVERVOET ',footnumber(5:6),'B - tekscan - Talus.stl'];
+    toLoadTib = [voetPath,'/SpecimenData/KADAVERVOET ',footnumber(5:6),'B - tekscan - Tibia_np.stl'];
+    toLoadTal = [voetPath,'/SpecimenData/KADAVERVOET ',footnumber(5:6),'B - tekscan - Talus_np.stl'];
     [F_Tib, V_Tib] = STL_ReadFile(toLoadTib, 1, 'Select TIBIA stl-file', Inf, 0, 1);
     [F_Tal, V_Tal] = STL_ReadFile(toLoadTal, 1, 'Select TALUS stl-file', Inf, 0, 1);
     [~,~,~,screwTib] = extractLandmarksFromXML([voetPath,'/SpecimenData'],'Tibia','Tekscan');
@@ -79,9 +82,14 @@ function [dist1, dist2] = projectKinematics (voetPath, data, rows, cols, rowSpac
     % Open Video file and prepare axis for its frames.
 %     videoObj = VideoWriter([voetPath,'/Tekscan/BoneKinematics.mp4'],'MPEG-4');
 %     open(videoObj);
-%     figure(1);
-%     set(gcf, 'Units', 'pixels', 'Position', [10, 10, 650, 850]);
-%     set(gca, 'Units', 'pixels', 'Position', [10, 10, 600, 800]);
+    figure(1);
+    set(gcf, 'Units', 'pixels', 'Position', [628 182 494 649]);
+%     set(gca, 'Units', 'pixels', 'Position', [0.13 0.11 0.7750 0.8150]);
+    patch('Parent', gca, 'Vertices', V_Tib_Home, 'Faces', F_Tib, ...
+        'FaceAlpha', 0.4, 'EdgeColor', 'none', 'FaceColor', [0.8 0.8 0.8]);
+    li = light('Parent', gca, 'Position', [1 1 -1], 'Style', 'infinite', 'Color', [0.8 0.8 0.8]);
+    li2 = light('Parent', gca, 'Position', [-1 -1 -1], 'Style', 'infinite', 'Color', [0.5 0.3 0.3]);
+    axis off
     for i=1:length(rotTal)
         % Rotate and translate Talus bone
         M = transfoMatrix(rotTal(i,:));
@@ -91,17 +99,19 @@ function [dist1, dist2] = projectKinematics (voetPath, data, rows, cols, rowSpac
         % of the projection. Then define the distances between the landmarks
         % and the projections
         Proj_Tal = V_Tal_New(dsearchn(V_Tal_New,V_Tib_Home(IndTib,:)),:);
-        tal_color = plotPressureGradient(Proj_Tal,V_Tib_Home(IndTib,:),V_Tal_New,data(1,1,i,:,:),rows,cols, rowSpacing, colSpacing);
         [dist1(i,:), dist2(i,:)] = DistanceFromVertexToVertex(V_Tal_New(IndTal,:),Proj_Tal,screwTib(3,:));
 
+        col_tal = plotPressureGradient(Proj_Tal, V_Tib(dsearchn(V_Tib,screwTib),:), V_Tal_New, squeeze(data(1,1,i,:,:)), rowSpacing, colSpacing);
         % Draw the new joint configuration on the figure and write a frame
         % in the video file.
-        cla; GUI_PlotShells(gca,F_Tal,V_Tal_New,tal_color);
-        view(0,180);
-        text(max(xlim)-5,max(ylim)-10,max(zlim)+5,num2str(i),'FontWeight','bold','BackgroundColor',[.7 .9 .7])
+        obj = GUI_PlotShells(gca,F_Tal,V_Tal_New,col_tal,0,0);
+        view(177,-72)
+%         h = text(max(xlim)-5,max(ylim)-10,max(zlim)+5,num2str(i),'FontWeight','bold','BackgroundColor',[.7 .9 .7]);
 %         frame = getframe(gca,[0,0,600,800]);
 %         writeVideo(videoObj,frame);
+        saveas(gca, [voetPath,'/Tekscan/Animation/Frame',sprintf('%03d',i),'.png']);
+        delete(obj)
     end
 %     close(videoObj);
-%     close gcf;
+    close gcf;
 end
