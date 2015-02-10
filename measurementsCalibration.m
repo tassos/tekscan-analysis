@@ -21,69 +21,46 @@ clc
 
 directories = uipickfiles('FilterSpec',OSDetection);
 for z=1:size(directories,2)
-    measPathName = [directories{z},'/Tekscan/'];
-    measFileName = dir([measPathName,'*.asf']);
+    measFileName = dir([directories{z},'/Tekscan/*.asf']);
     measFileName = {measFileName.name};
 
     %Initialising a waitbar that shows the progress to the user
     h=waitbar(0,'Initialising waitbar...');
     
-    % Loading foot side and position of the sensor for deciding whether
-    % flipping of the data is needed, so that all measurements are aligned
-    % in the same direction. If it is a Right foot and the sensor was
-    % upside Down, or if it's a left foot and the sensor was upside Up,
-    % flipping is needed.
-    
     % Checking if a file with the sensor information exists
-    toLoad = [measPathName '../Foot details.mat'];
+    toLoad = [directories{z} '/Specimen_details.xml'];
     if ~exist(toLoad,'file')
         % If it doesn't, then the user is asked to select it him/herself
-        [footFile, footPath] = uigetfile([measPathName,'*.mat'],'Select variable with foot details');
+        [footFile, footPath] = uigetfile([directories{z},'*.xml'],'Select variable with details for the specimen');
         toLoad = [footPath, footFile];
     end
-    load(toLoad,'foottype','upsideUp','sensor','footnumber');
+    [side, positioning, sensor, specimen] = ExtractDetails(toLoad);
 
     for i=1:size(measFileName,2)
         label = strrep(measFileName{i}(1:end-4),'_',' ');
-        waitbar((i/size(measFileName,2)),h,['Calibrating ' label ' measurement of ' lower(footnumber)]);
-        [data,sensit,spacing] = readTekscan([measPathName measFileName{i}]);...
-            %#ok<NASGU> The variable is actually used in the save function few lines below.
+        waitbar((i/size(measFileName,2)),h,['Calibrating ' label ' measurement of ' lower(specimen)]);
+        [data,sensit,spacing] = readTekscan([directories{z} '\Tekscan\' measFileName{i}]); %#ok<NASGU> Used later for saving
         
         cleanData = pressureCleanUp(data);
         
-        %Detecting the foot case of the measurement (tekscan,tap,ta) and
-        %constructing appropriate paths and filenames. If we are in
-        %'manual' mode, then the case is defined earlier
-        footcase = cell2mat(lower(regexp(measFileName{i},'^[a-zA-Z\d]*','match')));
-        static = 0;
-        switch footcase
-            case 'static2'
-                footcase = 'Tekscan';
-                static = 1;
-            case 'static3'
-                footcase = 'TAP';
-                static = 1;
-            case 'static4'
-                footcase = 'TA';
-                static = 1;
-        end
-        sensorFileName=[OSDetection, '/Calibration matrices/',sensor.(lower(footcase)){:},'.mat'];
-        calibrationFolder=[OSDetection '/Calibration measurements/',sensor.(lower(footcase)){:}];
+        %Detecting the foot case of the measurement and constructing
+        %appropriate paths and filenames.
+        specimenCase = cell2mat(lower(regexp(measFileName{i},'^[a-zA-Z\d]*','match')));
+        sensorFileName=[OSDetection, '/Calibration matrices/',sensor.(lower(specimenCase)),'.mat'];
         
-        %Check to see if calibration with this sensor is already made. If
-        %calibration file doesn't exists, go on with calculating the fitting
-        %coefficients.
+        %Check to see if calibration for this sensor is already made. If
+        %calibration file doesn't exists, calculate the calibration matrix.
         if (exist(sensorFileName,'file')==2);
             load(sensorFileName,'x','yi');
-            calibrationCurve = 'PCHIP';
         else
+            calibrationFolder=[OSDetection '/Calibration measurements/',sensor.(lower(specimenCase))];
             [meanData,loads,index] = readCalibrationFiles(h,calibrationFolder,1);
             [x, yi] = calibrationCoeff(h,measPathName,sensorFileName,meanData,loads,index);
-            
-            % Asking the user which calibration curve to be used
-            prompt = {'Choose calibration curve to be used'};
-            calibrationCurve = questdlg(prompt,'Calibration curve','PCHIP','Polynomial fitting','PCHIP');
         end
+        
+        % Asking the user which calibration curve to be used
+        prompt = {'Choose calibration curve to be used'};
+        calibrationCurve = questdlg(prompt,'Calibration curve','PCHIP','Polynomial fitting','PCHIP');
         
         % Deciding which calibration curve to use for calibrating the data,
         % based on user selection above.
@@ -94,25 +71,20 @@ for z=1:size(directories,2)
                 calibratedData=yi.(sensit)(cleanData+1);
         end       
         
+        % Loading specimen side and positining of the sensor for deciding whether
+        % flipping of the data is needed, so that all measurements are aligned
+        % in the same direction. If it is a right side speciment and the sensor was
+        % upside Down, or if it's a left foot and the sensor was upside Up,
+        % flipping is needed.
         calibratedData(calibratedData < 0) =0;
-        if xor(strcmp(foottype,'RIGHT'),upsideUp.(lower(footcase)))
+        if xor(strcmp(side,'RIGHT'),positioning.(lower(specimenCase)))
             for k=1:size(calibratedData,1)
                 calibratedData(k,:,:)=fliplr(squeeze(calibratedData(k,:,:)));
             end
         end
         
-        fileNameRt = strtrim(measFileName{i}(1:end-4));
-        fileName = [lower(footnumber) '_' fileNameRt];
-        if static
-            fileName = regexprep(fileName,'Static*\d',footcase); %Replacing Static# with the foot case
-            [calibratedData, forceLevels, origForceLevels] =...
-                staticProtocolAnalysis(calibratedData,measPathName,fileNameRt,foottype,footnumber,'pres'); %#ok<*ASGLU,NASGU> Variables are saved below
-            if length(calibratedData)~=1
-                save([measPathName 'StaticProtocol/Organised_' fileName '.mat'],'forceLevels','origForceLevels','calibratedData','spacing','fileName');
-            end
-        else
-            save([measPathName 'Calibrated_' fileName '.mat'],'calibratedData','spacing','fileName');
-        end
+        fileName = [lower(specimen) '_' strtrim(measFileName{i}(1:end-4))];
+        save([directories{z} 'Calibrated_' fileName '.mat'],'calibratedData','spacing','fileName');
     end
     close(h);
 end
