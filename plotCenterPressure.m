@@ -8,7 +8,7 @@ function CoP = plotCenterPressure (pos, x, y, data, toPlot, rowSpacing, colSpaci
             CoP(k,l,2)=sum(sum(y.*dataTemp))/sum(dataTemp(:))*colSpacing*1000;
         end
     end
-    if strcmp(toPlot,'Yes')
+    if toPlot
         % Plotting location of center of pressure in the two directions
         fig=figure('name','CoP position in two directions');
         set(fig,'OuterPosition',pos);

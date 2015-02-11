@@ -1,7 +1,7 @@
 function [pressureArea, pressureAreaHeader] =...
     plotPeakArea (pos1, data, rows, cols, rowsPlot, colsPlot, toPlot)
 
-    if strcmp(toPlot,'Yes')
+    if toPlot
         fig=figure('name','Peak pressure in different areas of the sensor');
         % Defining the regions that the mean will be calculated for
         set(fig,'OuterPosition',pos1);
@@ -27,7 +27,7 @@ function [pressureArea, pressureAreaHeader] =...
             
             pressureAreaHeader{j+length(cols)*(i-1)}=['PeakPressure ' Range{:}];
             
-            if strcmp(toPlot,'Yes')
+            if toPlot
                 figure(5)
                 subplot(length(rows),length(cols),j+(i-1)*length(cols))
                 plot3dConfInter(pressureArea, coleurMeas, coleurStat, j+length(cols)*(i-1));

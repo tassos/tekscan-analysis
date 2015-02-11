@@ -1,7 +1,7 @@
 function [forceArea, forceAreaHeader, contactArea, contactAreaHeader] =...
     plotForceArea (pos1, pos2, data, rows, cols, rowsPlot, colsPlot, senselArea, toPlot)
 
-    if strcmp(toPlot,'Yes')
+    if toPlot
         fig=figure('name','Resulting force in different areas of the sensor');
         % Defining the regions that the mean will be calculated for
         set(fig,'OuterPosition',pos1);
@@ -36,7 +36,7 @@ function [forceArea, forceAreaHeader, contactArea, contactAreaHeader] =...
             forceAreaHeader{j+length(cols)*(i-1)}=['ForceArea ' Range{:}];
             contactAreaHeader{j+length(cols)*(i-1)}=['ContactArea ' Range{:}];
             
-            if strcmp(toPlot,'Yes')
+            if toPlot
                 figure(2)
                 subplot(length(rows),length(cols),j+(i-1)*length(cols))
                 plot3dConfInter(forceArea, coleurMeas, coleurStat, j+length(cols)*(i-1));

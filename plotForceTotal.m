@@ -10,7 +10,7 @@ function forceTotal = plotForceTotal(pos, h, data, senselArea, legendNames, toPl
         end
     end
     
-    if strcmp(toPlot,'Yes')
+    if toPlot
         %Plotting sum of forces that are measured with the sensor
         fig=figure('name','Total force through the ankle joint');
         set(fig,'OuterPosition',pos);

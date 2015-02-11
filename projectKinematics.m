@@ -101,7 +101,7 @@ function [dist1, dist2] = projectKinematics (voetPath, data, rowSpacing, colSpac
         Proj_Tal = V_Tal_New(dsearchn(V_Tal_New,V_Tib_Home(IndTib,:)),:);
         [dist1(i,:), dist2(i,:)] = DistanceFromVertexToVertex(V_Tal_New(IndTal,:),Proj_Tal,screwTib(3,:));
 
-        if strcmp(toPlot,'Yes')
+        if toPlot
             col_tal = plotPressureGradient(Proj_Tal, V_Tib(dsearchn(V_Tib,screwTib),:), V_Tal_New, squeeze(data(1,1,i,:,:)), rowSpacing, colSpacing);
             % Draw the new joint configuration on the figure and write a frame
             % in the video file.

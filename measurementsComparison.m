@@ -112,7 +112,7 @@ function measurementsComparison
             plotSD=1;
         end
 
-        if strcmp(toPlot,'Yes')
+        if toPlot
             h = plot3Dpressure(pos1, x, y, meanMeas, sdMeas, rowsPlot, colsPlot, plotSD);
         else
             h=0;
@@ -135,14 +135,14 @@ function measurementsComparison
         % Plot total force through the joint over stance phase
         forceTotal = plotForceTotal (pos5, h, data, senselArea, legendNames, toPlot);
 
-        if strcmp(toPlot,'Yes')
+        if toPlot
             % Plot location of peak pressure in two directions over stance phase
             plotPeakLocation (pos4, x, y, peakLocation);
         end
 
         %% Saving
 
-        if strcmp(saveToFile,'Yes')
+        if saveToFile
             % Project areas control points on the talus and return the
             % peak pressure over stance phase for each area.
             if ~static
@@ -221,11 +221,11 @@ function [cases, directories, toPlot, saveToFile, static] = Questions
     cases = cases(get(lbs,'Value'));
     close
     
-    toPlot = questdlg('Do you want to plot?','Plot graphs?','Yes','No','No');
-    if strcmp(toPlot,'Yes')
-        saveToFile = questdlg('Do you want to save to a file?','Save to file?','Yes','No','Yes');
+    toPlot = strcmp(questdlg('Do you want to plot?','Plot graphs?','Yes','No','No'),'Yes');
+    if toPlot
+        saveToFile = strcmp(questdlg('Do you want to save to a file?','Save to file?','Yes','No','Yes'),'Yes');
     else
-        saveToFile= 'Yes';
+        saveToFile= 1;
     end
     static = strcmp(questdlg('Do you want to analyse static protocol measurements?','Static Protocol?','Yes','No','No'),'Yes');
 end

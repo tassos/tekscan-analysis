@@ -18,7 +18,7 @@ function [peakPressure, peakLocation] = plotPeakPressure(pos, h, x, y, data, leg
         end
     end
     
-    if strcmp(toPlot,'Yes')
+    if toPlot
         %Plotting peak preassure that is measured with the sensor
         fig=figure('name','Peak pressure over stance phase duration');
         set(fig,'OuterPosition',pos);
