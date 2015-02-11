@@ -31,13 +31,6 @@ function measurementsComparison
         % are following the same convention as all the Tekscan related files.
         load([measPathName measFileName{1}],'calibratedData');
         data=nan([size(measFileName),size(calibratedData)]);
-
-        % Remove files that are not really measurements
-        faulty= ~cellfun('isempty',strfind(measFileName,'calibration.mat'));
-        measFileName(faulty)=[];
-        faulty= ~cellfun('isempty',strfind(measFileName,'meanData.mat'));
-        measFileName(faulty)=[];
-
         legendNames{size(measFileName,2)}=[]; %#ok<AGROW> Not true
         % Load calibrated data from measurement files
         for i=1:size(measFileName,2)
@@ -128,9 +121,8 @@ function measurementsComparison
                 {'PeakPressure','PeakLocation A/P','PeakLocation M/L','CoP A/P','CoP M/L','forceTotal'}];
             dataToSave = permute(cat(3,forceArea,contactArea,pressureArea,...
                 peakPressure(:,:,2),peakLocation,CoP,forceTotal(:,:,2)),[2 3 1]);
-            headersStatic = {'Peronei','Tib Ant','Tib Post','Flex Dig','Gastroc','Flex Hal','Phase'};
             
-            clear Rdata RdataT RdataS
+            clear Rdata RdataS
             for j=1:length(cases);
                 k=0;
                 p=0;
@@ -150,12 +142,10 @@ function measurementsComparison
             name = strsplit(legendNames{1},' ');
             Rdata.Foot = name{1};
             Rdata.Variables = headers;
-            Rdata.Muscles = headersStatic;
             RdataS.Foot = name{1};
             RdataS.Variables = headers;
-            RdataS.Muscles = headersStatic;
 
-            save([directories{z} '/../Analysed_Results/Tekscan_Data_' name{1} '.mat'],'Rdata','RdataT','RdataS');
+            save([directories{z} '/../Analysed_Results/Tekscan_Data_' name{1} '.mat'],'Rdata','RdataS');
         end
     end
 end
