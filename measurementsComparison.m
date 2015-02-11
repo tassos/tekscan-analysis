@@ -146,9 +146,9 @@ function measurementsComparison
             % Project areas control points on the talus and return the
             % peak pressure over stance phase for each area.
             if ~static
-                pressureAreaTalus = peakAreaTalus (data, rows, cols, directories{z}, legendNames, threshold, rowSpacing, colSpacing);
+                 pressureAreaTalus = peakAreaTalus (data, rows, cols, directories{z}, legendNames, threshold, rowSpacing, colSpacing);
             else
-                pressureAreaTalus = NaN(size(data,2),size(data,3),length(rows)*length(cols));
+                 pressureAreaTalus = NaN(size(data,2),size(data,3),length(rows)*length(cols));
             end
             
             headers = [forceAreaHeader, contactAreaHeader, pressureAreaHeader,...
@@ -157,25 +157,24 @@ function measurementsComparison
                 peakPressure(:,:,2),peakLocation,CoP,forceTotal(:,:,2)),[2 3 1]);
             headersStatic = {'Peronei','Tib Ant','Tib Post','Flex Dig','Gastroc','Flex Hal','Phase'};
             
-            casesSpace = strrep(cases,'_',' ');
             clear Rdata RdataT RdataS
-            for j=1:length(casesSpace);
+            for j=1:length(cases);
                 k=0;
                 p=0;
                 for i=1:size(dataToSave,3)
-                    if ~isempty(strfind(measFileName{i},cases{j})) && isempty(strfind(measFileName{i},'static'))
+                    if ~isempty(strfind(measFileName{i},[cases{j},'_'])) && isempty(strfind(measFileName{i},'static'))
                         k=k+1;
-                        Rdata.(casesSpace{j}(1:end-1)).data(k,:,:) = dataToSave(:,:,i);
-                        Rdata.(casesSpace{j}(1:end-1)).names{k} = ['Trial ' sprintf('%02d',k)];
+                        Rdata.(cases{j}).data(k,:,:) = dataToSave(:,:,i);
+                        Rdata.(cases{j}).names{k} = ['Trial ' sprintf('%02d',k)];
                         if static
-                            Rdata.(casesSpace{j}(1:end-1)).fLevels(k,:,:) = fLevels(k,:,1:end-1);
-                            Rdata.(casesSpace{j}(1:end-1)).posLevels(k,:) = fLevels(k,:,end);
-                            Rdata.(casesSpace{j}(1:end-1)).origFLevels(k,:,:) = origFLevels(k,:,1:end-1);
+                            Rdata.(cases{j}).fLevels(k,:,:) = fLevels(k,:,1:end-1);
+                            Rdata.(cases{j}).posLevels(k,:) = fLevels(k,:,end);
+                            Rdata.(cases{j}).origFLevels(k,:,:) = origFLevels(k,:,1:end-1);
                         end
                     elseif ~isempty(strfind(measFileName{i},cases{j})) && ~isempty(strfind(measFileName{i},'static'))
                         p=p+1;
-                        RdataS.(casesSpace{j}(1:end-1)).data(p,:,:) = dataToSave(:,:,i);
-                        RdataS.(casesSpace{j}(1:end-1)).names{p} = ['Trial ' sprintf('%02d',p)];
+                        RdataS.(cases{j}(1:end-1)).data(p,:,:) = dataToSave(:,:,i);
+                        RdataS.(cases{j}(1:end-1)).names{p} = ['Trial ' sprintf('%02d',p)];
                     end
                 end
             end
@@ -208,7 +207,12 @@ end
 function [cases, directories, toPlot, saveToFile, static] = Questions
     directories = uipickfiles('FilterSpec',OSDetection);
     
-    cases = {'Tekscan_','TAP_','TA_'};
+    info = ReadYaml([directories{1},'\Specimen_details.yml']);
+    cases=cell(1,length(info.cases));
+    for i=1:length(info.cases)
+        cases{i} = info.cases{i}.name;
+    end
+    
     figure('Position',[300 300 200 300],'Name','Selection');
     parentpanel2 = uipanel('Units','pixels','Title','Choose combos','Position',[5 50 180 200]);
     lbs = uicontrol ('Parent',parentpanel2,'Style','listbox','Max',3,'String',cases,'Units','Pixels','Position',[5 5 170 100]);
@@ -230,7 +234,7 @@ function newFileNames = filesCleanUp(cases,fileNames,m,n)
 
     newFileNames={};
     for i=1:length(cases)
-        tempFileNames = fileNames(not(cellfun('isempty',strfind(lower(fileNames),lower(cases{i})))));
+        tempFileNames = fileNames(not(cellfun('isempty',strfind(lower(fileNames),[lower(cases{i}),'_']))));
         %Finding the correct order of the measurements by adding a 0 in
         %front of one digit numbers
         [~,order] = sort(regexprep(tempFileNames,'(?<=_)\d{1,1}(?=.mat)','0$0'));

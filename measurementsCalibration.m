@@ -71,7 +71,7 @@ for z=1:size(directories,2)
                 calibratedData=polyval(x.(sensit),cleanData);
             case 'PCHIP'
                 calibratedData=yi.(sensit)(cleanData+1);
-        end       
+        end
         
         % Loading specimen side and positining of the sensor for deciding whether
         % flipping of the data is needed, so that all measurements are aligned
