@@ -1,3 +1,5 @@
 *.Rdata
 *.Rhistory
+*.mat
 *~
+Documentation
