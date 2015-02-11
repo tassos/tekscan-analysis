@@ -43,11 +43,12 @@ function [meanData, loads, index] = readCalibrationFiles(h,pathName,batch)
     else  
         %Defining loading area
         if ~batch
-            prompt = {'Enter loading area length (mm):'};
-            sensorLength = str2double(inputdlg(prompt,'Input',1,{'40'}));
+            prompt = {'Enter loading area width (mm):','Enter loading area length (mm):'};
+            dimensions = str2double(inputdlg(prompt,'Input',1,{'30','40'}));
         else            
-            sensorLength=40;
+            dimensions=[30,40];
         end
+        loadArea = prod(dimensions)*1e-6;
 
         %Importing calibration data and inserting in a 2 dimensional array. The
         %first dimension is the rows times the columns of the sensor and the
@@ -65,12 +66,7 @@ function [meanData, loads, index] = readCalibrationFiles(h,pathName,batch)
                 %Averaging the data for the whole measurement duration and
                 %retrieving the load that was applied from the filename
                 meanData.(sensitivity)(index.(sensitivity),1)=mean(data(:));
-                loadTemp = str2double(calibFileName(i,1:length(regexp(calibFileName(i,:),'\d'))));
-                
-                %Interpolate the first dimension of the area based on the
-                %load that was applied
-                loadArea=pchip([340 6600],[25 31],loadTemp)*sensorLength*1e-6;
-                loads.(sensitivity)(index.(sensitivity),1)=loadTemp/loadArea;
+                loads.(sensitivity)(index.(sensitivity),1)=str2double(calibFileName(i,1:length(regexp(calibFileName(i,:),'\d'))))/loadArea;
         end
         %Save the values to be used next time
         save(file_target, 'meanData','loads','index');
