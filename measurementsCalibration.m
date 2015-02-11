@@ -20,6 +20,8 @@ close all force
 clc
 
 directories = uipickfiles('FilterSpec',OSDetection);
+prompt = {'Do you want to perform the calibration in batch mode?'};
+batch = questdlg(prompt,'Batch mode of calibration','Yes','No','Yes');
 for z=1:size(directories,2)
     measFileName = dir([directories{z},'/*.asf']);
     measFileName = {measFileName.name};
@@ -54,7 +56,7 @@ for z=1:size(directories,2)
             load(sensorFileName,'x','yi');
         else
             calibrationFolder=[OSDetection '/Calibration measurements/',sensor.(lower(specimenCase))];
-            [meanData,loads,index] = readCalibrationFiles(h,calibrationFolder,1);
+            [meanData,loads,index] = readCalibrationFiles(h,calibrationFolder,batch);
             [x, yi] = calibrationCoeff(h,measPathName,sensorFileName,meanData,loads,index);
         end
         
