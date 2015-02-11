@@ -91,11 +91,7 @@ function measurementsComparison
 
         % Plot pressure using a 3D mesh. The area divisions and standard
         % deviation between the measurements is also plotted
-        if  size(data,2)==1
-            plotSD=0;
-        else
-            plotSD=1;
-        end
+        plotSD = min(size(data,2)-1,1);
 
         if toPlot
             h = plot3Dpressure(pos1, x, y, meanMeas, sdMeas, rowsPlot, colsPlot, plotSD);
