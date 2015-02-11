@@ -146,7 +146,7 @@ function measurementsComparison
             % Project areas control points on the talus and return the
             % peak pressure over stance phase for each area.
             if ~static
-                 pressureAreaTalus = peakAreaTalus (data, rows, cols, directories{z}, legendNames, threshold, rowSpacing, colSpacing);
+                 pressureAreaTalus = peakAreaTalus (data, rows, cols, directories{z}, legendNames, threshold, rowSpacing, colSpacing, toPlot);
             else
                  pressureAreaTalus = NaN(size(data,2),size(data,3),length(rows)*length(cols));
             end

@@ -1,4 +1,4 @@
-function [dist1, dist2] = projectKinematics (voetPath, data, rowSpacing, colSpacing, ~)
+function [dist1, dist2] = projectKinematics (voetPath, data, rowSpacing, colSpacing, ~, toPlot)
 
     % Using different foot measurements for the ones that don't have good
     % talus measurements
@@ -101,16 +101,18 @@ function [dist1, dist2] = projectKinematics (voetPath, data, rowSpacing, colSpac
         Proj_Tal = V_Tal_New(dsearchn(V_Tal_New,V_Tib_Home(IndTib,:)),:);
         [dist1(i,:), dist2(i,:)] = DistanceFromVertexToVertex(V_Tal_New(IndTal,:),Proj_Tal,screwTib(3,:));
 
-        col_tal = plotPressureGradient(Proj_Tal, V_Tib(dsearchn(V_Tib,screwTib),:), V_Tal_New, squeeze(data(1,1,i,:,:)), rowSpacing, colSpacing);
-        % Draw the new joint configuration on the figure and write a frame
-        % in the video file.
-        obj = GUI_PlotShells(gca,F_Tal,V_Tal_New,col_tal,0,0);
-        view(177,-72)
-%         h = text(max(xlim)-5,max(ylim)-10,max(zlim)+5,num2str(i),'FontWeight','bold','BackgroundColor',[.7 .9 .7]);
-%         frame = getframe(gca,[0,0,600,800]);
-%         writeVideo(videoObj,frame);
-        saveas(gca, [voetPath,'/Tekscan/Animation/Frame',sprintf('%03d',i),'.png']);
-        delete(obj)
+        if strcmp(toPlot,'Yes')
+            col_tal = plotPressureGradient(Proj_Tal, V_Tib(dsearchn(V_Tib,screwTib),:), V_Tal_New, squeeze(data(1,1,i,:,:)), rowSpacing, colSpacing);
+            % Draw the new joint configuration on the figure and write a frame
+            % in the video file.
+            obj = GUI_PlotShells(gca,F_Tal,V_Tal_New,col_tal,0,0);
+            view(177,-72)
+    %         h = text(max(xlim)-5,max(ylim)-10,max(zlim)+5,num2str(i),'FontWeight','bold','BackgroundColor',[.7 .9 .7]);
+    %         frame = getframe(gca,[0,0,600,800]);
+    %         writeVideo(videoObj,frame);
+            saveas(gca, [voetPath,'/Tekscan/Animation/Frame',sprintf('%03d',i),'.png']);
+            delete(obj)
+        end
     end
 %     close(videoObj);
     close gcf;
