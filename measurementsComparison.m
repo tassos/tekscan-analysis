@@ -14,7 +14,7 @@ function measurementsComparison
     
     for z=1:size(directories,2)
         %% Loading measurement files
-        measPathName = [directories{z},'/'];
+        measPathName = [directories{z},'/Tekscan/'];
         measFileName = dir([measPathName,'*.mat']);
         
         % Last variable defines how many measurements from each foot and case should be
@@ -93,7 +93,7 @@ function measurementsComparison
         end
 
         % Plot pressure and force of the different areas over stance phase
-        [forceArea, forceAreaHeader, contactArea, contactAreaHeader] =...
+        [forceArea, forceAreaHeader, contactArea, contactAreaHeader] = ...
             plotForceArea (pos2, pos3, data, rows, cols, rowsPlot, colsPlot, senselArea, toPlot);
 
         % Plot peak pressure over stance phase
@@ -145,6 +145,7 @@ function measurementsComparison
             RdataS.Foot = name{1};
             RdataS.Variables = headers;
 
+            [~,~,~] = mkdir([directories{z},'\..'], 'Analysed_Results'); %Requesting three output variables, so that it does not give a warning when the folder exists
             save([directories{z} '/../Analysed_Results/Tekscan_Data_' name{1} '.mat'],'Rdata','RdataS');
         end
     end
