@@ -20,7 +20,7 @@ function calibrationsComparison
     close all force
     clc
 
-    directories = uipickfiles('FilterSpec',OSDetection);
+    directories = uipickfiles('FilterSpec',[OSDetection,'\Calibration measurements']);
     if isempty(directories)
         return
     end
