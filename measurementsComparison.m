@@ -139,10 +139,10 @@ function measurementsComparison
                         k=k+1;
                         Rdata.(cases{j}).data(k,:,:) = dataToSave(:,:,i);
                         Rdata.(cases{j}).names{k} = ['Trial ' sprintf('%02d',k)];
-                    elseif ~isempty(strfind(measFileName{i},cases{j})) && ~isempty(strfind(measFileName{i},'static'))
+                    elseif ~isempty(strfind(measFileName{i},[cases{j},'_'])) && ~isempty(strfind(measFileName{i},'static'))
                         p=p+1;
-                        RdataS.(cases{j}(1:end-1)).data(p,:,:) = dataToSave(:,:,i);
-                        RdataS.(cases{j}(1:end-1)).names{p} = ['Trial ' sprintf('%02d',p)];
+                        RdataS.(cases{j}).data(p,:,:) = dataToSave(:,:,i);
+                        RdataS.(cases{j}).names{p} = ['Trial ' sprintf('%02d',p)];
                     end
                 end
             end
