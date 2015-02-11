@@ -21,25 +21,25 @@ clc
 
 directories = uipickfiles('FilterSpec',OSDetection);
 for z=1:size(directories,2)
-    measFileName = dir([directories{z},'/Tekscan/*.asf']);
+    measFileName = dir([directories{z},'/*.asf']);
     measFileName = {measFileName.name};
 
     %Initialising a waitbar that shows the progress to the user
     h=waitbar(0,'Initialising waitbar...');
     
     % Checking if a file with the sensor information exists
-    toLoad = [directories{z} '/Specimen_details.xml'];
+    toLoad = [directories{z} '/Specimen_details.yml'];
     if ~exist(toLoad,'file')
         % If it doesn't, then the user is asked to select it him/herself
         [footFile, footPath] = uigetfile([directories{z},'*.xml'],'Select variable with details for the specimen');
         toLoad = [footPath, footFile];
     end
-    [side, positioning, sensor, specimen] = ExtractDetails(toLoad);
+    [side, flip, sensor, specimen] = ExtractDetails(toLoad);
 
     for i=1:size(measFileName,2)
         label = strrep(measFileName{i}(1:end-4),'_',' ');
         waitbar((i/size(measFileName,2)),h,['Calibrating ' label ' measurement of ' lower(specimen)]);
-        [data,sensit,spacing] = readTekscan([directories{z} '\Tekscan\' measFileName{i}]); %#ok<NASGU> Used later for saving
+        [data,sensit,spacing] = readTekscan([directories{z} '\' measFileName{i}]); %#ok<NASGU> Used later for saving
         
         cleanData = pressureCleanUp(data);
         
@@ -77,7 +77,7 @@ for z=1:size(directories,2)
         % upside Down, or if it's a left foot and the sensor was upside Up,
         % flipping is needed.
         calibratedData(calibratedData < 0) =0;
-        if xor(strcmp(side,'RIGHT'),positioning.(lower(specimenCase)))
+        if xor(strcmp(side,'RIGHT'),flip.(lower(specimenCase)))
             for k=1:size(calibratedData,1)
                 calibratedData(k,:,:)=fliplr(squeeze(calibratedData(k,:,:)));
             end
