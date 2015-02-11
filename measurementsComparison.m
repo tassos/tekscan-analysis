@@ -10,15 +10,11 @@ function measurementsComparison
     clc
     addToPath;
     
-    [cases, directories, toPlot, saveToFile, static] = Questions;
+    [cases, directories, toPlot, saveToFile] = Questions;
     
     for z=1:size(directories,2)
         %% Loading measurement files
-        if static
-            measPathName = [directories{z}, '/Tekscan/StaticProtocol/'];
-        else
-            measPathName = [directories{z},'/Tekscan/'];
-        end
+        measPathName = [directories{z},'/'];
         measFileName = dir([measPathName,'*.mat']);
         
         % Last variable defines how many measurements from each foot and case should be
@@ -35,8 +31,6 @@ function measurementsComparison
         % are following the same convention as all the Tekscan related files.
         load([measPathName measFileName{1}],'calibratedData');
         data=nan([size(measFileName),size(calibratedData)]);
-        fLevels=nan([size(measFileName,2),size(calibratedData,1),7]);
-        origFLevels=nan([size(measFileName,2),size(calibratedData,1),7]);
 
         % Remove files that are not really measurements
         faulty= ~cellfun('isempty',strfind(measFileName,'calibration.mat'));
@@ -47,13 +41,6 @@ function measurementsComparison
         legendNames{size(measFileName,2)}=[]; %#ok<AGROW> Not true
         % Load calibrated data from measurement files
         for i=1:size(measFileName,2)
-            if static
-                load([measPathName measFileName{i}],'forceLevels','origForceLevels');
-                fLevels(:,length(fLevels)+1:length(forceLevels),:)=NaN;
-                fLevels(i,1:size(forceLevels,1),:) = forceLevels;
-                origFLevels(:,length(origFLevels)+1:length(origForceLevels),:)=NaN;
-                origFLevels(i,1:size(origForceLevels,1),:) = origForceLevels;
-            end
             load([measPathName measFileName{i}],'calibratedData','spacing','fileName');
             data(1,:,length(data)+1:length(calibratedData),:,:)=NaN;
             data(1,i,1:size(calibratedData,1),:,:) = calibratedData;
@@ -70,11 +57,9 @@ function measurementsComparison
         data(:,:,:,[1:trim,end-trim+1:end],:)=0;
         data(:,:,:,:,[1:trim,end-trim+1:end])=0;
         
-%         if ~static
-            for i=1:size(data,2)
-                data(1,i,:,:,:) = smooth3(squeeze(data(1,i,:,:,:)));
-            end
-%         end
+        for i=1:size(data,2)
+            data(1,i,:,:,:) = smooth3(squeeze(data(1,i,:,:,:)));
+        end
 
 
         %% Statistics
@@ -102,7 +87,7 @@ function measurementsComparison
             floor(-size(data,4)/2)+1:1:floor(size(data,4)/2));
 
         % Decide how the sensor will be split in areas in a clever way
-        [rows,cols,rowsPlot,colsPlot,threshold] = areaDivision (x, y, 3, 2, rowSpacing);
+        [rows,cols,rowsPlot,colsPlot] = areaDivision (x, y, 3, 2);
 
         % Plot pressure using a 3D mesh. The area divisions and standard
         % deviation between the measurements is also plotted
@@ -142,15 +127,7 @@ function measurementsComparison
 
         %% Saving
 
-        if saveToFile
-            % Project areas control points on the talus and return the
-            % peak pressure over stance phase for each area.
-            if ~static
-                 pressureAreaTalus = peakAreaTalus (data, rows, cols, directories{z}, legendNames, threshold, rowSpacing, colSpacing, toPlot);
-            else
-                 pressureAreaTalus = NaN(size(data,2),size(data,3),length(rows)*length(cols));
-            end
-            
+        if saveToFile          
             headers = [forceAreaHeader, contactAreaHeader, pressureAreaHeader,...
                 {'PeakPressure','PeakLocation A/P','PeakLocation M/L','CoP A/P','CoP M/L','forceTotal'}];
             dataToSave = permute(cat(3,forceArea,contactArea,pressureArea,...
@@ -166,11 +143,6 @@ function measurementsComparison
                         k=k+1;
                         Rdata.(cases{j}).data(k,:,:) = dataToSave(:,:,i);
                         Rdata.(cases{j}).names{k} = ['Trial ' sprintf('%02d',k)];
-                        if static
-                            Rdata.(cases{j}).fLevels(k,:,:) = fLevels(k,:,1:end-1);
-                            Rdata.(cases{j}).posLevels(k,:) = fLevels(k,:,end);
-                            Rdata.(cases{j}).origFLevels(k,:,:) = origFLevels(k,:,1:end-1);
-                        end
                     elseif ~isempty(strfind(measFileName{i},cases{j})) && ~isempty(strfind(measFileName{i},'static'))
                         p=p+1;
                         RdataS.(cases{j}(1:end-1)).data(p,:,:) = dataToSave(:,:,i);
@@ -178,33 +150,21 @@ function measurementsComparison
                     end
                 end
             end
-            for i=1:size(pressureAreaTalus,1)
-                if isempty(strfind(measFileName{i},'static'))
-                    RdataT.('Tekscan').data(i,:,:) = pressureAreaTalus(i,:,:);
-                    RdataT.('Tekscan').names{i} = ['Trial ' sprintf('%02d',i)];
-                end
-            end
-            
+           
             name = strsplit(legendNames{1},' ');
             Rdata.Foot = name{1};
             Rdata.Variables = headers;
             Rdata.Muscles = headersStatic;
-            RdataT.Foot = name{1};
-            RdataT.Variables = pressureAreaHeader;
-            RdataT.Muscles = headersStatic;
             RdataS.Foot = name{1};
             RdataS.Variables = headers;
             RdataS.Muscles = headersStatic;
 
-            if static
-                name{1}=['Static_',name{1}];
-            end
-            save([directories{z} '/../Voet 99/Results/Tekscan_Data_' name{1} '.mat'],'Rdata','RdataT','RdataS');
+            save([directories{z} '/../Analysed_Results/Tekscan_Data_' name{1} '.mat'],'Rdata','RdataT','RdataS');
         end
     end
 end
 
-function [cases, directories, toPlot, saveToFile, static] = Questions
+function [cases, directories, toPlot, saveToFile] = Questions
     directories = uipickfiles('FilterSpec',OSDetection);
     
     info = ReadYaml([directories{1},'\Specimen_details.yml']);
@@ -227,7 +187,6 @@ function [cases, directories, toPlot, saveToFile, static] = Questions
     else
         saveToFile= 1;
     end
-    static = strcmp(questdlg('Do you want to analyse static protocol measurements?','Static Protocol?','Yes','No','No'),'Yes');
 end
 
 function newFileNames = filesCleanUp(cases,fileNames,m,n)
