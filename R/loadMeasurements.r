@@ -22,7 +22,7 @@ for (j in 1:length(myFile)) {
 
 	groups <- dim(myData$Rdata)[1]-nonCounted
 	groupsS <- dim(myData$RdataS)[1]-nonCounted
-	foot <- myData$Rdata[[groups+1]][1]
+	specimen <- myData$Rdata[[groups+1]][1]
 	dataTemp<-list()
 	dataTempS<-list()
 
@@ -35,7 +35,7 @@ for (j in 1:length(myFile)) {
 			dimnames(myData$Rdata[[i]][[1]])[[3]]<-unlist(myData$Rdata[[groups+2]])
 			dataTemp[[i]]<-as.data.frame(as.table(myData$Rdata[[i]][[1]]))
 			dataTemp[[i]]$Case<-as.factor(case)
-			dataTemp[[i]]$Foot<-as.factor(foot)
+			dataTemp[[i]]$Specimen<-as.factor(specimen)
 		}
 	}
 	dataTemp<-ldply(dataTemp, data.frame)
@@ -49,7 +49,7 @@ for (j in 1:length(myFile)) {
 			dimnames(myData$RdataS[[i]][[1]])[[3]]<-unlist(myData$RdataS[[groupsS+2]])
 			dataTempS[[i]]<-as.data.frame(as.table(myData$RdataS[[i]][[1]]))
 			dataTempS[[i]]$Case<-as.factor(case)
-			dataTempS[[i]]$Foot<-as.factor(foot)
+			dataTempS[[i]]$Specimen<-as.factor(specimen)
 		}
 	}
 	dataTempS<-ldply(dataTempS, data.frame)
@@ -57,8 +57,8 @@ for (j in 1:length(myFile)) {
 }
 rm(myData)
 
-colnames(data) <- c("Trial","Percentage","Variable","Value","Case","Foot")
-colnames(dataS) <- c("Trial","Percentage","Variable","Value","Case","Foot")
+colnames(data) <- c("Trial","Percentage","Variable","Value","Case","Specimen")
+colnames(dataS) <- c("Trial","Percentage","Variable","Value","Case","Specimen")
 data<-factorise(data)
 data<-data[complete.cases(data),]
 dataS<-dataS[complete.cases(dataS),]
@@ -75,7 +75,7 @@ if ("PeakPressure" %in% group) {
 	pp<-factorise(pp)
 	ppS<-dataS[grep("PeakPressure$",dataS$Variable),]
 	ppS<-factorise(ppS)
-	colnames(dataS) <- c("Trial","Percentage","Variable","Value","Case","Foot")
+	colnames(dataS) <- c("Trial","Percentage","Variable","Value","Case","Specimen")
     
 	save('ppS',file=paste(outdir,'\\peakPressureNeutral.RData',sep=''))
 	save('pp',file=paste(outdir,'\\peakPressure.RData',sep=''))
