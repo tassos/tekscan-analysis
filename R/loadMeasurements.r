@@ -15,6 +15,7 @@ nonCounted = 2
 
 data<-data.frame()
 dataS<-data.frame()
+ppS<-data.frame()
 
 for (j in 1:length(myFile)) {
 	myData <- readMat(myFile[[j]])
@@ -23,6 +24,7 @@ for (j in 1:length(myFile)) {
 	groupsS <- dim(myData$RdataS)[1]-nonCounted
 	foot <- myData$Rdata[[groups+1]][1]
 	dataTemp<-list()
+	dataTempS<-list()
 
 	for (i in 1:groups) {
 		case<-dimnames(myData$Rdata)[[1]][[i]]
@@ -38,12 +40,28 @@ for (j in 1:length(myFile)) {
 	}
 	dataTemp<-ldply(dataTemp, data.frame)
 	data<-rbind(data,dataTemp)
+
+	for (i in 1:groupsS) {
+		case<-dimnames(myData$RdataS)[[1]][[i]]
+		if (case != 'empty') {
+			dimnames(myData$RdataS[[i]][[1]])[[1]]<-myData$RdataS[[i]][[2]]
+			dimnames(myData$RdataS[[i]][[1]])[[2]]<-1:ncol(myData$RdataS[[i]][[1]])
+			dimnames(myData$RdataS[[i]][[1]])[[3]]<-unlist(myData$RdataS[[groupsS+2]])
+			dataTempS[[i]]<-as.data.frame(as.table(myData$RdataS[[i]][[1]]))
+			dataTempS[[i]]$Case<-as.factor(case)
+			dataTempS[[i]]$Foot<-as.factor(foot)
+		}
+	}
+	dataTempS<-ldply(dataTempS, data.frame)
+	dataS<-rbind(dataS,dataTempS)
 }
 rm(myData)
 
 colnames(data) <- c("Trial","Percentage","Variable","Value","Case","Foot")
+colnames(dataS) <- c("Trial","Percentage","Variable","Value","Case","Foot")
 data<-factorise(data)
 data<-data[complete.cases(data),]
+dataS<-dataS[complete.cases(dataS),]
 
 if ("PeakPressure" %in% group) {
 	ppArea<-data[grep("(PeakPressure).",data$Variable),]
@@ -55,7 +73,11 @@ if ("PeakPressure" %in% group) {
 	#Cleaning up of bad or non used measurements
 	pp<-data[grep("PeakPressure$",data$Variable),]
 	pp<-factorise(pp)
-
+	ppS<-dataS[grep("PeakPressure$",dataS$Variable),]
+	ppS<-factorise(ppS)
+	colnames(dataS) <- c("Trial","Percentage","Variable","Value","Case","Foot")
+    
+	save('ppS',file=paste(outdir,'\\peakPressureNeutral.RData',sep=''))
 	save('pp',file=paste(outdir,'\\peakPressure.RData',sep=''))
 	save('ppArea',file=paste(outdir,'\\ppArea.RData',sep=''))
 }
@@ -71,6 +93,10 @@ if ("force" %in% group) {
 
 	#Cleaning up of bad or non used measurements
 	force<-factorise(force)
+	forceS<-dataS[grep("(forceTotal)",dataS$Variable),]
+	forceS<-factorise(forceS)
+
+	save('forceS',file=paste(outdir,'\\forceNeutral.RData',sep=''))
 	save('force',file=paste(outdir,'\\force.RData',sep=''))
 	save('forceArea',file=paste(outdir,'\\forceArea.RData',sep=''))
 }
