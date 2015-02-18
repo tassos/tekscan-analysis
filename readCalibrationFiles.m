@@ -22,7 +22,7 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [meanData, loads, index] = readCalibrationFiles(h,pathName,batch)
+function [meanData, loads, index, patchDetails] = readCalibrationFiles(h,pathName,batch)
     %If in batch mode, then load all the ASCII files in the folder
     if batch
         calibPathName = [pathName,'/'];
@@ -49,6 +49,7 @@ function [meanData, loads, index] = readCalibrationFiles(h,pathName,batch)
             dimensions=[30,40];
         end
         loadArea = prod(dimensions)*1e-6;
+        patchDetails=ReadYaml([calibPathName,'Sensor_details.yml']);
 
         %Importing calibration data and inserting in a 2 dimensional array. The
         %first dimension is the rows times the columns of the sensor and the
@@ -56,6 +57,9 @@ function [meanData, loads, index] = readCalibrationFiles(h,pathName,batch)
         for i=1:size(calibFileName,1)
             waitbar((i/size(calibFileName,1)),h,'Reading calibration files');
             [data,sensitivity] = readTekscan([calibPathName calibFileName(i,:)]);
+            
+            spacing=size(data,3)/patchDetails.totalPatches;
+            patchData = data(:,:,spacing*(patchDetails.patch-1)+1:spacing*patchDetails.patch);
 
             %Checking if the index for the sensitivity that is calculated has
             %been created. If not, then it is created.
@@ -65,7 +69,7 @@ function [meanData, loads, index] = readCalibrationFiles(h,pathName,batch)
 
                 %Averaging the data for the whole measurement duration and
                 %retrieving the load that was applied from the filename
-                meanData.(sensitivity)(index.(sensitivity),1)=mean(data(:));
+                meanData.(sensitivity)(index.(sensitivity),1)=mean(patchData(:));
                 loads.(sensitivity)(index.(sensitivity),1)=str2double(calibFileName(i,1:length(regexp(calibFileName(i,:),'\d'))))/loadArea;
         end
         %Save the values to be used next time

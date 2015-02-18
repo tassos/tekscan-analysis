@@ -36,14 +36,12 @@ for z=1:size(directories,2)
         [footFile, footPath] = uigetfile([directories{z},'*.xml'],'Select variable with details for the specimen');
         toLoad = [footPath, footFile];
     end
-    [side, flip, sensor, specimen] = ExtractDetails(toLoad);
+    [side, flip, sensor, specimen] = extractSpecimenDetails(toLoad);
 
     for i=1:size(measFileName,2)
         label = strrep(measFileName{i}(1:end-4),'_',' ');
         waitbar((i/size(measFileName,2)),h,['Calibrating ' label ' measurement of specimen ' num2str(specimen)]);
         [data,sensit,spacing] = readTekscan([directories{z} '\' measFileName{i}]); %#ok<NASGU> Used later for saving
-        
-        cleanData = pressureCleanUp(data);
         
         %Detecting the foot case of the measurement and constructing
         %appropriate paths and filenames.
@@ -52,12 +50,12 @@ for z=1:size(directories,2)
         
         %Check to see if calibration for this sensor is already made. If
         %calibration file doesn't exists, calculate the calibration matrix.
-        if (exist(sensorFileName,'file')==2);
-            load(sensorFileName,'x','yi');
+        if exist(sensorFileName,'file');
+            load(sensorFileName,'x','yi',patchDetails);
         else
             calibrationFolder=[OSDetection '/Calibration measurements/',sensor.(lower(specimenCase))];
-            [meanData,loads,index] = readCalibrationFiles(h,calibrationFolder,batch);
-            [x, yi] = calibrationCoeff(h,directories{z},sensorFileName,meanData,loads,index);
+            [meanData,loads,index,patchDetails] = readCalibrationFiles(h,calibrationFolder,batch);
+            [x, yi] = calibrationCoeff(h,directories{z},sensorFileName,meanData,loads,index,patchDetails);
         end
         
         if ~exist('calibrationCurve','var')
@@ -65,6 +63,8 @@ for z=1:size(directories,2)
             prompt = {'Choose calibration curve to be used'};
             calibrationCurve = questdlg(prompt,'Calibration curve','PCHIP','Polynomial fitting','PCHIP');
         end
+        
+        cleanData = pressureCleanUp(data,patchDetails);
         
         % Deciding which calibration curve to use for calibrating the data,
         % based on user selection above.

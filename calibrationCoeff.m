@@ -1,4 +1,4 @@
-function [x, yi] = calibrationCoeff(h,pathName,sensorFileName,meanData,loads,index)
+function [x, yi] = calibrationCoeff(h,pathName,sensorFileName,meanData,loads,index,patchDetails)
     global xdata ydata
     
     if (exist([pathName,'\',sensorFileName],'file')==2);
@@ -79,6 +79,6 @@ function [x, yi] = calibrationCoeff(h,pathName,sensorFileName,meanData,loads,ind
             prog=prog+1;
             figure(gEval)
         end
-        save(sensorFileName, 'x','yi','error');
+        save(sensorFileName, 'x','yi','error','patchDetails');
     end
 end
