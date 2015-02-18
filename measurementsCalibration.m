@@ -40,7 +40,7 @@ for z=1:size(directories,2)
 
     for i=1:size(measFileName,2)
         label = strrep(measFileName{i}(1:end-4),'_',' ');
-        waitbar((i/size(measFileName,2)),h,['Calibrating ' label ' measurement of ' lower(specimen)]);
+        waitbar((i/size(measFileName,2)),h,['Calibrating ' label ' measurement of specimen ' num2str(specimen)]);
         [data,sensit,spacing] = readTekscan([directories{z} '\' measFileName{i}]); %#ok<NASGU> Used later for saving
         
         cleanData = pressureCleanUp(data);
@@ -57,12 +57,14 @@ for z=1:size(directories,2)
         else
             calibrationFolder=[OSDetection '/Calibration measurements/',sensor.(lower(specimenCase))];
             [meanData,loads,index] = readCalibrationFiles(h,calibrationFolder,batch);
-            [x, yi] = calibrationCoeff(h,measPathName,sensorFileName,meanData,loads,index);
+            [x, yi] = calibrationCoeff(h,directories{z},sensorFileName,meanData,loads,index);
         end
         
-        % Asking the user which calibration curve to be used
-        prompt = {'Choose calibration curve to be used'};
-        calibrationCurve = questdlg(prompt,'Calibration curve','PCHIP','Polynomial fitting','PCHIP');
+        if ~exist('calibrationCurve','var')
+            % Asking the user which calibration curve to be used
+            prompt = {'Choose calibration curve to be used'};
+            calibrationCurve = questdlg(prompt,'Calibration curve','PCHIP','Polynomial fitting','PCHIP');
+        end
         
         % Deciding which calibration curve to use for calibrating the data,
         % based on user selection above.
@@ -85,8 +87,8 @@ for z=1:size(directories,2)
             end
         end
         
-        fileName = [lower(specimen) '_' strtrim(measFileName{i}(1:end-4))];
-        save([directories{z} 'Calibrated_' fileName '.mat'],'calibratedData','spacing','fileName');
+        fileName = ['Specimen ', num2str(specimen) '_' strtrim(measFileName{i}(1:end-4))];
+        save([directories{z} '\Calibrated_' fileName '.mat'],'calibratedData','spacing','fileName');
     end
     close(h);
 end

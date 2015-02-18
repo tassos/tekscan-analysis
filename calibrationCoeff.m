@@ -1,8 +1,8 @@
 function [x, yi] = calibrationCoeff(h,pathName,sensorFileName,meanData,loads,index)
     global xdata ydata
     
-    if (exist([pathName 'calibration.mat'],'file')==2);
-        load([pathName 'calibration.mat'],'x');
+    if (exist([pathName,'\',sensorFileName],'file')==2);
+        load([pathName,'\',sensorFileName],'x','yi');
     else
         %Getting screen size for calculating the proper position of the figures
         set(0,'Units','pixels') 
