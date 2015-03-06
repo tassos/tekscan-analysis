@@ -34,7 +34,15 @@ function [data, sensitivity, spacing] = readTekscan(fileName)
     frameStr = ['Frame ' num2str(startFrame) '\r\n'];
     strEnd = strfind(text,sprintf(frameStr)) + length(sprintf(frameStr));
     
-    rawData = textscan(text(strEnd:end),'%f','CommentStyle','Frame','Delimiter',',');
+    % Detecting how many columns of 'B' there are, by counting all the 'B,'
+    % found in the string, and dividing by the number of rows and frames.
+    % Then substracting that number of columns, by the number provided by
+    % the sensor. The new ncols will be used for the reshaping of the array at the end.
+    ncols = ncols - length(regexp(text(strEnd:end),'B,'))/(nrows*(endFrame-startFrame+1));
+    
+    % Finally, removing all the 'B,' from the string.
+    text = strrep(text(strEnd:end),'B,','');
+    rawData = textscan(text,'%f','CommentStyle','Frame','Delimiter',',');
     
 %     % This is a slightly faster way to scrap the data, but less robust
 %     % than the 'textscan' solution. The speedup is around .5" for a
