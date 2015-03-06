@@ -14,6 +14,8 @@
 % - Data: Pressure data from ASCII file in a 3 dimentional matrix. First
 % dimension is for the time, second for the rows and third for the columns
 % - Sensitivity: Selected sensitivity for the TekScan measurement
+% - Spacing: the spacing of the rows and columns, used later on to
+% calculate the pressure from the force
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
